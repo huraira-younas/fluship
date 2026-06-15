@@ -7,6 +7,7 @@ enum AppTextVariant {
   primary,
   accent,
   danger,
+  custom,
   muted,
   warn,
   code,
@@ -84,10 +85,15 @@ class AppText extends StatelessWidget {
     this.softWrap,
     this.maxLines,
     this.weight,
+    this.color,
     super.key,
   }) : assert(
          headingLevel == null || (headingLevel >= 1 && headingLevel <= 3),
          'headingLevel must be between 1 and 3.',
+       ),
+       assert(
+         variant != .custom || color != null,
+         'AppText with custom variant requires a color.',
        );
 
   const AppText.body(
@@ -102,7 +108,8 @@ class AppText extends StatelessWidget {
     super.key,
   }) : headingLevel = null,
        variant = .primary,
-       size = .body;
+       size = .body,
+       color = null;
 
   const AppText.subtitle(
     this.data, {
@@ -116,7 +123,8 @@ class AppText extends StatelessWidget {
     super.key,
   }) : variant = .secondary,
        headingLevel = null,
-       size = .subtitle;
+       size = .subtitle,
+       color = null;
 
   const AppText.title(
     this.data, {
@@ -130,7 +138,8 @@ class AppText extends StatelessWidget {
     super.key,
   }) : headingLevel = null,
        variant = .primary,
-       size = .title;
+       size = .title,
+       color = null;
 
   const AppText.headline(
     this.data, {
@@ -144,7 +153,8 @@ class AppText extends StatelessWidget {
     this.weight,
     super.key,
   }) : variant = .primary,
-       size = .headline;
+       size = .headline,
+       color = null;
 
   const AppText.display(
     this.data, {
@@ -158,7 +168,8 @@ class AppText extends StatelessWidget {
     this.weight,
     super.key,
   }) : variant = .primary,
-       size = .display;
+       size = .display,
+       color = null;
 
   const AppText.caption(
     this.data, {
@@ -172,7 +183,8 @@ class AppText extends StatelessWidget {
     this.weight,
     super.key,
   }) : headingLevel = null,
-       size = .caption;
+       size = .caption,
+       color = null;
 
   const AppText.label(
     this.data, {
@@ -186,7 +198,8 @@ class AppText extends StatelessWidget {
     this.weight,
     super.key,
   }) : headingLevel = null,
-       size = .caption;
+       size = .caption,
+       color = null;
 
   const AppText.accent(
     this.data, {
@@ -200,7 +213,8 @@ class AppText extends StatelessWidget {
     this.weight,
     super.key,
   }) : headingLevel = null,
-       variant = .accent;
+       variant = .accent,
+       color = null;
 
   const AppText.danger(
     this.data, {
@@ -214,7 +228,8 @@ class AppText extends StatelessWidget {
     this.weight,
     super.key,
   }) : headingLevel = null,
-       variant = .danger;
+       variant = .danger,
+       color = null;
 
   const AppText.success(
     this.data, {
@@ -228,21 +243,38 @@ class AppText extends StatelessWidget {
     this.weight,
     super.key,
   }) : headingLevel = null,
-       variant = .success;
+       variant = .success,
+       color = null;
 
   const AppText.code(
     this.data, {
     this.selectable = false,
     this.semanticsLabel,
-    this.size = .body,
     this.textAlign,
     this.maxLines,
     this.softWrap,
     this.overflow,
     this.weight,
+    this.size = .body,
     super.key,
   }) : headingLevel = null,
-       variant = .code;
+       variant = .code,
+       color = null;
+
+  const AppText.custom(
+    this.data, {
+    required this.color,
+    this.selectable = false,
+    this.semanticsLabel,
+    this.textAlign,
+    this.overflow,
+    this.softWrap,
+    this.maxLines,
+    this.weight,
+    this.size = .body,
+    super.key,
+  }) : headingLevel = null,
+       variant = .custom;
 
   final AppTextVariant variant;
   final TextOverflow? overflow;
@@ -254,6 +286,7 @@ class AppText extends StatelessWidget {
   final bool selectable;
   final bool? softWrap;
   final int? maxLines;
+  final Color? color;
   final String data;
 
   Color _resolveColor(FlushipThemeExtension theme) {
@@ -261,6 +294,7 @@ class AppText extends StatelessWidget {
       return theme.headingColors[headingLevel!] ?? theme.colors.text;
     }
 
+    if (variant == .custom) return color!;
     final colors = theme.colors;
 
     return switch (variant) {
@@ -273,6 +307,7 @@ class AppText extends StatelessWidget {
       .dim => colors.textDim,
       .warn => colors.warn,
       .code => colors.cmd,
+      .custom => color!,
     };
   }
 
