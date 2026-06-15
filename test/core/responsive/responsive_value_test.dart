@@ -1,5 +1,5 @@
-import 'package:fluship/core/responsive/utils/responsive_value.dart';
 import 'package:fluship/core/responsive/models/app_breakpoint.dart';
+import 'package:fluship/core/responsive/utils/responsive_value.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -17,17 +17,27 @@ void main() {
       expect(value, 3);
     });
 
-    test('falls back to nearest smaller breakpoint when value omitted', () {
+    test('extraLarge returns compact when extraLarge value omitted', () {
       final value = pickResponsiveValue(
         breakpoint: AppBreakpoint.extraLarge,
         expanded: 3,
         compact: 1,
       );
 
-      expect(value, 3);
+      expect(value, 1);
     });
 
-    test('falls back to compact when no smaller values exist', () {
+    test('expanded falls back to extraLarge when expanded omitted', () {
+      final value = pickResponsiveValue(
+        breakpoint: AppBreakpoint.expanded,
+        extraLarge: 5,
+        compact: 1,
+      );
+
+      expect(value, 5);
+    });
+
+    test('falls back to compact when no earlier order entries exist', () {
       final value = pickResponsiveValue(
         breakpoint: AppBreakpoint.large,
         compact: 1,
@@ -36,7 +46,7 @@ void main() {
       expect(value, 1);
     });
 
-    test('supports mobile and desktop binary usage', () {
+    test('compact uses its own value before later order entries', () {
       expect(
         pickResponsiveValue(
           breakpoint: AppBreakpoint.compact,

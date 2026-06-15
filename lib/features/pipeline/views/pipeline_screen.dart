@@ -20,12 +20,16 @@ class PipelineScreen extends StatelessWidget {
           children: [
             ResponsiveBuilder(
               builder: (context, info) {
+                final isMobile = info.isMobile;
                 final header = <Widget>[
-                  const AppText.headline('ReelStay').expanded(),
+                  if (isMobile)
+                    const AppText.headline('ReelStay')
+                  else
+                    const AppText.headline('ReelStay').expanded(),
                   AppButton.primary(label: 'Run Pipeline', onPressed: () {}),
                 ];
 
-                if (info.isMobile) {
+                if (isMobile) {
                   return Column(
                     crossAxisAlignment: .stretch,
                     spacing: spacing.md,

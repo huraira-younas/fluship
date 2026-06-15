@@ -1,4 +1,5 @@
 import 'package:fluship/core/responsive/models/layout_constraints.dart';
+import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
@@ -23,6 +24,7 @@ class LayoutWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var content = child;
     return Scaffold(
       floatingActionButton: floatingActionButton,
       appBar: title != null
@@ -31,15 +33,16 @@ class LayoutWrapper extends StatelessWidget {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final viewportWidth = constraints.maxWidth;
-
-          if (!viewportWidth.isFinite || viewportWidth >= minWidth) {
-            return child;
+          if (padding != null) {
+            content = Padding(padding: padding!, child: content);
           }
 
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SizedBox(width: minWidth, child: child),
-          );
+          if (centerBody) content = content.center();
+          if (!viewportWidth.isFinite || viewportWidth >= minWidth) {
+            return content;
+          }
+
+          return AppText.danger("Anni Diya Kitna Chota krega?").center();
         },
       ),
     );
