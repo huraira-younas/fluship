@@ -23,6 +23,7 @@ class _AppState extends State<App> {
       listenable: _themeNotifier,
       builder: (context, _) {
         return MaterialApp(
+          debugShowCheckedModeBanner: false,
           theme: _themeNotifier.themeData,
           home: const _HomePage(),
           title: 'Fluship',
