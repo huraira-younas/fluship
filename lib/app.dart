@@ -1,5 +1,7 @@
-import 'features/pipeline/views/pipeline_screen.dart';
+import 'package:fluship/core/responsive/responsive.dart';
 import 'package:flutter/material.dart';
+
+import 'features/pipeline/views/pipeline_screen.dart';
 import 'core/app_theme/app_theme.dart';
 
 class App extends StatefulWidget {
@@ -23,11 +25,14 @@ class _AppState extends State<App> {
     return ListenableBuilder(
       listenable: _theme,
       builder: (context, _) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          home: const PipelineScreen(),
-          theme: _theme.themeData,
-          title: 'Fluship',
+        return OrientationLockScope(
+          lock: .portrait,
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: const PipelineScreen(),
+            theme: _theme.themeData,
+            title: 'Fluship',
+          ),
         );
       },
     );

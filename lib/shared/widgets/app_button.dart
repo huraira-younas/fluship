@@ -223,7 +223,7 @@ class AppButton extends StatelessWidget {
     this.tooltip,
     this.leading,
     super.key,
-  }) : variant = AppButtonVariant.ghost;
+  }) : variant = .ghost;
 
   const AppButton.danger({
     this.isExpanded = false,
@@ -239,7 +239,7 @@ class AppButton extends StatelessWidget {
     this.tooltip,
     this.leading,
     super.key,
-  }) : variant = AppButtonVariant.danger;
+  }) : variant = .danger;
 
   const AppButton.success({
     this.isExpanded = false,
@@ -255,7 +255,7 @@ class AppButton extends StatelessWidget {
     this.tooltip,
     this.leading,
     super.key,
-  }) : variant = AppButtonVariant.success;
+  }) : variant = .success;
 
   const AppButton.icon({
     required Widget this.leading,

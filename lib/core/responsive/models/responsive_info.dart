@@ -1,9 +1,22 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../utils/breakpoint_resolver.dart';
 import 'breakpoint_config.dart';
 import 'app_breakpoint.dart';
+
+enum AppOrientationLock {
+  landscape,
+  portrait,
+  all;
+
+  List<DeviceOrientation> get preferredOrientations => switch (this) {
+    .landscape => const <DeviceOrientation>[.landscapeLeft, .landscapeRight],
+    .portrait => const <DeviceOrientation>[.portraitUp, .portraitDown],
+    .all => DeviceOrientation.values,
+  };
+}
 
 class ResponsiveInfo extends Equatable {
   const ResponsiveInfo({
@@ -26,6 +39,15 @@ class ResponsiveInfo extends Equatable {
       breakpoint == .large;
 
   bool get isLandscape => orientation == .landscape;
+  bool get isPortrait => orientation == .portrait;
+
+  static Future<void> setOrientationLock(AppOrientationLock lock) {
+    return SystemChrome.setPreferredOrientations(lock.preferredOrientations);
+  }
+
+  static Future<void> clearOrientationLock() {
+    return setOrientationLock(.all);
+  }
 
   factory ResponsiveInfo.fromContext(
     BuildContext context, {

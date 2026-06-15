@@ -1,3 +1,4 @@
+export 'widgets/orientation_lock_scope.dart';
 export 'widgets/responsive_container.dart';
 export 'widgets/responsive_builder.dart';
 export 'models/layout_constraints.dart';

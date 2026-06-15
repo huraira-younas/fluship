@@ -1,5 +1,8 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
+import 'package:fluship/shared/extensions/widget_extensions.dart';
+import 'package:fluship/core/responsive/responsive.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
+import 'package:fluship/features/layout_wrapper.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
@@ -9,16 +12,29 @@ class PipelineScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spacing = context.flushipTheme.spacing;
-    return Scaffold(
-      body: SingleChildScrollView(
-        padding: .symmetric(horizontal: spacing.lg, vertical: spacing.lg),
+
+    return LayoutWrapper(
+      child: SingleChildScrollView(
+        padding: .all(spacing.md),
         child: Column(
           children: [
-            Row(
-              children: <Widget>[
-                AppText.headline("ReelStay"),
-                AppButton.primary(label: "Run Pipeline"),
-              ],
+            ResponsiveBuilder(
+              builder: (context, info) {
+                final header = <Widget>[
+                  const AppText.headline('ReelStay').expanded(),
+                  AppButton.primary(label: 'Run Pipeline', onPressed: () {}),
+                ];
+
+                if (info.isMobile) {
+                  return Column(
+                    crossAxisAlignment: .stretch,
+                    spacing: spacing.md,
+                    children: header,
+                  );
+                }
+
+                return Row(spacing: spacing.md, children: header);
+              },
             ),
           ],
         ),
