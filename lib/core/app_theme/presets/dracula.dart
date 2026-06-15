@@ -1,4 +1,5 @@
 import '../interfaces/theme_preset_module.dart';
+import '../models/app_themes.dart';
 import '../utils/color_from_hex.dart';
 import '../models/theme.dart';
 
@@ -6,8 +7,11 @@ final class DraculaPreset implements ThemePresetModule {
   const DraculaPreset();
 
   @override
+  AppThemes get id => AppThemes.dracula;
+
+  @override
   AppTheme get preset => AppTheme(
-    name: 'dracula',
+    id: id,
     palette: ThemePalette(
       consoleBorder: colorFromHex('#44475a'),
       consoleInner: colorFromHex('#191a21'),

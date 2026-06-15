@@ -1,4 +1,5 @@
 import '../interfaces/theme_preset_module.dart';
+import '../models/app_themes.dart';
 import '../utils/color_from_hex.dart';
 import '../models/theme.dart';
 
@@ -6,8 +7,11 @@ final class CatppuccinMochaPreset implements ThemePresetModule {
   const CatppuccinMochaPreset();
 
   @override
+  AppThemes get id => AppThemes.catppuccinMocha;
+
+  @override
   AppTheme get preset => AppTheme(
-    name: 'catppuccin_mocha',
+    id: id,
     palette: ThemePalette(
       consoleBorder: colorFromHex('#313244'),
       consoleInner: colorFromHex('#11111b'),

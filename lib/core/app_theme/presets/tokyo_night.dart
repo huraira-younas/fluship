@@ -1,4 +1,5 @@
 import '../interfaces/theme_preset_module.dart';
+import '../models/app_themes.dart';
 import '../utils/color_from_hex.dart';
 import '../models/theme.dart';
 
@@ -6,8 +7,11 @@ final class TokyoNightPreset implements ThemePresetModule {
   const TokyoNightPreset();
 
   @override
+  AppThemes get id => AppThemes.tokyoNight;
+
+  @override
   AppTheme get preset => AppTheme(
-    name: 'tokyo_night',
+    id: id,
     palette: ThemePalette(
       consoleBorder: colorFromHex('#292e42'),
       consoleInner: colorFromHex('#16161e'),

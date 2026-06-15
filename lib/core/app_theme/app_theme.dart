@@ -4,5 +4,6 @@ export 'mappers/app_theme_data_mapper.dart';
 export 'registry/app_theme_registry.dart';
 export 'fluship_theme_extension.dart';
 export 'utils/color_from_hex.dart';
+export 'models/app_themes.dart';
 export 'theme_notifier.dart';
 export 'models/theme.dart';

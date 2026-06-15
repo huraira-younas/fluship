@@ -1,4 +1,5 @@
 import '../interfaces/theme_preset_module.dart';
+import '../models/app_themes.dart';
 import '../utils/color_from_hex.dart';
 import '../models/theme.dart';
 
@@ -6,8 +7,11 @@ final class OneDarkPreset implements ThemePresetModule {
   const OneDarkPreset();
 
   @override
+  AppThemes get id => AppThemes.oneDark;
+
+  @override
   AppTheme get preset => AppTheme(
-    name: 'one_dark',
+    id: id,
     palette: ThemePalette(
       consoleBorder: colorFromHex('#3e4452'),
       consoleInner: colorFromHex('#1b1d23'),

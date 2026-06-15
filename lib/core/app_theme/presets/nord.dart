@@ -1,4 +1,5 @@
 import '../interfaces/theme_preset_module.dart';
+import '../models/app_themes.dart';
 import '../utils/color_from_hex.dart';
 import '../models/theme.dart';
 
@@ -6,8 +7,11 @@ final class NordPreset implements ThemePresetModule {
   const NordPreset();
 
   @override
+  AppThemes get id => AppThemes.nord;
+
+  @override
   AppTheme get preset => AppTheme(
-    name: 'nord',
+    id: id,
     palette: ThemePalette(
       consoleBorder: colorFromHex('#3b4252'),
       consoleInner: colorFromHex('#242933'),

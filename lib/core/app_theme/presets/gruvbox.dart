@@ -1,4 +1,5 @@
 import '../interfaces/theme_preset_module.dart';
+import '../models/app_themes.dart';
 import '../utils/color_from_hex.dart';
 import '../models/theme.dart';
 
@@ -6,8 +7,11 @@ final class GruvboxPreset implements ThemePresetModule {
   const GruvboxPreset();
 
   @override
+  AppThemes get id => AppThemes.gruvbox;
+
+  @override
   AppTheme get preset => AppTheme(
-    name: 'gruvbox',
+    id: id,
     palette: ThemePalette(
       consoleBorder: colorFromHex('#3c3836'),
       consoleInner: colorFromHex('#1d2021'),

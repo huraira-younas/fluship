@@ -9,7 +9,7 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  late final ThemeNotifier _themeNotifier = ThemeNotifier();
+  final _themeNotifier = ThemeNotifier();
 
   @override
   void dispose() {
@@ -23,9 +23,9 @@ class _AppState extends State<App> {
       listenable: _themeNotifier,
       builder: (context, _) {
         return MaterialApp(
-          title: 'Fluship',
           theme: _themeNotifier.themeData,
           home: const _HomePage(),
+          title: 'Fluship',
         );
       },
     );
@@ -48,11 +48,8 @@ class _HomePage extends StatelessWidget {
       ),
       body: Center(
         child: Text(
-          'Theme: ${flushipTheme.theme.name}',
-          style: TextStyle(
-            color: flushipTheme.colors.accent,
-            fontSize: 18,
-          ),
+          'Theme: ${flushipTheme.theme.id.key}',
+          style: TextStyle(color: flushipTheme.colors.accent, fontSize: 18),
         ),
       ),
     );

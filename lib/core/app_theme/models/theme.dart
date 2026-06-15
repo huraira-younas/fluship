@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart' show Color;
 import 'package:equatable/equatable.dart';
 
+import 'app_themes.dart';
+
 part 'theme_palette.dart';
 part 'theme_spacing.dart';
 part 'theme_radius.dart';
@@ -10,15 +12,13 @@ class AppTheme {
     this.radius = const ThemeRadius(),
     this.pad = const ThemeSpacing(),
     required this.palette,
-    required this.name,
+    required this.id,
   });
 
   final ThemePalette palette;
   final ThemeRadius radius;
   final ThemeSpacing pad;
-  final String name;
-
-  static const defaultThemeName = 'one_dark';
+  final AppThemes id;
 
   Color get codeBg => palette.codeBg;
 

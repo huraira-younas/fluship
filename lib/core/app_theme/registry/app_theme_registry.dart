@@ -1,31 +1,32 @@
+import '../models/app_themes.dart';
 import '../models/theme.dart';
 
 class AppThemeRegistry {
   AppThemeRegistry._();
 
-  static final Map<String, AppTheme> _themes = {};
+  static final Map<AppThemes, AppTheme> _themes = {};
 
   static bool get isEmpty => _themes.isEmpty;
 
   static void register(AppTheme theme) {
-    _themes[theme.name] = theme;
+    _themes[theme.id] = theme;
   }
 
-  static AppTheme get(String name) {
-    final theme = _themes[name];
+  static AppTheme get(AppThemes id) {
+    final theme = _themes[id];
     if (theme == null) {
-      final available = _themes.keys.toList()..sort();
+      final available = _themes.keys.map((id) => id.key).toList()..sort();
       throw ArgumentError(
-        'Unknown theme "$name". Available: ${available.join(", ")}',
+        'Unknown theme "${id.key}". Available: ${available.join(", ")}',
       );
     }
 
     return theme;
   }
 
-  static List<String> get availableThemes {
-    final names = _themes.keys.toList();
-    names.sort();
-    return names;
+  static List<AppThemes> get availableThemes {
+    final ids = _themes.keys.toList();
+    ids.sort((a, b) => a.key.compareTo(b.key));
+    return ids;
   }
 }

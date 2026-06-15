@@ -3,17 +3,20 @@ import 'package:flutter/material.dart';
 import 'registry/theme_preset_registry.dart';
 import 'mappers/app_theme_data_mapper.dart';
 import 'registry/app_theme_registry.dart';
+import 'models/app_themes.dart';
 import 'models/theme.dart';
 
 class ThemeNotifier extends ChangeNotifier {
-  ThemeNotifier({String? initial}) {
+  ThemeNotifier({AppThemes? initial}) {
     ThemePresetRegistry.registerAll();
-    _active = AppThemeRegistry.get(initial ?? AppTheme.defaultThemeName);
+    _active = AppThemeRegistry.get(initial ?? AppThemes.defaultTheme);
   }
 
   late AppTheme _active;
 
   AppTheme get theme => _active;
+
+  AppThemes get activeTheme => _active.id;
 
   ThemePalette get colors => _active.palette;
 
@@ -23,11 +26,9 @@ class ThemeNotifier extends ChangeNotifier {
 
   ThemeData get themeData => _active.toThemeData();
 
-  String get themeName => _active.name;
-
-  void setTheme(String name) {
-    if (_active.name == name) return;
-    _active = AppThemeRegistry.get(name);
+  void setTheme(AppThemes theme) {
+    if (_active.id == theme) return;
+    _active = AppThemeRegistry.get(theme);
     notifyListeners();
   }
 }
