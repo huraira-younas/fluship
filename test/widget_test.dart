@@ -7,6 +7,6 @@ void main() {
     await tester.pumpWidget(const App());
 
     expect(find.text('Fluship'), findsOneWidget);
-    expect(find.text('Theme: one_dark'), findsOneWidget);
+    expect(find.text('Theme: catppuccin_mocha'), findsOneWidget);
   });
 }

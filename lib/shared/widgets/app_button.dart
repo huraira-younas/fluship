@@ -292,7 +292,8 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final flushipTheme = context.flushipTheme;
-    final metrics = _AppButtonMetrics.forSize(size, flushipTheme.pad);
+    
+    final metrics = _AppButtonMetrics.forSize(size, flushipTheme.spacing);
     final palette = _AppButtonColors.resolve(
       colors: flushipTheme.colors,
       variant: variant,

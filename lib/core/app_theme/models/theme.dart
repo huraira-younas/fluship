@@ -9,15 +9,15 @@ part 'theme_radius.dart';
 
 class AppTheme {
   const AppTheme({
+    this.spacing = const ThemeSpacing(),
     this.radius = const ThemeRadius(),
-    this.pad = const ThemeSpacing(),
     required this.palette,
     required this.id,
   });
 
+  final ThemeSpacing spacing;
   final ThemePalette palette;
   final ThemeRadius radius;
-  final ThemeSpacing pad;
   final AppThemes id;
 
   Color get codeBg => palette.codeBg;

@@ -1,5 +1,6 @@
 export 'widgets/responsive_container.dart';
 export 'widgets/responsive_builder.dart';
+export 'models/layout_constraints.dart';
 export 'utils/breakpoint_resolver.dart';
 export 'models/breakpoint_config.dart';
 export 'utils/responsive_value.dart';

@@ -1,3 +1,4 @@
+import 'features/pipeline/views/pipeline_screen.dart';
 import 'package:flutter/material.dart';
 import 'core/app_theme/app_theme.dart';
 
@@ -9,50 +10,26 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  final _themeNotifier = ThemeNotifier();
+  final _theme = ThemeNotifier();
 
   @override
   void dispose() {
-    _themeNotifier.dispose();
+    _theme.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: _themeNotifier,
+      listenable: _theme,
       builder: (context, _) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          theme: _themeNotifier.themeData,
-          home: const _HomePage(),
+          home: const PipelineScreen(),
+          theme: _theme.themeData,
           title: 'Fluship',
         );
       },
     );
   }
 }
-class _HomePage extends StatelessWidget {
-  const _HomePage();
-
-  @override
-  Widget build(BuildContext context) {
-    final flushipTheme = context.flushipTheme;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Fluship',
-          style: TextStyle(color: flushipTheme.colors.text),
-        ),
-      ),
-      body: Center(
-        child: Text(
-          'Theme: ${flushipTheme.theme.id.key}',
-          style: TextStyle(color: flushipTheme.colors.accent, fontSize: 18),
-        ),
-      ),
-    );
-  }
-}
-

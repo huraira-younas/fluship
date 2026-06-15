@@ -40,8 +40,8 @@ class AppThemeDataMapper {
       ),
       inputDecorationTheme: InputDecorationTheme(
         contentPadding: .symmetric(
-          horizontal: theme.pad.md,
-          vertical: theme.pad.sm,
+          horizontal: theme.spacing.md,
+          vertical: theme.spacing.sm,
         ),
         fillColor: colors.disabled,
         filled: true,
@@ -63,7 +63,10 @@ class AppThemeDataMapper {
           shape: RoundedRectangleBorder(
             borderRadius: .circular(theme.radius.btn),
           ),
-          padding: .symmetric(horizontal: theme.pad.md, vertical: theme.pad.sm),
+          padding: .symmetric(
+            horizontal: theme.spacing.md,
+            vertical: theme.spacing.sm,
+          ),
           backgroundColor: colors.accent,
           foregroundColor: colors.bg,
         ),

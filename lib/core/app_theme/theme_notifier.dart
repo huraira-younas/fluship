@@ -22,7 +22,7 @@ class ThemeNotifier extends ChangeNotifier {
 
   ThemeRadius get radius => _active.radius;
 
-  ThemeSpacing get pad => _active.pad;
+  ThemeSpacing get spacing => _active.spacing;
 
   ThemeData get themeData => _active.toThemeData();
 

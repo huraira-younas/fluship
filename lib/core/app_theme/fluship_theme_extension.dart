@@ -6,17 +6,17 @@ class FlushipThemeExtension extends ThemeExtension<FlushipThemeExtension> {
   const FlushipThemeExtension({
     required this.headingColors,
     required this.codeBorder,
+    required this.spacing,
     required this.codeBg,
     required this.colors,
     required this.radius,
     required this.theme,
-    required this.pad,
   });
 
   final Map<int, Color> headingColors;
+  final ThemeSpacing spacing;
   final ThemePalette colors;
   final ThemeRadius radius;
-  final ThemeSpacing pad;
   final Color codeBorder;
   final AppTheme theme;
   final Color codeBg;
@@ -25,10 +25,10 @@ class FlushipThemeExtension extends ThemeExtension<FlushipThemeExtension> {
     return FlushipThemeExtension(
       headingColors: theme.headingColors,
       codeBorder: theme.codeBorder,
+      spacing: theme.spacing,
       colors: theme.palette,
       radius: theme.radius,
       codeBg: theme.codeBg,
-      pad: theme.pad,
       theme: theme,
     );
   }
@@ -36,21 +36,21 @@ class FlushipThemeExtension extends ThemeExtension<FlushipThemeExtension> {
   @override
   FlushipThemeExtension copyWith({
     Map<int, Color>? headingColors,
+    ThemeSpacing? spacing,
     ThemePalette? colors,
     ThemeRadius? radius,
     Color? codeBorder,
-    ThemeSpacing? pad,
     AppTheme? theme,
     Color? codeBg,
   }) {
     return FlushipThemeExtension(
       headingColors: headingColors ?? this.headingColors,
       codeBorder: codeBorder ?? this.codeBorder,
+      spacing: spacing ?? this.spacing,
       codeBg: codeBg ?? this.codeBg,
       colors: colors ?? this.colors,
       radius: radius ?? this.radius,
       theme: theme ?? this.theme,
-      pad: pad ?? this.pad,
     );
   }
 
