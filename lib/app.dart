@@ -32,7 +32,6 @@ class _AppState extends State<App> {
     );
   }
 }
-
 class _HomePage extends StatelessWidget {
   const _HomePage();
 
@@ -56,3 +55,4 @@ class _HomePage extends StatelessWidget {
     );
   }
 }
+

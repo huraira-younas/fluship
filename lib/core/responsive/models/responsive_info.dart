@@ -1,0 +1,47 @@
+import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+
+import '../utils/breakpoint_resolver.dart';
+import 'breakpoint_config.dart';
+import 'app_breakpoint.dart';
+
+class ResponsiveInfo extends Equatable {
+  const ResponsiveInfo({
+    required this.orientation,
+    required this.breakpoint,
+    required this.height,
+    required this.width,
+  });
+
+  final AppBreakpoint breakpoint;
+  final Orientation orientation;
+  final double height;
+  final double width;
+
+  bool get isMobile => breakpoint == .compact;
+
+  bool get isDesktop =>
+      breakpoint == .extraLarge ||
+      breakpoint == .expanded ||
+      breakpoint == .large;
+
+  bool get isLandscape => orientation == .landscape;
+
+  factory ResponsiveInfo.fromContext(
+    BuildContext context, {
+    BreakpointConfig? config,
+  }) {
+    final breakpointConfig = config ?? BreakpointConfig.material3();
+    final mediaQuery = MediaQuery.sizeOf(context);
+
+    return ResponsiveInfo(
+      breakpoint: resolveBreakpoint(mediaQuery.width, breakpointConfig),
+      orientation: MediaQuery.orientationOf(context),
+      height: mediaQuery.height,
+      width: mediaQuery.width,
+    );
+  }
+
+  @override
+  List<Object?> get props => [orientation, breakpoint, height, width];
+}
