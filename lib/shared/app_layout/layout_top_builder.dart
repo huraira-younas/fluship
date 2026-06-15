@@ -6,15 +6,31 @@ import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
-enum Tabs { config, console, settings }
+enum LayoutTabs {
+  config(0),
+  console(1),
+  settings(2);
 
-class TopBuilder extends StatelessWidget {
-  const TopBuilder({required this.spacing, super.key});
+  const LayoutTabs(this.value);
+  final int value;
+}
+
+class LayoutTopBuilder extends StatelessWidget {
+  const LayoutTopBuilder({
+    required this.onTabChanged,
+    required this.selectedTab,
+    required this.spacing,
+    super.key,
+  });
+
+  final Function(LayoutTabs) onTabChanged;
+  final LayoutTabs selectedTab;
   final ThemeSpacing spacing;
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      spacing: spacing.lg,
       children: <Widget>[
         ResponsiveBuilder(
           builder: (context, info) {
@@ -40,9 +56,9 @@ class TopBuilder extends StatelessWidget {
         ),
         LabelsBuilder(
           padding: .symmetric(horizontal: spacing.md),
-          labels: Tabs.values,
-          label: Tabs.config,
-          onChange: (value) {},
+          labels: LayoutTabs.values,
+          onChange: onTabChanged,
+          label: selectedTab,
         ),
       ],
     );

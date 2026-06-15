@@ -1,7 +1,7 @@
 import 'package:fluship/core/responsive/responsive.dart';
 import 'package:flutter/material.dart';
 
-import 'features/pipeline/views/pipeline_screen.dart';
+import 'shared/app_layout/app_layout.dart';
 import 'core/app_theme/app_theme.dart';
 
 class App extends StatefulWidget {
@@ -29,7 +29,7 @@ class _AppState extends State<App> {
           lock: .portrait,
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
-            home: const PipelineScreen(),
+            home: const LayoutScreen(),
             theme: _theme.themeData,
             title: 'Fluship',
           ),

@@ -1,16 +1,13 @@
 import 'package:equatable/equatable.dart';
 
 class LayoutConstraints extends Equatable {
-  const LayoutConstraints({
-    this.maxDesktopWidth = 1200,
-    this.minMobileWidth = 360,
-  });
+  const LayoutConstraints({this.maxWidth = 1080, this.minWidth = 360});
 
-  final double maxDesktopWidth;
-  final double minMobileWidth;
+  final double maxWidth;
+  final double minWidth;
 
   static const material3 = LayoutConstraints();
 
   @override
-  List<Object?> get props => [minMobileWidth, maxDesktopWidth];
+  List<Object?> get props => [minWidth, maxWidth];
 }
