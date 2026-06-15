@@ -6,14 +6,14 @@ void main() {
     test('material3 defaults', () {
       const constraints = LayoutConstraints.material3;
 
-      expect(constraints.minMobileWidth, 360);
-      expect(constraints.maxDesktopWidth, 1200);
+      expect(constraints.minWidth, 360);
+      expect(constraints.maxWidth, 1080);
     });
 
     test('supports custom minimum mobile width', () {
-      const constraints = LayoutConstraints(minMobileWidth: 390);
+      const constraints = LayoutConstraints(minWidth: 390);
 
-      expect(constraints.minMobileWidth, 390);
+      expect(constraints.minWidth, 390);
     });
   });
 }
