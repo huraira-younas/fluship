@@ -2,6 +2,7 @@ import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
 
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
+import 'package:fluship/shared/models/post_git.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:fluship/shared/models/android_config.dart';
@@ -50,6 +51,10 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
         final ios = event.config as IosConfigModel;
         emit(state.copyWith(ios: ios));
         await _sharedPrefs.setObject(.ios, ios.toJson());
+      case PostGitModel():
+        final postGit = event.config as PostGitModel;
+        emit(state.copyWith(postGit: postGit));
+        await _sharedPrefs.setObject(.postGit, postGit.toJson());
       default:
         throw Exception('Invalid config type: ${event.config.runtimeType}');
     }
@@ -61,6 +66,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     final savedAppInfo = _sharedPrefs.getObject(.appInfo);
     final commonCmd = _sharedPrefs.getObject(.commonCmd);
     final android = _sharedPrefs.getObject(.android);
+    final postGit = _sharedPrefs.getObject(.postGit);
     final preGit = _sharedPrefs.getObject(.preGit);
     final ios = _sharedPrefs.getObject(.ios);
 
@@ -81,6 +87,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     emit(
       state.copyWith(
         commonCmd: .fromJson(commonCmd),
+        postGit: .fromJson(postGit),
         android: .fromJson(android),
         preGit: .fromJson(preGit),
         ios: .fromJson(ios),
@@ -108,6 +115,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
       _sharedPrefs.setObject(.commonCmd, state.commonCmd.toJson()),
       _sharedPrefs.setObject(.android, state.android.toJson()),
       _sharedPrefs.setObject(.appInfo, state.appInfo.toJson()),
+      _sharedPrefs.setObject(.postGit, state.postGit.toJson()),
       _sharedPrefs.setObject(.preGit, state.preGit.toJson()),
       _sharedPrefs.setObject(.ios, state.ios.toJson()),
     ]);

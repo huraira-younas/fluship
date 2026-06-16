@@ -25,8 +25,8 @@ class IosConfig extends StatelessWidget {
           ),
           title: "iOS Config",
           description:
-              "Control what iOS artifacts Fluship produces: enable IPA for App Store uploads or choose for direct distribution. "
-              "Selecting the right output type here avoids a separate manual build step after the pipeline finishes.",
+              "Manage your iOS build steps in one place: run a full CocoaPods reset to clear stale pod caches before compilation, and toggle IPA export for App Store or ad-hoc distribution. "
+              "Pod Clean is especially useful when native dependency versions change and a simple pod install isn't enough.",
           children: [
             SwitchLabel(
               disabled: !ios.enabled,
