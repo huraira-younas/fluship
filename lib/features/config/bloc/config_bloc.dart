@@ -3,6 +3,7 @@ import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 import 'package:fluship/shared/models/base_config.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
 import 'package:fluship/shared/models/app_info.dart';
+import 'package:fluship/shared/models/common_cmd.dart';
 import 'package:fluship/shared/models/pre_git.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -33,6 +34,10 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
         final preGit = event.config as PreGitModel;
         emit(state.copyWith(preGit: preGit));
         await _sharedPrefs.setObject(.preGit, preGit.toJson());
+      case CommonCmdModel():
+        final commonCmd = event.config as CommonCmdModel;
+        emit(state.copyWith(commonCmd: commonCmd));
+        await _sharedPrefs.setObject(.commonCmd, commonCmd.toJson());
       default:
         throw Exception('Invalid config type: ${event.config.runtimeType}');
     }
@@ -42,6 +47,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     emit(state.copyWith(loading: true));
 
     final savedAppInfo = _sharedPrefs.getObject(.appInfo);
+    final commonCmd = _sharedPrefs.getObject(.commonCmd);
     final preGit = _sharedPrefs.getObject(.preGit);
 
     var appInfo = savedAppInfo != null
@@ -61,6 +67,9 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     emit(
       state.copyWith(
         loading: false,
+        commonCmd: commonCmd != null
+            ? CommonCmdModel.fromJson(commonCmd)
+            : const CommonCmdModel(),
         preGit: preGit != null
             ? PreGitModel.fromJson(preGit)
             : const PreGitModel(),
@@ -79,10 +88,12 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     );
 
     await _sharedPrefs.setObject(.appInfo, appInfo.toJson());
+    emit(state.copyWith(appInfo: appInfo));
   }
 
   Future<void> _saveConfig(Emitter<ConfigState> emit, SaveConfig event) async {
     await Future.wait([
+      _sharedPrefs.setObject(.commonCmd, state.commonCmd.toJson()),
       _sharedPrefs.setObject(.appInfo, state.appInfo.toJson()),
       _sharedPrefs.setObject(.preGit, state.preGit.toJson()),
     ]);

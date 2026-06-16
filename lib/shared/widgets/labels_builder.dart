@@ -7,6 +7,7 @@ class LabelsBuilder<T> extends StatefulWidget {
   const LabelsBuilder({
     required this.onChange,
     required this.padding,
+    this.disabled = false,
     required this.labels,
     required this.label,
     super.key,
@@ -15,6 +16,7 @@ class LabelsBuilder<T> extends StatefulWidget {
   final void Function(T label) onChange;
   final EdgeInsets padding;
   final List<T> labels;
+  final bool disabled;
   final T label;
 
   @override
@@ -119,7 +121,7 @@ class _LabelsBuilderState<T> extends State<LabelsBuilder<T>> {
                 : value.toString();
 
             return _TabButton(
-              onTap: () => widget.onChange(value),
+              onTap: widget.disabled ? null : () => widget.onChange(value),
               title: text.capitalize,
               isSelected: active,
               key: _keys[idx],
@@ -134,13 +136,15 @@ class _LabelsBuilderState<T> extends State<LabelsBuilder<T>> {
 class _TabButton extends StatelessWidget {
   const _TabButton({
     required this.isSelected,
-    required this.onTap,
     required this.title,
+    this.onTap,
     super.key,
   });
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final bool isSelected;
   final String title;
+
+  bool get _disabled => onTap == null;
 
   @override
   Widget build(BuildContext context) {
@@ -154,12 +158,16 @@ class _TabButton extends StatelessWidget {
         curve: Curves.easeInOut,
         padding: const .symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? colors.text : Colors.transparent,
+          color: isSelected && !_disabled ? colors.text : Colors.transparent,
           borderRadius: .circular(20),
         ),
         child: AppText.custom(
-          color: isSelected ? colors.bg : colors.textDim,
-          weight: isSelected ? .w700 : .w500,
+          color: _disabled
+              ? colors.textDim.withValues(alpha: 0.4)
+              : isSelected
+              ? colors.bg
+              : colors.textDim,
+          weight: isSelected && !_disabled ? .w700 : .w500,
           title,
         ),
       ),

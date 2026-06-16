@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
 import '../sections/build_config.dart';
+import '../sections/common_cmd.dart';
 import '../bloc/config_bloc.dart';
 import '../sections/pre_git.dart';
 
@@ -45,7 +46,7 @@ class ConfigScreen extends StatelessWidget {
 
         return const Column(
           spacing: 20,
-          children: <Widget>[BuildConfig(), PreGit()],
+          children: <Widget>[BuildConfig(), PreGit(), CommonCmd()],
         );
       },
     );
