@@ -1,3 +1,4 @@
+import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
 import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 import 'package:fluship/shared/models/base_config.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
@@ -9,20 +10,29 @@ part 'config_event.dart';
 part 'config_state.dart';
 
 class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
+  final _projectService = const FlutterProjectService();
   final _sharedPrefs = SharedPrefs.i;
 
   ConfigBloc() : super(ConfigState.empty()) {
+    on<SyncProjectAppInfo>(handler(_syncProjectAppInfo));
     on<UpdateConfig>(handler(_updateConfig));
     on<LoadConfig>(handler(_loadConfig));
     on<SaveConfig>(handler(_saveConfig));
   }
 
-  void _updateConfig(Emitter<ConfigState> emit, UpdateConfig event) {
+  Future<void> _updateConfig(
+    Emitter<ConfigState> emit,
+    UpdateConfig event,
+  ) async {
     switch (event.config) {
       case AppInfoModel():
-        emit(state.copyWith(appInfo: event.config as AppInfoModel));
+        final appInfo = event.config as AppInfoModel;
+        emit(state.copyWith(appInfo: appInfo));
+        await _sharedPrefs.setObject(.appInfo, appInfo.toJson());
       case PreGitModel():
-        emit(state.copyWith(preGit: event.config as PreGitModel));
+        final preGit = event.config as PreGitModel;
+        emit(state.copyWith(preGit: preGit));
+        await _sharedPrefs.setObject(.preGit, preGit.toJson());
       default:
         throw Exception('Invalid config type: ${event.config.runtimeType}');
     }
@@ -31,8 +41,22 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
   Future<void> _loadConfig(Emitter<ConfigState> emit, LoadConfig event) async {
     emit(state.copyWith(loading: true));
 
-    final appInfo = _sharedPrefs.getObject(.appInfo); // this should get from the project path
+    final savedAppInfo = _sharedPrefs.getObject(.appInfo);
     final preGit = _sharedPrefs.getObject(.preGit);
+
+    var appInfo = savedAppInfo != null
+        ? AppInfoModel.fromJson(savedAppInfo)
+        : const AppInfoModel();
+
+    final path = "C:\\Users\\Senpai\\Desktop\\Programs\\reelstay";
+    if (path.isNotEmpty) {
+      appInfo = await _projectService.extractAppInfo(
+        flutterProjectPath: path,
+        base: appInfo,
+      );
+
+      await _sharedPrefs.setObject(.appInfo, appInfo.toJson());
+    }
 
     emit(
       state.copyWith(
@@ -40,11 +64,24 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
         preGit: preGit != null
             ? PreGitModel.fromJson(preGit)
             : const PreGitModel(),
-        appInfo: appInfo != null
-            ? AppInfoModel.fromJson(appInfo)
-            : const AppInfoModel(),
+        appInfo: appInfo,
       ),
     );
+  }
+
+  Future<void> _syncProjectAppInfo(
+    Emitter<ConfigState> emit,
+    SyncProjectAppInfo event,
+  ) async {
+    emit(state.copyWith(loading: true));
+
+    final appInfo = await _projectService.extractAppInfo(
+      flutterProjectPath: event.flutterProjectPath,
+      base: state.appInfo,
+    );
+
+    await _sharedPrefs.setObject(.appInfo, appInfo.toJson());
+    emit(state.copyWith(loading: false, appInfo: appInfo));
   }
 
   Future<void> _saveConfig(Emitter<ConfigState> emit, SaveConfig event) async {

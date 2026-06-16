@@ -20,6 +20,21 @@ class SaveConfig extends ConfigEvent {
   Map<String, dynamic> toJson() => {};
 }
 
+class SyncProjectAppInfo extends ConfigEvent {
+  const SyncProjectAppInfo({
+    required this.flutterProjectPath,
+    super.onSuccess,
+    super.onError,
+  }) : super(name: 'Sync_Project_App_Info');
+
+  final String flutterProjectPath;
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'flutter_project_path': flutterProjectPath,
+  };
+}
+
 class UpdateConfig extends ConfigEvent {
   final BaseConfig config;
   const UpdateConfig({required this.config, super.onSuccess, super.onError})
