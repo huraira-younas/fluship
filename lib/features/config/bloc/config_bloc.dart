@@ -10,9 +10,13 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
   final _sharedPrefs = SharedPrefs.i;
 
   ConfigBloc() : super(ConfigState.empty()) {
+    on<UpdateBuildConfig>(handler(_updateBuildConfig));
     on<LoadConfig>(handler(_loadConfig));
     on<SaveConfig>(handler(_saveConfig));
   }
+
+  void _updateBuildConfig(Emitter<ConfigState> emit, UpdateBuildConfig event) =>
+      emit(state.copyWith(appInfo: event.appInfo));
 
   Future<void> _loadConfig(Emitter<ConfigState> emit, LoadConfig event) async {
     emit(state.copyWith(loading: true));

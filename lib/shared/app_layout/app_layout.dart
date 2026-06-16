@@ -74,7 +74,10 @@ class _LayoutScreenState extends State<LayoutScreen> {
         ),
         SingleChildScrollView(
           padding: .symmetric(vertical: spacing.md),
-          child: _tabs[_selectedTab.value],
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: _tabs[_selectedTab.value],
+          ),
         ).expanded(),
       ],
     ).padOnly(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' show WidgetsFlutterBinding;
 import 'core/shared_prefs/shared_prefs.dart';
 import 'core/logger.dart';
+import 'di/locator.dart';
 
 class AppDependencies {
   static Future<void> initialize() async {
@@ -8,6 +9,7 @@ class AppDependencies {
 
     WidgetsFlutterBinding.ensureInitialized();
     await SharedPrefs.i.init();
+    AppLocator.initialize();
 
     final elapsed = DateTime.now().difference(start);
     Logger.info(

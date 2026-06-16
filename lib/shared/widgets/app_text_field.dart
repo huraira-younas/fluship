@@ -24,7 +24,6 @@ class _AppTextFieldDecoration {
     required String hint,
     Widget? suffixIcon,
     Widget? prefixIcon,
-    String? errorText,
   }) {
     final colors = theme.colors;
 
@@ -51,7 +50,6 @@ class _AppTextFieldDecoration {
       hintStyle: hintStyle(colors),
       suffixIcon: suffixIcon,
       prefixIcon: prefixIcon,
-      errorText: errorText,
       labelText: label,
       hintText: hint,
     );
@@ -62,14 +60,12 @@ class _AppTextFieldDecoration {
     required String hint,
     Widget? suffixIcon,
     Widget? prefixIcon,
-    String? errorText,
   }) {
     return InputDecoration(
       contentPadding: contentPadding(theme.spacing),
       hintStyle: hintStyle(theme.colors),
       suffixIcon: suffixIcon,
       prefixIcon: prefixIcon,
-      errorText: errorText,
       hintText: hint,
     );
   }
@@ -79,6 +75,7 @@ class AppTextField extends StatelessWidget {
   const AppTextField.floatingLabel({
     this.obscureText = false,
     this.autofocus = false,
+    this.autovalidateMode,
     this.readOnly = false,
     this.textInputAction,
     this.enabled = true,
@@ -91,7 +88,8 @@ class AppTextField extends StatelessWidget {
     this.prefixIcon,
     this.controller,
     this.onChanged,
-    this.errorText,
+    this.validator,
+    this.formKey,
     super.key,
   }) : variant = .floatingLabel,
        decoration = null;
@@ -100,6 +98,7 @@ class AppTextField extends StatelessWidget {
     this.obscureText = false,
     this.autofocus = false,
     this.readOnly = false,
+    this.autovalidateMode,
     this.textInputAction,
     this.enabled = true,
     required this.label,
@@ -111,7 +110,8 @@ class AppTextField extends StatelessWidget {
     this.prefixIcon,
     this.controller,
     this.onChanged,
-    this.errorText,
+    this.validator,
+    this.formKey,
     super.key,
   }) : decoration = null,
        variant = .label;
@@ -120,6 +120,7 @@ class AppTextField extends StatelessWidget {
     required this.decoration,
     this.obscureText = false,
     this.autofocus = false,
+    this.autovalidateMode,
     this.readOnly = false,
     this.textInputAction,
     this.enabled = true,
@@ -130,22 +131,25 @@ class AppTextField extends StatelessWidget {
     this.prefixIcon,
     this.controller,
     this.onChanged,
+    this.validator,
+    this.formKey,
     super.key,
   }) : variant = .custom,
-       errorText = null,
        label = null,
        hint = null;
 
+  final FormFieldValidator<String>? validator;
+  final AutovalidateMode? autovalidateMode;
   final TextEditingController? controller;
   final ValueChanged<String>? onSubmitted;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onChanged;
+  final GlobalKey<FormState>? formKey;
   final TextInputType? keyboardType;
   final AppTextFieldVariant variant;
   final InputDecoration? decoration;
   final Widget? suffixIcon;
   final Widget? prefixIcon;
-  final String? errorText;
   final bool obscureText;
   final bool autofocus;
   final bool readOnly;
@@ -166,15 +170,16 @@ class AppTextField extends StatelessWidget {
   Widget _buildFloatingLabel(BuildContext context) {
     final theme = context.flushipTheme;
 
-    return _buildField(
-      context,
-      _AppTextFieldDecoration.floatingLabel(
-        suffixIcon: suffixIcon,
-        prefixIcon: prefixIcon,
-        errorText: errorText,
-        theme: theme,
-        label: label!,
-        hint: hint!,
+    return _maybeForm(
+      _buildField(
+        context,
+        _AppTextFieldDecoration.floatingLabel(
+          suffixIcon: suffixIcon,
+          prefixIcon: prefixIcon,
+          theme: theme,
+          label: label!,
+          hint: hint!,
+        ),
       ),
     );
   }
@@ -187,14 +192,15 @@ class AppTextField extends StatelessWidget {
       spacing: theme.spacing.sm,
       children: [
         AppText.custom(label!, color: theme.colors.section, weight: .w500),
-        _buildField(
-          context,
-          _AppTextFieldDecoration.hintOnly(
-            suffixIcon: suffixIcon,
-            prefixIcon: prefixIcon,
-            errorText: errorText,
-            theme: theme,
-            hint: hint!,
+        _maybeForm(
+          _buildField(
+            context,
+            _AppTextFieldDecoration.hintOnly(
+              suffixIcon: suffixIcon,
+              prefixIcon: prefixIcon,
+              theme: theme,
+              hint: hint!,
+            ),
           ),
         ),
       ],
@@ -202,23 +208,40 @@ class AppTextField extends StatelessWidget {
   }
 
   Widget _buildCustom(BuildContext context) {
-    return _buildField(context, decoration!);
+    return _maybeForm(
+      _buildField(
+        context,
+        decoration!.copyWith(
+          suffixIcon: suffixIcon ?? decoration!.suffixIcon,
+          prefixIcon: prefixIcon ?? decoration!.prefixIcon,
+        ),
+      ),
+    );
+  }
+
+  Widget _maybeForm(Widget child) {
+    if (formKey == null) return child;
+    return Form(key: formKey, child: child);
   }
 
   Widget _buildField(BuildContext context, InputDecoration fieldDecoration) {
     final inputTheme = Theme.of(context).inputDecorationTheme;
     final colors = context.flushipTheme.colors;
 
-    return TextField(
+    return TextFormField(
+      autovalidateMode:
+          autovalidateMode ??
+          (validator != null ? .onUserInteraction : .disabled),
       decoration: fieldDecoration.applyDefaults(inputTheme),
       style: _AppTextFieldDecoration.textStyle(colors),
       textInputAction: textInputAction,
+      onFieldSubmitted: onSubmitted,
       cursorColor: colors.accent,
       keyboardType: keyboardType,
       obscureText: obscureText,
-      onSubmitted: onSubmitted,
       controller: controller,
       onChanged: onChanged,
+      validator: validator,
       autofocus: autofocus,
       readOnly: readOnly,
       maxLines: maxLines,
