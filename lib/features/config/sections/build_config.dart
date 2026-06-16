@@ -4,7 +4,6 @@ import 'package:fluship/core/validator_builder.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_text_field.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
-import 'package:fluship/shared/models/app_info.dart';
 
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/di/locator.dart';
@@ -38,21 +37,14 @@ class _BuildConfigState extends State<BuildConfig> {
     final gitBranch = _controllers[2].text.trim();
     final version = _controllers[0].text.trim();
 
-    final bn = bnValidator(buildNumber);
-    final gb = gbValidator(gitBranch);
-    final b = bValidator(version);
-
-    if (b != null || bn != null || gb != null) return;
-
-    getIt<ConfigBloc>().add(
-      UpdateBuildConfig(
-        appInfo: AppInfoModel(
-          buildNumber: buildNumber,
-          gitBranch: gitBranch,
-          version: version,
-        ),
-      ),
+    final bloc = getIt<ConfigBloc>();
+    final appInfo = bloc.state.appInfo.copyWith(
+      buildNumber: buildNumber.isEmpty ? null : buildNumber,
+      gitBranch: gitBranch.isEmpty ? null : gitBranch,
+      version: version.isEmpty ? null : version,
     );
+
+    bloc.add(UpdateBuildConfig(appInfo: appInfo));
   }
 
   @override
@@ -97,6 +89,15 @@ class _BuildConfigState extends State<BuildConfig> {
         ),
       ],
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final bloc = getIt<ConfigBloc>();
+    _controllers[1].text = bloc.state.appInfo.buildNumber ?? "";
+    _controllers[2].text = bloc.state.appInfo.gitBranch ?? "";
+    _controllers[0].text = bloc.state.appInfo.version ?? "";
   }
 
   @override
