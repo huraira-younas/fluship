@@ -3,8 +3,8 @@ import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 import 'package:fluship/shared/models/android_config.dart';
 import 'package:fluship/shared/models/base_config.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
-import 'package:fluship/shared/models/app_info.dart';
 import 'package:fluship/shared/models/common_cmd.dart';
+import 'package:fluship/shared/models/app_info.dart';
 import 'package:fluship/shared/models/pre_git.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
