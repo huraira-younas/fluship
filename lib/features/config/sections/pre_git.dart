@@ -31,7 +31,8 @@ class _PreGitState extends State<PreGit> {
           ),
           title: "Pre-Git Config",
           description:
-              "Set the commit message Fluship will use when committing your changes.",
+              "Prepare your repo before the build runs: set the commit message and choose whether Fluship should stage and commit local changes. "
+              "Enable Pre-Pull to fetch the latest code from your target branch before compilation starts.",
           children: [
             AppTextField.label(
               initialValue: preGit.commitMessage,

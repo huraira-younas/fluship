@@ -32,6 +32,10 @@ class _AppState extends State<App> {
           child: MultiBlocProvider(
             providers: AppBlocProviders.providers,
             child: MaterialApp(
+              builder: (context, child) => GestureDetector(
+                onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                child: child,
+              ),
               debugShowCheckedModeBanner: false,
               home: const LayoutScreen(),
               theme: _theme.themeData,
