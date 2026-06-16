@@ -36,7 +36,7 @@ class _BuildConfigState extends State<BuildConfig> {
               "•",
               color: context.flushipTheme.colors.section,
               size: .headline,
-            ),
+            ).padOnly(t: 18),
             AppTextField.label(
               controller: controllers[1],
               label: "Build Number",
