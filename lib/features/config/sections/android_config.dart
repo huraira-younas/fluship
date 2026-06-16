@@ -32,9 +32,9 @@ class AndroidConfig extends StatelessWidget {
               "Selecting the right output type here avoids a separate manual build step after the pipeline finishes.",
           children: [
             SwitchLabel(
+              label: "Build AAB → flutter build aab",
               disabled: !android.enabled,
               value: android.buildAab,
-              label: "Build AAB",
               onChange: (value) => bloc.add(
                 UpdateConfig(config: android.copyWith(buildAab: value)),
               ),
@@ -43,9 +43,9 @@ class AndroidConfig extends StatelessWidget {
               spacing: 10,
               children: <Widget>[
                 SwitchLabel(
+                  label: "Build Type → flutter build apk/split-apk",
                   value: android.buildType != null,
                   disabled: !android.enabled,
-                  label: "Build Type",
                   onChange: (value) => bloc.add(
                     UpdateConfig(
                       config: android.copyWith(

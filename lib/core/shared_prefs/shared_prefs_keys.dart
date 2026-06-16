@@ -5,7 +5,8 @@ enum SharedPrefsKeys {
   themeMode('theme_mode'),
   appInfo('app_info'),
   android('android'),
-  preGit('pre_git');
+  preGit('pre_git'),
+  ios('ios');
 
   const SharedPrefsKeys(this.key);
   final String key;

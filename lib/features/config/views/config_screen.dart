@@ -49,6 +49,7 @@ class ConfigScreen extends StatelessWidget {
             PreGit(),
             CommonCmd(),
             AndroidConfig(),
+            IosConfig(),
           ],
         );
       },

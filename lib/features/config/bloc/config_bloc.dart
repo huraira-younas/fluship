@@ -1,12 +1,15 @@
-import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
 import 'package:fluship/core/shared_prefs/shared_prefs.dart';
+import 'package:fluship/core/base_bloc/base_bloc.dart';
+
+import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:fluship/shared/models/android_config.dart';
 import 'package:fluship/shared/models/base_config.dart';
-import 'package:fluship/core/base_bloc/base_bloc.dart';
+import 'package:fluship/shared/models/ios_config.dart';
 import 'package:fluship/shared/models/common_cmd.dart';
 import 'package:fluship/shared/models/app_info.dart';
 import 'package:fluship/shared/models/pre_git.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'config_event.dart';
 part 'config_state.dart';
@@ -43,6 +46,10 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
         final android = event.config as AndroidConfigModel;
         emit(state.copyWith(android: android));
         await _sharedPrefs.setObject(.android, android.toJson());
+      case IosConfigModel():
+        final ios = event.config as IosConfigModel;
+        emit(state.copyWith(ios: ios));
+        await _sharedPrefs.setObject(.ios, ios.toJson());
       default:
         throw Exception('Invalid config type: ${event.config.runtimeType}');
     }
@@ -55,6 +62,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     final commonCmd = _sharedPrefs.getObject(.commonCmd);
     final android = _sharedPrefs.getObject(.android);
     final preGit = _sharedPrefs.getObject(.preGit);
+    final ios = _sharedPrefs.getObject(.ios);
 
     var appInfo = savedAppInfo != null
         ? AppInfoModel.fromJson(savedAppInfo)
@@ -72,17 +80,12 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
 
     emit(
       state.copyWith(
-        loading: false,
-        commonCmd: commonCmd != null
-            ? CommonCmdModel.fromJson(commonCmd)
-            : const CommonCmdModel(),
-        android: android != null
-            ? AndroidConfigModel.fromJson(android)
-            : const AndroidConfigModel(),
-        preGit: preGit != null
-            ? PreGitModel.fromJson(preGit)
-            : const PreGitModel(),
+        commonCmd: .fromJson(commonCmd),
+        android: .fromJson(android),
+        preGit: .fromJson(preGit),
+        ios: .fromJson(ios),
         appInfo: appInfo,
+        loading: false,
       ),
     );
   }
@@ -106,6 +109,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
       _sharedPrefs.setObject(.android, state.android.toJson()),
       _sharedPrefs.setObject(.appInfo, state.appInfo.toJson()),
       _sharedPrefs.setObject(.preGit, state.preGit.toJson()),
+      _sharedPrefs.setObject(.ios, state.ios.toJson()),
     ]);
   }
 }

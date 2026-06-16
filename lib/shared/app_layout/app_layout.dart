@@ -71,9 +71,9 @@ class _LayoutScreenState extends State<LayoutScreen> {
           onTabChanged: (tab) => setState(() => _selectedTab = tab),
           selectedTab: _selectedTab,
           spacing: spacing,
-        ),
+        ).padOnly(l: spacing.lg, r: spacing.lg),
         SingleChildScrollView(
-          padding: .symmetric(vertical: spacing.md),
+          padding: .all(spacing.lg),
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: _tabs[_selectedTab.value],
@@ -81,10 +81,8 @@ class _LayoutScreenState extends State<LayoutScreen> {
         ).expanded(),
       ],
     ).padOnly(
-      t: context.isMobile ? MediaQuery.paddingOf(context).top : spacing.md,
-      l: spacing.md,
-      r: spacing.md,
-      b: spacing.md,
+      t: context.isMobile ? MediaQuery.paddingOf(context).top : spacing.lg,
+      b: spacing.lg,
     );
   }
 }

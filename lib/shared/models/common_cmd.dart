@@ -29,10 +29,10 @@ final class CommonCmdModel extends BaseConfig {
     clean: clean ?? this.clean,
   );
 
-  factory CommonCmdModel.fromJson(Map<String, dynamic> json) => CommonCmdModel(
-    type: FlutterGetType.fromString(json['type'] as String?),
-    enabled: json['enabled'] as bool? ?? true,
-    clean: json['clean'] as bool? ?? false,
+  factory CommonCmdModel.fromJson(Map<String, dynamic>? json) => CommonCmdModel(
+    type: FlutterGetType.fromString(json?['type'] as String?),
+    enabled: json?['enabled'] as bool? ?? true,
+    clean: json?['clean'] as bool? ?? false,
   );
 
   @override

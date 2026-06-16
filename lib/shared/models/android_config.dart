@@ -21,11 +21,11 @@ final class AndroidConfigModel extends BaseConfig {
   final AndroidBuildType? buildType;
   final bool buildAab;
 
-  factory AndroidConfigModel.fromJson(Map<String, dynamic> json) =>
+  factory AndroidConfigModel.fromJson(Map<String, dynamic>? json) =>
       AndroidConfigModel(
-        buildType: AndroidBuildType.fromString(json['buildType'] as String?),
-        buildAab: json['buildAab'] as bool? ?? false,
-        enabled: json['enabled'] as bool? ?? true,
+        buildType: AndroidBuildType.fromString(json?['buildType'] as String?),
+        buildAab: json?['buildAab'] as bool? ?? false,
+        enabled: json?['enabled'] as bool? ?? true,
       );
 
   @override

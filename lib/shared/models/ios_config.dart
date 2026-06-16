@@ -1,0 +1,43 @@
+import 'base_config.dart';
+
+final class IosConfigModel extends BaseConfig {
+  const IosConfigModel({
+    this.podClean = false,
+    this.buildIpa = false,
+    super.enabled = true,
+  });
+
+  final bool podClean;
+  final bool buildIpa;
+
+  factory IosConfigModel.fromJson(Map<String, dynamic>? json) => IosConfigModel(
+    podClean: json?['podClean'] as bool? ?? false,
+    buildIpa: json?['buildIpa'] as bool? ?? false,
+    enabled: json?['enabled'] as bool? ?? true,
+  );
+
+  @override
+  IosConfigModel copyWith({bool? podClean, bool? buildIpa, bool? enabled}) {
+    return IosConfigModel(
+      podClean: podClean ?? this.podClean,
+      buildIpa: buildIpa ?? this.buildIpa,
+      enabled: enabled ?? this.enabled,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'podClean': podClean,
+    'buildIpa': buildIpa,
+    'enabled': enabled,
+  };
+
+  @override
+  List<Object?> get props => [podClean, buildIpa, enabled];
+
+  @override
+  String toString() => toJson().toString();
+
+  @override
+  bool? get stringify => true;
+}

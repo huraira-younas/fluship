@@ -25,11 +25,11 @@ final class PreGitModel extends BaseConfig {
     enabled: enabled ?? this.enabled,
   );
 
-  factory PreGitModel.fromJson(Map<String, dynamic> json) => PreGitModel(
-    commitMessage: json['commit_message'] as String?,
-    preCommit: json['pre_commit'] as bool? ?? false,
-    prePull: json['pre_pull'] as bool? ?? false,
-    enabled: json['enabled'] as bool? ?? true,
+  factory PreGitModel.fromJson(Map<String, dynamic>? json) => PreGitModel(
+    commitMessage: json?['commit_message'] as String?,
+    preCommit: json?['pre_commit'] as bool? ?? false,
+    prePull: json?['pre_pull'] as bool? ?? false,
+    enabled: json?['enabled'] as bool? ?? true,
   );
 
   @override

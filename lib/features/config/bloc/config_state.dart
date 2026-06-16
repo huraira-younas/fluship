@@ -4,6 +4,7 @@ class ConfigState extends BaseBlocState {
   final AndroidConfigModel android;
   final CommonCmdModel commonCmd;
   final AppInfoModel appInfo;
+  final IosConfigModel ios;
   final PreGitModel preGit;
 
   const ConfigState({
@@ -12,6 +13,7 @@ class ConfigState extends BaseBlocState {
     required this.android,
     required this.appInfo,
     required this.preGit,
+    required this.ios,
     super.error,
   });
 
@@ -20,10 +22,11 @@ class ConfigState extends BaseBlocState {
     commonCmd: CommonCmdModel(),
     appInfo: AppInfoModel(),
     preGit: PreGitModel(),
+    ios: IosConfigModel(),
   );
 
   @override
-  List<Object> get props => [android, commonCmd, appInfo, preGit];
+  List<Object> get props => [android, commonCmd, appInfo, preGit, ios];
 
   @override
   ConfigState copyWith({
@@ -31,6 +34,7 @@ class ConfigState extends BaseBlocState {
     CommonCmdModel? commonCmd,
     AppInfoModel? appInfo,
     PreGitModel? preGit,
+    IosConfigModel? ios,
     CustomState? error,
     bool? loading,
   }) {
@@ -41,6 +45,7 @@ class ConfigState extends BaseBlocState {
       appInfo: appInfo ?? this.appInfo,
       preGit: preGit ?? this.preGit,
       error: error ?? this.error,
+      ios: ios ?? this.ios,
     );
   }
 }
