@@ -13,10 +13,13 @@ class ConfigScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = context.screenHeight * 0.29;
     return BlocBuilder<ConfigBloc, ConfigState>(
       builder: (context, state) {
         if (state.loading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(),
+          ).padOnly(t: pad * 1.35);
         }
 
         if (state.error != null) {
@@ -26,7 +29,7 @@ class ConfigScreen extends StatelessWidget {
             icon: Icons.error,
             btnText: "Retry",
             title: "Error",
-          ).padOnly(t: context.screenHeight * 0.29);
+          ).padOnly(t: pad);
         }
 
         final fp = state.appInfo.flutterProjectPath;
@@ -37,7 +40,7 @@ class ConfigScreen extends StatelessWidget {
             btnText: "Select Project",
             icon: Icons.folder,
             title: "Error",
-          ).padOnly(t: context.screenHeight * 0.29);
+          ).padOnly(t: pad);
         }
 
         return const Column(
