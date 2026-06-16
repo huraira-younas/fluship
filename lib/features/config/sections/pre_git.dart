@@ -26,8 +26,8 @@ class PreGit extends StatelessWidget {
           ),
           title: "Pre-Git Config",
           description:
-              "Prepare your repo before the build runs: set the commit message and choose whether Fluship should stage and commit local changes. "
-              "Enable Pre-Pull to fetch the latest code from your target branch before compilation starts.",
+              "Automate Git hygiene before each build: write a commit message and let Fluship stage and commit any local changes for you. "
+              "Enable Pre-Pull to sync with the remote branch first, so your build always starts from the latest code.",
           children: [
             AppTextField.label(
               initialValue: preGit.commitMessage,

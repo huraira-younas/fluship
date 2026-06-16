@@ -28,8 +28,8 @@ class CommonCmd extends StatelessWidget {
           ),
           title: "Common Cmd Config",
           description:
-              "Prepare your repo before the build runs: set the commit message and choose whether Fluship should stage and commit local changes. "
-              "Enable Pre-Pull to fetch the latest code from your target branch before compilation starts.",
+              "Run Flutter housekeeping commands before the build kicks off: wipe stale artifacts with flutter clean and restore packages with pub get or pub upgrade. "
+              "Keeping these steps consistent prevents build failures caused by outdated caches or missing dependencies.",
           children: [
             SwitchLabel(
               disabled: !commonCmd.enabled,

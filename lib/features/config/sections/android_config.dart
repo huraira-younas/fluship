@@ -27,7 +27,9 @@ class AndroidConfig extends StatelessWidget {
             forceDisabled: false,
           ),
           title: "Android Config",
-          description: "Configure your Android build settings.",
+          description:
+              "Control what Android artifacts Fluship produces: enable AAB for Play Store uploads or choose APK/split-APK for direct distribution. "
+              "Selecting the right output type here avoids a separate manual build step after the pipeline finishes.",
           children: [
             SwitchLabel(
               disabled: !android.enabled,
