@@ -7,12 +7,14 @@ final class AppInfoModel extends BaseConfig {
     this.buildNumber,
     this.gitBranch,
     this.version,
+    this.appName,
   });
 
   final String? flutterProjectPath;
   final String? buildNumber;
   final String? gitBranch;
   final String? version;
+  final String? appName;
 
   @override
   AppInfoModel copyWith({
@@ -20,6 +22,7 @@ final class AppInfoModel extends BaseConfig {
     String? buildNumber,
     String? gitBranch,
     String? version,
+    String? appName,
     bool? enabled,
   }) => AppInfoModel(
     flutterProjectPath: flutterProjectPath ?? this.flutterProjectPath,
@@ -27,6 +30,7 @@ final class AppInfoModel extends BaseConfig {
     gitBranch: gitBranch ?? this.gitBranch,
     enabled: enabled ?? this.enabled,
     version: version ?? this.version,
+    appName: appName ?? this.appName,
   );
 
   factory AppInfoModel.fromJson(Map<String, dynamic> json) => AppInfoModel(
@@ -34,6 +38,7 @@ final class AppInfoModel extends BaseConfig {
     buildNumber: json['build_number'] as String?,
     enabled: json['enabled'] as bool? ?? true,
     gitBranch: json['git_branch'] as String?,
+    appName: json['app_name'] as String?,
     version: json['version'] as String?,
   );
 
@@ -42,6 +47,7 @@ final class AppInfoModel extends BaseConfig {
     'flutter_project_path': flutterProjectPath,
     'build_number': buildNumber,
     'git_branch': gitBranch,
+    'app_name': appName,
     'enabled': enabled,
     'version': version,
   };
@@ -51,6 +57,7 @@ final class AppInfoModel extends BaseConfig {
     flutterProjectPath,
     buildNumber,
     gitBranch,
+    appName,
     enabled,
     version,
   ];

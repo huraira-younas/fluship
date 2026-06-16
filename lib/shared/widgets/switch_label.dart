@@ -21,20 +21,24 @@ class SwitchLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
 
-    return ListTile(
-      onTap: disabled ? null : () => onChange(!value),
-      visualDensity: .compact,
-      contentPadding: .zero,
-      title: AppText.custom(
-        color: disabled ? ft.colors.textDim : ft.colors.section,
-        label,
-      ),
-      leading: Switch(
-        inactiveTrackColor: ft.colors.cardBorder,
-        inactiveThumbColor: ft.colors.textDim,
-        onChanged: disabled ? null : onChange,
-        activeThumbColor: ft.colors.accent,
-        value: value,
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        shape: RoundedRectangleBorder(borderRadius: .circular(ft.radius.btn)),
+        onTap: disabled ? null : () => onChange(!value),
+        visualDensity: .compact,
+        contentPadding: .zero,
+        title: AppText.custom(
+          color: disabled ? ft.colors.textDim : ft.colors.section,
+          label,
+        ),
+        leading: Switch(
+          inactiveTrackColor: ft.colors.cardBorder,
+          inactiveThumbColor: ft.colors.textDim,
+          onChanged: disabled ? null : onChange,
+          activeThumbColor: ft.colors.accent,
+          value: value,
+        ),
       ),
     );
   }

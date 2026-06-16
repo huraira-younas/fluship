@@ -31,7 +31,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
   Future<void> _loadConfig(Emitter<ConfigState> emit, LoadConfig event) async {
     emit(state.copyWith(loading: true));
 
-    final appInfo = _sharedPrefs.getObject(.appInfo);
+    final appInfo = _sharedPrefs.getObject(.appInfo); // this should get from the project path
     final preGit = _sharedPrefs.getObject(.preGit);
 
     emit(
