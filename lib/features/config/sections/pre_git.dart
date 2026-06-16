@@ -36,6 +36,7 @@ class _PreGitState extends State<PreGit> {
             AppTextField.label(
               initialValue: preGit.commitMessage,
               hint: "pre-release cleanup",
+              enabled: preGit.enabled,
               label: "Commit Message",
               onChanged: (value) => bloc.add(
                 UpdateConfig(config: preGit.copyWith(commitMessage: value)),
@@ -43,6 +44,7 @@ class _PreGitState extends State<PreGit> {
             ),
             const SizedBox(height: 16),
             SwitchLabel(
+              disabled: !preGit.enabled,
               value: preGit.preCommit,
               label: "Pre-Release commit → git add . && git commit",
               onChange: (value) => bloc.add(
@@ -50,6 +52,7 @@ class _PreGitState extends State<PreGit> {
               ),
             ),
             SwitchLabel(
+              disabled: !preGit.enabled,
               value: preGit.prePull,
               label: "Pre-Pull → git pull",
               onChange: (value) => bloc.add(

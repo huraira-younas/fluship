@@ -6,12 +6,14 @@ import 'app_text.dart';
 class SwitchLabel extends StatelessWidget {
   const SwitchLabel({
     required this.onChange,
+    this.disabled = false,
     required this.label,
     required this.value,
     super.key,
   });
 
   final ValueChanged<bool> onChange;
+  final bool disabled;
   final String label;
   final bool value;
 
@@ -20,15 +22,18 @@ class SwitchLabel extends StatelessWidget {
     final ft = context.flushipTheme;
 
     return ListTile(
-      visualDensity: VisualDensity.compact,
-      contentPadding: EdgeInsets.zero,
-      onTap: () => onChange(!value),
-      title: AppText.body(label),
+      onTap: disabled ? null : () => onChange(!value),
+      visualDensity: .compact,
+      contentPadding: .zero,
+      title: AppText.custom(
+        color: disabled ? ft.colors.textDim : ft.colors.section,
+        label,
+      ),
       leading: Switch(
         inactiveTrackColor: ft.colors.cardBorder,
         inactiveThumbColor: ft.colors.textDim,
+        onChanged: disabled ? null : onChange,
         activeThumbColor: ft.colors.accent,
-        onChanged: onChange,
         value: value,
       ),
     );

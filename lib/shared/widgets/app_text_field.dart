@@ -207,7 +207,11 @@ class AppTextField extends StatelessWidget {
       crossAxisAlignment: .stretch,
       spacing: theme.spacing.sm,
       children: [
-        AppText.custom(label!, color: theme.colors.section, weight: .w500),
+        AppText.custom(
+          label!,
+          color: enabled ? theme.colors.section : theme.colors.textDim,
+          weight: .w500,
+        ),
         _maybeForm(
           _buildField(
             context,
