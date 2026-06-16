@@ -39,11 +39,34 @@ class AppThemeDataMapper {
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
+        floatingLabelBehavior: .auto,
         contentPadding: .symmetric(
           horizontal: theme.spacing.md,
-          vertical: theme.spacing.sm,
+          vertical: theme.spacing.md,
         ),
-        fillColor: colors.disabled,
+        floatingLabelStyle: WidgetStateTextStyle.resolveWith((states) {
+          final focused = states.contains(WidgetState.focused);
+          return TextStyle(
+            color: focused ? colors.accent : colors.section,
+            backgroundColor: theme.codeBg,
+            fontWeight: .w500,
+            fontSize: 12,
+          );
+        }),
+        labelStyle: WidgetStateTextStyle.resolveWith((states) {
+          final focused = states.contains(WidgetState.focused);
+          return TextStyle(
+            color: focused ? colors.accent : colors.muted,
+            fontWeight: .w400,
+            fontSize: 14,
+          );
+        }),
+        hintStyle: TextStyle(
+          color: colors.muted,
+          fontWeight: .w400,
+          fontSize: 14,
+        ),
+        fillColor: theme.inputBg,
         filled: true,
         border: OutlineInputBorder(
           borderRadius: .circular(theme.radius.input),

@@ -24,6 +24,10 @@ class AppTheme {
 
   Color get codeBorder => palette.codeBorder;
 
+  Color get inputBg => Color.lerp(palette.bg, palette.hover, 0.18)!;
+
+  Color get inputBorder => palette.cardBorder;
+
   Map<int, Color> get headingColors => {
     2: palette.section,
     1: palette.accent,

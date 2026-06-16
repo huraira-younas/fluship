@@ -2,6 +2,7 @@ import 'package:fluship/core/responsive/models/layout_constraints.dart';
 import 'package:fluship/features/settings/views/settings_screen.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/features/console/views/console_screen.dart';
+import 'package:fluship/core/responsive/responsive_extension.dart';
 import 'package:fluship/features/config/views/config_screen.dart';
 import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:flutter/material.dart';
@@ -69,8 +70,16 @@ class _LayoutScreenState extends State<LayoutScreen> {
           selectedTab: _selectedTab,
           spacing: spacing,
         ),
-        SingleChildScrollView(child: _tabs[_selectedTab.value]).expanded(),
+        SingleChildScrollView(
+          padding: .symmetric(vertical: spacing.md),
+          child: _tabs[_selectedTab.value],
+        ).expanded(),
       ],
-    ).padAll(spacing.md);
+    ).padOnly(
+      t: context.isMobile ? MediaQuery.paddingOf(context).top : spacing.md,
+      l: spacing.md,
+      r: spacing.md,
+      b: spacing.md,
+    );
   }
 }

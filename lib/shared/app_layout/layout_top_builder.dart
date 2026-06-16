@@ -37,9 +37,9 @@ class LayoutTopBuilder extends StatelessWidget {
             final isMobile = info.isMobile;
             final header = <Widget>[
               if (isMobile)
-                const AppText.headline('ReelStay')
+                const AppText.display('ReelStay')
               else
-                const AppText.headline('ReelStay').expanded(),
+                const AppText.display('ReelStay').expanded(),
               AppButton.primary(label: 'Run Pipeline', onPressed: () {}),
             ];
 

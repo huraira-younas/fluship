@@ -11,5 +11,5 @@ enum AppThemes {
 
   final String key;
 
-  static const defaultTheme = catppuccinMocha;
+  static const defaultTheme = oneDark;
 }
