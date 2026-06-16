@@ -6,7 +6,7 @@ import 'locator.dart';
 class AppBlocProviders {
   static List<BlocProvider> get providers {
     return [
-      BlocProvider(
+      BlocProvider<ConfigBloc>(
         create: (_) => getIt<ConfigBloc>()..add(const LoadConfig()),
         lazy: false,
       ),

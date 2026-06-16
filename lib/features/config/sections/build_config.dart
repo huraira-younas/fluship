@@ -44,7 +44,7 @@ class _BuildConfigState extends State<BuildConfig> {
       version: version.isEmpty ? null : version,
     );
 
-    bloc.add(UpdateBuildConfig(appInfo: appInfo));
+    bloc.add(UpdateConfig(config: appInfo));
   }
 
   @override

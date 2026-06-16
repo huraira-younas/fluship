@@ -1,9 +1,9 @@
+import 'base_config.dart';
 
-import 'package:equatable/equatable.dart';
-
-final class AppInfoModel implements Equatable {
+final class AppInfoModel extends BaseConfig {
   const AppInfoModel({
     this.flutterProjectPath,
+    super.enabled = true,
     this.buildNumber,
     this.gitBranch,
     this.version,
@@ -14,29 +14,35 @@ final class AppInfoModel implements Equatable {
   final String? gitBranch;
   final String? version;
 
+  @override
   AppInfoModel copyWith({
     String? flutterProjectPath,
     String? buildNumber,
     String? gitBranch,
     String? version,
+    bool? enabled,
   }) => AppInfoModel(
     flutterProjectPath: flutterProjectPath ?? this.flutterProjectPath,
     buildNumber: buildNumber ?? this.buildNumber,
     gitBranch: gitBranch ?? this.gitBranch,
+    enabled: enabled ?? this.enabled,
     version: version ?? this.version,
   );
 
   factory AppInfoModel.fromJson(Map<String, dynamic> json) => AppInfoModel(
     flutterProjectPath: json['flutter_project_path'] as String?,
     buildNumber: json['build_number'] as String?,
+    enabled: json['enabled'] as bool? ?? true,
     gitBranch: json['git_branch'] as String?,
     version: json['version'] as String?,
   );
 
+  @override
   Map<String, dynamic> toJson() => {
     'flutter_project_path': flutterProjectPath,
     'build_number': buildNumber,
     'git_branch': gitBranch,
+    'enabled': enabled,
     'version': version,
   };
 
@@ -45,6 +51,7 @@ final class AppInfoModel implements Equatable {
     flutterProjectPath,
     buildNumber,
     gitBranch,
+    enabled,
     version,
   ];
 

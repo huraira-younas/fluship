@@ -33,7 +33,7 @@ class _AppTextFieldDecoration {
         return TextStyle(
           color: focused ? colors.accent : colors.section,
           backgroundColor: theme.codeBg,
-          fontWeight: .w500,
+          fontWeight: FontWeight.w500,
           fontSize: 15,
         );
       }),
@@ -41,7 +41,7 @@ class _AppTextFieldDecoration {
         final focused = states.contains(WidgetState.focused);
         return TextStyle(
           color: focused ? colors.accent : colors.muted,
-          fontWeight: .w400,
+          fontWeight: FontWeight.w400,
           fontSize: 14,
         );
       }),
@@ -81,6 +81,7 @@ class AppTextField extends StatelessWidget {
     this.enabled = true,
     required this.label,
     required this.hint,
+    this.initialValue,
     this.maxLines = 1,
     this.keyboardType,
     this.onSubmitted,
@@ -92,7 +93,11 @@ class AppTextField extends StatelessWidget {
     this.formKey,
     super.key,
   }) : variant = .floatingLabel,
-       decoration = null;
+       decoration = null,
+       assert(
+         controller == null || initialValue == null,
+         'Use either controller or initialValue, not both.',
+       );
 
   const AppTextField.label({
     this.obscureText = false,
@@ -112,9 +117,14 @@ class AppTextField extends StatelessWidget {
     this.onChanged,
     this.validator,
     this.formKey,
+    this.initialValue,
     super.key,
   }) : decoration = null,
-       variant = .label;
+       variant = .label,
+       assert(
+         controller == null || initialValue == null,
+         'Use either controller or initialValue, not both.',
+       );
 
   const AppTextField.custom({
     required this.decoration,
@@ -125,6 +135,7 @@ class AppTextField extends StatelessWidget {
     this.textInputAction,
     this.enabled = true,
     this.maxLines = 1,
+    this.initialValue,
     this.keyboardType,
     this.onSubmitted,
     this.suffixIcon,
@@ -136,7 +147,11 @@ class AppTextField extends StatelessWidget {
     super.key,
   }) : variant = .custom,
        label = null,
-       hint = null;
+       hint = null,
+       assert(
+         controller == null || initialValue == null,
+         'Use either controller or initialValue, not both.',
+       );
 
   final FormFieldValidator<String>? validator;
   final AutovalidateMode? autovalidateMode;
@@ -148,6 +163,7 @@ class AppTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final AppTextFieldVariant variant;
   final InputDecoration? decoration;
+  final String? initialValue;
   final Widget? suffixIcon;
   final Widget? prefixIcon;
   final bool obscureText;
@@ -232,6 +248,7 @@ class AppTextField extends StatelessWidget {
       autovalidateMode:
           autovalidateMode ??
           (validator != null ? .onUserInteraction : .disabled),
+      initialValue: controller == null ? initialValue : null,
       decoration: fieldDecoration.applyDefaults(inputTheme),
       style: _AppTextFieldDecoration.textStyle(colors),
       textInputAction: textInputAction,

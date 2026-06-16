@@ -20,14 +20,14 @@ class SaveConfig extends ConfigEvent {
   Map<String, dynamic> toJson() => {};
 }
 
-class UpdateBuildConfig extends ConfigEvent {
-  final AppInfoModel appInfo;
-  const UpdateBuildConfig({
-    required this.appInfo,
-    super.onSuccess,
-    super.onError,
-  }) : super(name: 'Update_Build_Config');
+class UpdateConfig extends ConfigEvent {
+  final BaseConfig config;
+  const UpdateConfig({required this.config, super.onSuccess, super.onError})
+    : super(name: 'Update_Config');
 
   @override
-  Map<String, dynamic> toJson() => appInfo.toJson();
+  Map<String, dynamic> toJson() => {
+    "type": config.runtimeType.toString(),
+    ...config.toJson(),
+  };
 }
