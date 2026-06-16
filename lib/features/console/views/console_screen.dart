@@ -6,6 +6,10 @@ class ConsoleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    return Container(color: Colors.blue, height: size.height, width: size.width);
+    return Container(
+      color: Colors.blue,
+      height: size.height,
+      width: size.width,
+    );
   }
 }

@@ -14,23 +14,17 @@ void main() {
     });
 
     test('portrait allows only portrait orientations', () {
-      expect(
-        AppOrientationLock.portrait.preferredOrientations,
-        const [
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown,
-        ],
-      );
+      expect(AppOrientationLock.portrait.preferredOrientations, const [
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
     });
 
     test('landscape allows only landscape orientations', () {
-      expect(
-        AppOrientationLock.landscape.preferredOrientations,
-        const [
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight,
-        ],
-      );
+      expect(AppOrientationLock.landscape.preferredOrientations, const [
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
     });
   });
 

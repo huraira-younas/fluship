@@ -1,8 +1,10 @@
 import 'package:fluship/core/responsive/responsive.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
 import 'shared/app_layout/app_layout.dart';
 import 'core/app_theme/app_theme.dart';
+import 'di/bloc_providers.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -27,11 +29,14 @@ class _AppState extends State<App> {
       builder: (context, _) {
         return OrientationLockScope(
           lock: .portrait,
-          child: MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: const LayoutScreen(),
-            theme: _theme.themeData,
-            title: 'Fluship',
+          child: MultiBlocProvider(
+            providers: AppBlocProviders.providers,
+            child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              home: const LayoutScreen(),
+              theme: _theme.themeData,
+              title: 'Fluship',
+            ),
           ),
         );
       },
