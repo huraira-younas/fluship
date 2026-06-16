@@ -40,7 +40,9 @@ class _LayoutScreenState extends State<LayoutScreen> {
           final viewportWidth = constraints.maxWidth;
 
           if (viewportWidth.isFinite && viewportWidth < w.minWidth) {
-            return AppText.danger("Anni Diya Kitna Chota krega?").center();
+            return const AppText.danger(
+              "Anni Diya Kitna Chota krega?",
+            ).center();
           }
 
           if (viewportWidth.isFinite && viewportWidth > w.maxWidth) {

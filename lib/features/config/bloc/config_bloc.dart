@@ -24,7 +24,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
         loading: false,
         appInfo: appInfo != null
             ? AppInfoModel.fromJson(appInfo)
-            : AppInfoModel(),
+            : const AppInfoModel(),
       ),
     );
   }

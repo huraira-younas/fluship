@@ -1,3 +1,5 @@
+import 'package:fluship/di/locator.dart';
+import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/labels_builder.dart';
 import 'package:fluship/core/app_theme/models/theme.dart';
@@ -40,7 +42,10 @@ class LayoutTopBuilder extends StatelessWidget {
                 const AppText.display('ReelStay')
               else
                 const AppText.display('ReelStay').expanded(),
-              AppButton.primary(label: 'Run Pipeline', onPressed: () {}),
+              AppButton.primary(
+                onPressed: () => getIt<ConfigBloc>().add(const SaveConfig()),
+                label: 'Run Pipeline',
+              ),
             ];
 
             if (isMobile) {

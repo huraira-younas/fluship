@@ -7,7 +7,7 @@ class ConfigScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       spacing: 20,
       children: <Widget>[BuildConfig(), BuildConfig()],
     );

@@ -53,7 +53,7 @@ class ResponsiveInfo extends Equatable {
     BuildContext context, {
     BreakpointConfig? config,
   }) {
-    final breakpointConfig = config ?? BreakpointConfig.material3();
+    final breakpointConfig = config ?? const BreakpointConfig.material3();
     final mediaQuery = MediaQuery.sizeOf(context);
 
     return ResponsiveInfo(
