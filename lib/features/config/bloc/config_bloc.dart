@@ -48,7 +48,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
         ? AppInfoModel.fromJson(savedAppInfo)
         : const AppInfoModel();
 
-    final path = "C:\\Users\\Senpai\\Desktop\\Programs\\reelstay";
+    final path = appInfo.flutterProjectPath ?? '';
     if (path.isNotEmpty) {
       appInfo = await _projectService.extractAppInfo(
         flutterProjectPath: path,
@@ -73,25 +73,18 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     Emitter<ConfigState> emit,
     SyncProjectAppInfo event,
   ) async {
-    emit(state.copyWith(loading: true));
-
     final appInfo = await _projectService.extractAppInfo(
       flutterProjectPath: event.flutterProjectPath,
       base: state.appInfo,
     );
 
     await _sharedPrefs.setObject(.appInfo, appInfo.toJson());
-    emit(state.copyWith(loading: false, appInfo: appInfo));
   }
 
   Future<void> _saveConfig(Emitter<ConfigState> emit, SaveConfig event) async {
-    emit(state.copyWith(loading: true));
-
     await Future.wait([
       _sharedPrefs.setObject(.appInfo, state.appInfo.toJson()),
       _sharedPrefs.setObject(.preGit, state.preGit.toJson()),
     ]);
-
-    emit(state.copyWith(loading: false));
   }
 }
