@@ -4,6 +4,7 @@ enum SharedPrefsKeys {
   commonCmd('common_cmd'),
   themeMode('theme_mode'),
   appInfo('app_info'),
+  android('android'),
   preGit('pre_git');
 
   const SharedPrefsKeys(this.key);

@@ -1,6 +1,15 @@
 import 'base_config.dart';
 
-enum FlutterGetType { get, upgrade }
+enum FlutterGetType {
+  get,
+  upgrade;
+
+  static FlutterGetType? fromString(String? value) => switch (value) {
+    'upgrade' => .upgrade,
+    'get' => .get,
+    _ => null,
+  };
+}
 
 final class CommonCmdModel extends BaseConfig {
   const CommonCmdModel({super.enabled = true, this.clean = false, this.type});
@@ -21,9 +30,9 @@ final class CommonCmdModel extends BaseConfig {
   );
 
   factory CommonCmdModel.fromJson(Map<String, dynamic> json) => CommonCmdModel(
+    type: FlutterGetType.fromString(json['type'] as String?),
     enabled: json['enabled'] as bool? ?? true,
     clean: json['clean'] as bool? ?? false,
-    type: json['type'] as FlutterGetType?,
   );
 
   @override

@@ -1,5 +1,6 @@
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
 import 'package:fluship/core/shared_prefs/shared_prefs.dart';
+import 'package:fluship/shared/models/android_config.dart';
 import 'package:fluship/shared/models/base_config.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
 import 'package:fluship/shared/models/app_info.dart';
@@ -38,6 +39,10 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
         final commonCmd = event.config as CommonCmdModel;
         emit(state.copyWith(commonCmd: commonCmd));
         await _sharedPrefs.setObject(.commonCmd, commonCmd.toJson());
+      case AndroidConfigModel():
+        final android = event.config as AndroidConfigModel;
+        emit(state.copyWith(android: android));
+        await _sharedPrefs.setObject(.android, android.toJson());
       default:
         throw Exception('Invalid config type: ${event.config.runtimeType}');
     }
@@ -48,6 +53,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
 
     final savedAppInfo = _sharedPrefs.getObject(.appInfo);
     final commonCmd = _sharedPrefs.getObject(.commonCmd);
+    final android = _sharedPrefs.getObject(.android);
     final preGit = _sharedPrefs.getObject(.preGit);
 
     var appInfo = savedAppInfo != null
@@ -70,6 +76,9 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
         commonCmd: commonCmd != null
             ? CommonCmdModel.fromJson(commonCmd)
             : const CommonCmdModel(),
+        android: android != null
+            ? AndroidConfigModel.fromJson(android)
+            : const AndroidConfigModel(),
         preGit: preGit != null
             ? PreGitModel.fromJson(preGit)
             : const PreGitModel(),
@@ -94,6 +103,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
   Future<void> _saveConfig(Emitter<ConfigState> emit, SaveConfig event) async {
     await Future.wait([
       _sharedPrefs.setObject(.commonCmd, state.commonCmd.toJson()),
+      _sharedPrefs.setObject(.android, state.android.toJson()),
       _sharedPrefs.setObject(.appInfo, state.appInfo.toJson()),
       _sharedPrefs.setObject(.preGit, state.preGit.toJson()),
     ]);

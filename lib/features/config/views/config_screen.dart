@@ -4,10 +4,8 @@ import 'package:fluship/shared/widgets/custom_label_widget.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
-import '../sections/build_config.dart';
-import '../sections/common_cmd.dart';
 import '../bloc/config_bloc.dart';
-import '../sections/pre_git.dart';
+import '../sections/exports.dart';
 
 class ConfigScreen extends StatelessWidget {
   const ConfigScreen({super.key});
@@ -46,7 +44,12 @@ class ConfigScreen extends StatelessWidget {
 
         return const Column(
           spacing: 20,
-          children: <Widget>[BuildConfig(), PreGit(), CommonCmd()],
+          children: <Widget>[
+            BuildConfig(),
+            PreGit(),
+            CommonCmd(),
+            AndroidConfig(),
+          ],
         );
       },
     );

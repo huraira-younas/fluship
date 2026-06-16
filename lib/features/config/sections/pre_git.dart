@@ -8,14 +8,9 @@ import 'package:fluship/di/locator.dart';
 import 'package:flutter/material.dart';
 import '../bloc/config_bloc.dart';
 
-class PreGit extends StatefulWidget {
+class PreGit extends StatelessWidget {
   const PreGit({super.key});
 
-  @override
-  State<PreGit> createState() => _PreGitState();
-}
-
-class _PreGitState extends State<PreGit> {
   @override
   Widget build(BuildContext context) {
     final bloc = getIt<ConfigBloc>();
