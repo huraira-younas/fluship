@@ -1,3 +1,4 @@
+import 'package:fluship/core/responsive/widgets/responsive_builder.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_tabs.dart';
 import 'package:flutter/material.dart';
@@ -27,24 +28,30 @@ class SwitchLabelsRow<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      spacing: spacing,
-      children: <Widget>[
-        SwitchLabel(
-          onChange: (e) => onChange(e ? defaultValue : null),
-          value: value != null,
-          disabled: disabled,
-          label: switchLabel,
-        ).expanded(),
-        AppTabs<T>(
-          disabled: disabled || value == null,
-          contentPadding: contentPadding,
-          onChange: (s) => onChange(s),
-          label: value ?? defaultValue,
-          scrollPadding: .zero,
-          labels: labels,
-        ),
-      ],
+    final sw = SwitchLabel(
+      onChange: (e) => onChange(e ? defaultValue : null),
+      value: value != null,
+      disabled: disabled,
+      label: switchLabel,
+    );
+
+    final tabs = AppTabs<T>(
+      disabled: disabled || value == null,
+      contentPadding: contentPadding,
+      onChange: (s) => onChange(s),
+      label: value ?? defaultValue,
+      scrollPadding: .zero,
+      labels: labels,
+    );
+
+    return ResponsiveBuilder(
+      builder: (context, info) {
+        if (info.isMobile) {
+          return Column(spacing: spacing, children: <Widget>[sw, tabs]);
+        }
+
+        return Row(spacing: spacing, children: <Widget>[sw.expanded(), tabs]);
+      },
     );
   }
 }
