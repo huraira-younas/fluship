@@ -48,6 +48,16 @@ class ThemePalette extends Equatable {
   Color get codeBorder => consoleBorder;
   Color get codeBg => consoleInner;
 
+  List<Color> get previewSwatches => [
+    section,
+    success,
+    accent,
+    cardBg,
+    danger,
+    warn,
+    bg,
+  ];
+
   @override
   List<Object?> get props => [
     consoleBorder,

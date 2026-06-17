@@ -3,34 +3,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
 import 'shared/app_layout/app_layout.dart';
-import 'core/app_theme/app_theme.dart';
+import 'core/app_theme/theme_cubit.dart';
 import 'di/bloc_providers.dart';
 
-class App extends StatefulWidget {
+class App extends StatelessWidget {
   const App({super.key});
 
   @override
-  State<App> createState() => _AppState();
-}
-
-class _AppState extends State<App> {
-  final _theme = ThemeNotifier();
-
-  @override
-  void dispose() {
-    _theme.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _theme,
-      builder: (context, _) {
-        return OrientationLockScope(
-          lock: .portrait,
-          child: MultiBlocProvider(
-            providers: AppBlocProviders.providers,
+    return MultiBlocProvider(
+      providers: AppBlocProviders.providers,
+      child: BlocBuilder<ThemeCubit, ThemeState>(
+        builder: (context, state) {
+          return OrientationLockScope(
+            lock: .portrait,
             child: MaterialApp(
               builder: (context, child) => GestureDetector(
                 onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -38,12 +24,12 @@ class _AppState extends State<App> {
               ),
               debugShowCheckedModeBanner: false,
               home: const LayoutScreen(),
-              theme: _theme.themeData,
+              theme: state.themeData,
               title: 'Fluship',
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

@@ -1,15 +1,26 @@
 enum AppThemes {
-  catppuccinMocha('catppuccin_mocha'),
-  solarizedDark('solarized_dark'),
-  tokyoNight('tokyo_night'),
-  oneDark('one_dark'),
-  gruvbox('gruvbox'),
-  dracula('dracula'),
-  nord('nord');
+  catppuccinMocha('catppuccin_mocha', 'Catppuccin Mocha'),
+  solarizedDark('solarized_dark', 'Solarized Dark'),
+  tokyoNight('tokyo_night', 'Tokyo Night'),
+  oneDark('one_dark', 'One Dark'),
+  gruvbox('gruvbox', 'Gruvbox'),
+  dracula('dracula', 'Dracula'),
+  nord('nord', 'Nord');
 
-  const AppThemes(this.key);
+  const AppThemes(this.key, this.displayName);
 
+  final String displayName;
   final String key;
 
   static const defaultTheme = nord;
+
+  static AppThemes? fromKey(String key) {
+    if (key.isEmpty) return null;
+
+    for (final theme in AppThemes.values) {
+      if (theme.key == key) return theme;
+    }
+
+    return null;
+  }
 }

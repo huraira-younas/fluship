@@ -61,7 +61,10 @@ class DistributionEmail extends Equatable {
 final class DistributionConfigModel extends BaseConfig {
   const DistributionConfigModel({
     this.emails = const [
-      DistributionEmail(email: 'raohuraira331.rb@gmail.com', name: 'Huraira Younas'),
+      DistributionEmail(
+        email: 'raohuraira331.rb@gmail.com',
+        name: 'Huraira Younas',
+      ),
       DistributionEmail(email: 'senpai331.rb@gmail.com', name: 'Senpai'),
     ],
     this.appstore = false,

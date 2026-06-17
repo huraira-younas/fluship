@@ -3,7 +3,6 @@ import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
-
 class SwitchLabel extends StatelessWidget {
   const SwitchLabel({
     required this.onChange,

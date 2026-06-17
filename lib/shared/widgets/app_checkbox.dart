@@ -33,16 +33,16 @@ class AppCheckbox extends StatelessWidget {
           borderRadius: .circular(6),
           color: checked
               ? (disabled
-                  ? colors.accent.withValues(alpha: 0.35)
-                  : colors.accent)
+                    ? colors.accent.withValues(alpha: 0.35)
+                    : colors.accent)
               : colors.cardBg.withValues(alpha: 0.5),
           border: .all(
             width: 1.5,
             color: checked
                 ? Colors.transparent
                 : (disabled
-                    ? colors.cardBorder
-                    : colors.textDim.withValues(alpha: 0.55)),
+                      ? colors.cardBorder
+                      : colors.textDim.withValues(alpha: 0.55)),
           ),
           boxShadow: checked && !disabled
               ? [
