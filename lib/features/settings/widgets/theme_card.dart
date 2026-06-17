@@ -10,6 +10,7 @@ import 'theme_swatch_row.dart';
 
 class ThemeCard extends StatelessWidget {
   const ThemeCard({
+    required this.displayName,
     required this.isActive,
     required this.isMobile,
     required this.onApply,
@@ -18,13 +19,13 @@ class ThemeCard extends StatelessWidget {
   });
 
   final VoidCallback onApply;
+  final String displayName;
   final AppTheme theme;
   final bool isMobile;
   final bool isActive;
 
   @override
   Widget build(BuildContext context) {
-    final displayName = theme.id.displayName;
     final ft = context.flushipTheme;
     final palette = theme.palette;
     final radius = ft.radius.card;

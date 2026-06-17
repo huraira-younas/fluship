@@ -23,8 +23,10 @@ class App extends StatelessWidget {
                 child: child,
               ),
               debugShowCheckedModeBanner: false,
+              darkTheme: state.darkThemeData,
+              theme: state.lightThemeData,
               home: const LayoutScreen(),
-              theme: state.themeData,
+              themeMode: state.mode,
               title: 'Fluship',
             ),
           );

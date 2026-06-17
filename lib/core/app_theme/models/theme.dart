@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart' show Color;
 import 'package:equatable/equatable.dart';
 
-import 'app_themes.dart';
-
 part 'theme_palette.dart';
 part 'theme_spacing.dart';
 part 'theme_radius.dart';
@@ -12,13 +10,11 @@ class AppTheme {
     this.spacing = const ThemeSpacing(),
     this.radius = const ThemeRadius(),
     required this.palette,
-    required this.id,
   });
 
   final ThemeSpacing spacing;
   final ThemePalette palette;
   final ThemeRadius radius;
-  final AppThemes id;
 
   Color get codeBg => palette.codeBg;
 

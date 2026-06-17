@@ -1,17 +1,42 @@
 import '../interfaces/theme_preset_module.dart';
-import '../models/app_themes.dart';
 import '../utils/color_from_hex.dart';
+import '../models/app_themes.dart';
 import '../models/theme.dart';
 
 final class CatppuccinMochaPreset implements ThemePresetModule {
   const CatppuccinMochaPreset();
 
   @override
-  AppThemes get id => AppThemes.catppuccinMocha;
+  AppThemes get id => .catppuccinMocha;
 
   @override
-  AppTheme get preset => AppTheme(
-    id: id,
+  AppTheme get lightTheme => AppTheme(
+    palette: ThemePalette(
+      consoleBorder: colorFromHex('#bcc0cc'),
+      consoleInner: colorFromHex('#ccd0da'),
+      accentHover: colorFromHex('#04a5e5'),
+      dangerHover: colorFromHex('#d20f39'),
+      cardBorder: colorFromHex('#bcc0cc'),
+      consoleBg: colorFromHex('#dce0e8'),
+      disabled: colorFromHex('#dce0e8'),
+      textDim: colorFromHex('#6c6f85'),
+      section: colorFromHex('#5c5f77'),
+      success: colorFromHex('#40a02b'),
+      cardBg: colorFromHex('#e6e9ef'),
+      accent: colorFromHex('#1e66f5'),
+      danger: colorFromHex('#d20f39'),
+      error: colorFromHex('#d20f39'),
+      hover: colorFromHex('#ccd0da'),
+      muted: colorFromHex('#7c7f93'),
+      text: colorFromHex('#4c4f69'),
+      warn: colorFromHex('#df8e1d'),
+      cmd: colorFromHex('#04a5e5'),
+      bg: colorFromHex('#eff1f5'),
+    ),
+  );
+
+  @override
+  AppTheme get darkTheme => AppTheme(
     palette: ThemePalette(
       consoleBorder: colorFromHex('#313244'),
       consoleInner: colorFromHex('#11111b'),

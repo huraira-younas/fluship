@@ -29,6 +29,7 @@ class ThemeSelector extends StatelessWidget {
                 ThemeCard buildCard(AppThemes id) => ThemeCard(
                   onApply: () => themeCubit.setTheme(id),
                   theme: AppThemeRegistry.get(id),
+                  displayName: id.displayName,
                   isMobile: info.isMobile,
                   isActive: id == active,
                 );

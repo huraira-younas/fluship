@@ -15,7 +15,11 @@ class ThemePresetRegistry {
     if (!AppThemeRegistry.isEmpty) return;
 
     for (final module in modules) {
-      AppThemeRegistry.register(module.preset);
+      AppThemeRegistry.registerPreset(
+        light: module.lightTheme,
+        dark: module.darkTheme,
+        id: module.id,
+      );
     }
   }
 }

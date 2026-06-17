@@ -11,11 +11,20 @@ import 'models/app_themes.dart';
 import 'models/theme.dart';
 
 class ThemeState extends Equatable {
-  const ThemeState({required this.theme});
+  const ThemeState({this.mode = .dark, required this.preset});
 
-  final AppTheme theme;
+  final AppThemes preset;
+  final ThemeMode mode;
 
-  AppThemes get activeTheme => theme.id;
+  ThemePresetBundle get bundle => AppThemeRegistry.getBundle(preset);
+
+  AppThemes get activeTheme => preset;
+
+  AppTheme get theme => switch (mode) {
+    .system => bundle.dark,
+    .light => bundle.light,
+    .dark => bundle.dark,
+  };
 
   ThemePalette get colors => theme.palette;
 
@@ -23,10 +32,11 @@ class ThemeState extends Equatable {
 
   ThemeSpacing get spacing => theme.spacing;
 
-  ThemeData get themeData => theme.toThemeData();
+  ThemeData get lightThemeData => bundle.light.toThemeData(brightness: .light);
+  ThemeData get darkThemeData => bundle.dark.toThemeData(brightness: .dark);
 
   @override
-  List<Object?> get props => [theme];
+  List<Object?> get props => [preset, mode];
 }
 
 class ThemeCubit extends Cubit<ThemeState> {
@@ -36,16 +46,17 @@ class ThemeCubit extends Cubit<ThemeState> {
     ThemePresetRegistry.registerAll();
     final saved = AppThemes.fromKey(SharedPrefs.i.themeMode);
 
-    return ThemeState(
-      theme: AppThemeRegistry.get(
-        saved ?? initial ?? AppThemes.defaultTheme,
-      ),
-    );
+    return ThemeState(preset: saved ?? initial ?? AppThemes.defaultTheme);
   }
 
   void setTheme(AppThemes theme) {
     if (state.activeTheme == theme) return;
     SharedPrefs.i.setThemeMode(theme.key);
-    emit(ThemeState(theme: AppThemeRegistry.get(theme)));
+    emit(ThemeState(preset: theme, mode: state.mode));
+  }
+
+  void setThemeMode(ThemeMode mode) {
+    if (state.mode == mode) return;
+    emit(ThemeState(preset: state.preset, mode: mode));
   }
 }

@@ -6,24 +6,41 @@ import '../models/theme.dart';
 class AppThemeDataMapper {
   AppThemeDataMapper._();
 
-  static ThemeData toThemeData(AppTheme theme) {
+  static ThemeData toThemeData(
+    AppTheme theme, {
+    required Brightness brightness,
+  }) {
+    final isDark = brightness == .dark;
     final colors = theme.palette;
 
     return ThemeData(
       scaffoldBackgroundColor: colors.bg,
-      brightness: .dark,
-      colorScheme: ColorScheme.dark(
-        surfaceContainerHighest: colors.hover,
-        outline: colors.cardBorder,
-        secondary: colors.section,
-        onSecondary: colors.bg,
-        surface: colors.cardBg,
-        onSurface: colors.text,
-        primary: colors.accent,
-        onError: colors.text,
-        onPrimary: colors.bg,
-        error: colors.error,
-      ),
+      brightness: brightness,
+      colorScheme: isDark
+          ? ColorScheme.dark(
+              surfaceContainerHighest: colors.hover,
+              outline: colors.cardBorder,
+              secondary: colors.section,
+              onSecondary: colors.bg,
+              surface: colors.cardBg,
+              onSurface: colors.text,
+              primary: colors.accent,
+              onError: colors.text,
+              onPrimary: colors.bg,
+              error: colors.error,
+            )
+          : ColorScheme.light(
+              surfaceContainerHighest: colors.hover,
+              outline: colors.cardBorder,
+              onPrimary: Colors.white,
+              secondary: colors.section,
+              onSecondary: colors.text,
+              surface: colors.cardBg,
+              onSurface: colors.text,
+              primary: colors.accent,
+              onError: colors.text,
+              error: colors.error,
+            ),
       appBarTheme: AppBarTheme(
         backgroundColor: colors.cardBg,
         foregroundColor: colors.text,
@@ -90,8 +107,8 @@ class AppThemeDataMapper {
             horizontal: theme.spacing.md,
             vertical: theme.spacing.sm,
           ),
+          foregroundColor: isDark ? colors.bg : Colors.white,
           backgroundColor: colors.accent,
-          foregroundColor: colors.bg,
         ),
       ),
       extensions: [FlushipThemeExtension.fromAppTheme(theme)],
@@ -100,5 +117,6 @@ class AppThemeDataMapper {
 }
 
 extension AppThemeData on AppTheme {
-  ThemeData toThemeData() => AppThemeDataMapper.toThemeData(this);
+  ThemeData toThemeData({required Brightness brightness}) =>
+      AppThemeDataMapper.toThemeData(this, brightness: brightness);
 }

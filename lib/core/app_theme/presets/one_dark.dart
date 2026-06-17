@@ -7,11 +7,36 @@ final class OneDarkPreset implements ThemePresetModule {
   const OneDarkPreset();
 
   @override
-  AppThemes get id => AppThemes.oneDark;
+  AppThemes get id => .oneDark;
 
   @override
-  AppTheme get preset => AppTheme(
-    id: id,
+  AppTheme get lightTheme => AppTheme(
+    palette: ThemePalette(
+      consoleBorder: colorFromHex('#d0d0d0'),
+      consoleInner: colorFromHex('#e0e0e0'),
+      accentHover: colorFromHex('#0184bc'),
+      dangerHover: colorFromHex('#ca1243'),
+      cardBorder: colorFromHex('#d0d0d0'),
+      consoleBg: colorFromHex('#e8e8e8'),
+      disabled: colorFromHex('#f0f0f0'),
+      textDim: colorFromHex('#696c77'),
+      section: colorFromHex('#505050'),
+      success: colorFromHex('#50a14f'),
+      cardBg: colorFromHex('#f0f0f0'),
+      accent: colorFromHex('#4078f2'),
+      danger: colorFromHex('#e45649'),
+      error: colorFromHex('#e45649'),
+      hover: colorFromHex('#e0e0e0'),
+      muted: colorFromHex('#696c77'),
+      text: colorFromHex('#383a42'),
+      warn: colorFromHex('#c18401'),
+      cmd: colorFromHex('#0184bc'),
+      bg: colorFromHex('#fafafa'),
+    ),
+  );
+
+  @override
+  AppTheme get darkTheme => AppTheme(
     palette: ThemePalette(
       consoleBorder: colorFromHex('#3e4452'),
       consoleInner: colorFromHex('#1b1d23'),

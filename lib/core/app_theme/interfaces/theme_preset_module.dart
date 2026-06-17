@@ -4,5 +4,6 @@ import '../models/theme.dart';
 abstract interface class ThemePresetModule {
   AppThemes get id;
 
-  AppTheme get preset;
+  AppTheme get lightTheme;
+  AppTheme get darkTheme;
 }
