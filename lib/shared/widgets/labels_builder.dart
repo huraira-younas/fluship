@@ -1,5 +1,6 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/string_extensions.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
@@ -125,7 +126,12 @@ class _LabelsBuilderState<T> extends State<LabelsBuilder<T>> {
                 : value.toString();
 
             return _TabButton(
-              onTap: widget.disabled ? null : () => widget.onChange(value),
+              onTap: widget.disabled
+                  ? null
+                  : () {
+                      HapticFeedback.lightImpact();
+                      widget.onChange(value);
+                    },
               contentPadding: widget.contentPadding,
               variant: widget.variant,
               title: text.capitalize,

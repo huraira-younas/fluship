@@ -1,4 +1,5 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:flutter/material.dart';
 
 import 'app_text.dart';
@@ -33,9 +34,13 @@ class SwitchLabel extends StatelessWidget {
           label,
         ),
         leading: Switch(
+          onChanged: (value) {
+            HapticFeedback.lightImpact();
+            if (disabled) return;
+            onChange(value);
+          },
           inactiveTrackColor: ft.colors.cardBorder,
           inactiveThumbColor: ft.colors.textDim,
-          onChanged: disabled ? null : onChange,
           activeThumbColor: ft.colors.accent,
           value: value,
         ),

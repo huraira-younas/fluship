@@ -1,4 +1,5 @@
 import 'package:fluship/shared/extensions/widget_extensions.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:fluship/core/app_theme/app_theme.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:equatable/equatable.dart';
@@ -54,7 +55,11 @@ class AppCard extends StatelessWidget {
               AppText.title(title).expanded(),
               if (nn)
                 Switch(
-                  onChanged: state!.forceDisabled ? null : state!.onEnable,
+                  onChanged: (value) {
+                    if(state!.forceDisabled) return;
+                    HapticFeedback.lightImpact();
+                    state!.onEnable(value);
+                  },
                   inactiveTrackColor: ft.colors.cardBorder,
                   inactiveThumbColor: ft.colors.textDim,
                   activeThumbColor: ft.colors.accent,
