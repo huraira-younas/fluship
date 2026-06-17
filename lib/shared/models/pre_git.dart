@@ -1,3 +1,4 @@
+import 'package:fluship/core/json_parser/exports.dart';
 import 'base_config.dart';
 
 final class PreGitModel extends BaseConfig {
@@ -25,12 +26,17 @@ final class PreGitModel extends BaseConfig {
     enabled: enabled ?? this.enabled,
   );
 
-  factory PreGitModel.fromJson(Map<String, dynamic>? json) => PreGitModel(
-    commitMessage: json?['commit_message'] as String?,
-    preCommit: json?['pre_commit'] as bool? ?? false,
-    prePull: json?['pre_pull'] as bool? ?? false,
-    enabled: json?['enabled'] as bool? ?? true,
-  );
+  factory PreGitModel.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const PreGitModel();
+
+    final data = json.at<PreGitModel>();
+    return PreGitModel(
+      preCommit: data.parse<bool>('pre_commit', defaultValue: false),
+      prePull: data.parse<bool>('pre_pull', defaultValue: false),
+      enabled: data.parse<bool>('enabled', defaultValue: true),
+      commitMessage: data.parse<String?>('commit_message'),
+    );
+  }
 
   @override
   Map<String, dynamic> toJson() => {

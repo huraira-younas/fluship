@@ -1,3 +1,4 @@
+import 'package:fluship/core/json_parser/exports.dart';
 import 'base_config.dart';
 
 final class AppInfoModel extends BaseConfig {
@@ -33,14 +34,19 @@ final class AppInfoModel extends BaseConfig {
     appName: appName ?? this.appName,
   );
 
-  factory AppInfoModel.fromJson(Map<String, dynamic> json) => AppInfoModel(
-    flutterProjectPath: json['flutter_project_path'] as String?,
-    buildNumber: json['build_number'] as String?,
-    enabled: json['enabled'] as bool? ?? true,
-    gitBranch: json['git_branch'] as String?,
-    appName: json['app_name'] as String?,
-    version: json['version'] as String?,
-  );
+  factory AppInfoModel.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const AppInfoModel();
+
+    final data = json.at<AppInfoModel>();
+    return AppInfoModel(
+      flutterProjectPath: data.parse<String?>('flutter_project_path'),
+      enabled: data.parse<bool>('enabled', defaultValue: true),
+      buildNumber: data.parse<String?>('build_number'),
+      gitBranch: data.parse<String?>('git_branch'),
+      appName: data.parse<String?>('app_name'),
+      version: data.parse<String?>('version'),
+    );
+  }
 
   @override
   Map<String, dynamic> toJson() => {

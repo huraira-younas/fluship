@@ -4,7 +4,7 @@ abstract class BaseConfig extends Equatable {
   const BaseConfig({required this.enabled});
 
   final bool enabled;
-  
+
   BaseConfig copyWith({bool? enabled});
   Map<String, dynamic> toJson();
 

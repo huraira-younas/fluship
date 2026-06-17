@@ -1,3 +1,4 @@
+import 'package:fluship/core/json_parser/exports.dart';
 import 'base_config.dart';
 
 final class PostGitModel extends BaseConfig {
@@ -25,12 +26,17 @@ final class PostGitModel extends BaseConfig {
     enabled: enabled ?? this.enabled,
   );
 
-  factory PostGitModel.fromJson(Map<String, dynamic>? json) => PostGitModel(
-    postCommit: json?['post_commit'] as bool? ?? false,
-    commitMessage: json?['commit_message'] as String?,
-    postPush: json?['post_push'] as bool? ?? false,
-    enabled: json?['enabled'] as bool? ?? true,
-  );
+  factory PostGitModel.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const PostGitModel();
+
+    final data = json.at<PostGitModel>();
+    return PostGitModel(
+      postCommit: data.parse<bool>('post_commit', defaultValue: false),
+      postPush: data.parse<bool>('post_push', defaultValue: false),
+      enabled: data.parse<bool>('enabled', defaultValue: true),
+      commitMessage: data.parse<String?>('commit_message'),
+    );
+  }
 
   @override
   Map<String, dynamic> toJson() => {

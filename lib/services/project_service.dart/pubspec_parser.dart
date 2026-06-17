@@ -19,7 +19,9 @@ class PubspecParser {
     }
 
     if (projectName == null || projectName.isEmpty) {
-      throw const FormatException('pubspec.yaml is missing a valid name field.');
+      throw const FormatException(
+        'pubspec.yaml is missing a valid name field.',
+      );
     }
 
     if (versionLine == null || versionLine.isEmpty) {
@@ -33,7 +35,9 @@ class PubspecParser {
     final buildNumber = parts.length > 1 ? parts[1].trim() : null;
 
     return PubspecInfo(
-      buildNumber: buildNumber == null || buildNumber.isEmpty ? null : buildNumber,
+      buildNumber: buildNumber == null || buildNumber.isEmpty
+          ? null
+          : buildNumber,
       projectName: projectName,
       version: version,
     );

@@ -30,9 +30,7 @@ class SyncProjectAppInfo extends ConfigEvent {
   final String flutterProjectPath;
 
   @override
-  Map<String, dynamic> toJson() => {
-    'flutter_project_path': flutterProjectPath,
-  };
+  Map<String, dynamic> toJson() => {'flutter_project_path': flutterProjectPath};
 }
 
 class UpdateConfig extends ConfigEvent {

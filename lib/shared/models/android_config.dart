@@ -1,8 +1,9 @@
+import 'package:fluship/core/json_parser/exports.dart';
 import 'base_config.dart';
 
 enum AndroidBuildType {
-  apk,
-  arbs;
+  arbs,
+  apk;
 
   static AndroidBuildType? fromString(String? value) => switch (value) {
     'arbs' => .arbs,
@@ -21,12 +22,16 @@ final class AndroidConfigModel extends BaseConfig {
   final AndroidBuildType? buildType;
   final bool buildAab;
 
-  factory AndroidConfigModel.fromJson(Map<String, dynamic>? json) =>
-      AndroidConfigModel(
-        buildType: AndroidBuildType.fromString(json?['buildType'] as String?),
-        buildAab: json?['buildAab'] as bool? ?? false,
-        enabled: json?['enabled'] as bool? ?? true,
-      );
+  factory AndroidConfigModel.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const AndroidConfigModel();
+
+    final data = json.at<AndroidConfigModel>();
+    return AndroidConfigModel(
+      buildAab: data.parse<bool>('buildAab', defaultValue: false),
+      enabled: data.parse<bool>('enabled', defaultValue: true),
+      buildType: .fromString(data.parse<String?>('buildType')),
+    );
+  }
 
   @override
   AndroidConfigModel copyWith({

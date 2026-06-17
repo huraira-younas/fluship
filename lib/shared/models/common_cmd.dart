@@ -1,3 +1,4 @@
+import 'package:fluship/core/json_parser/exports.dart';
 import 'base_config.dart';
 
 enum FlutterGetType {
@@ -29,11 +30,16 @@ final class CommonCmdModel extends BaseConfig {
     clean: clean ?? this.clean,
   );
 
-  factory CommonCmdModel.fromJson(Map<String, dynamic>? json) => CommonCmdModel(
-    type: FlutterGetType.fromString(json?['type'] as String?),
-    enabled: json?['enabled'] as bool? ?? true,
-    clean: json?['clean'] as bool? ?? false,
-  );
+  factory CommonCmdModel.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const CommonCmdModel();
+
+    final data = json.at<CommonCmdModel>();
+    return CommonCmdModel(
+      enabled: data.parse<bool>('enabled', defaultValue: true),
+      clean: data.parse<bool>('clean', defaultValue: false),
+      type: .fromString(data.parse<String?>('type')),
+    );
+  }
 
   @override
   Map<String, dynamic> toJson() => {

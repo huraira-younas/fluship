@@ -1,3 +1,4 @@
+import 'package:fluship/core/json_parser/exports.dart';
 import 'base_config.dart';
 
 final class IosConfigModel extends BaseConfig {
@@ -10,11 +11,14 @@ final class IosConfigModel extends BaseConfig {
   final bool podClean;
   final bool buildIpa;
 
-  factory IosConfigModel.fromJson(Map<String, dynamic>? json) => IosConfigModel(
-    podClean: json?['podClean'] as bool? ?? false,
-    buildIpa: json?['buildIpa'] as bool? ?? false,
-    enabled: json?['enabled'] as bool? ?? true,
-  );
+  factory IosConfigModel.fromJson(Map<String, dynamic> json) {
+    final data = json.at<IosConfigModel>();
+    return IosConfigModel(
+      podClean: data.parse<bool>('podClean', defaultValue: false),
+      buildIpa: data.parse<bool>('buildIpa', defaultValue: false),
+      enabled: data.parse<bool>('enabled', defaultValue: true),
+    );
+  }
 
   @override
   IosConfigModel copyWith({bool? podClean, bool? buildIpa, bool? enabled}) {

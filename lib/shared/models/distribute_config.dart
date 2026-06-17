@@ -1,3 +1,6 @@
+import 'dart:io' show Platform;
+
+import 'package:fluship/core/json_parser/exports.dart';
 import 'package:equatable/equatable.dart';
 import 'base_config.dart';
 
@@ -18,11 +21,13 @@ class DistributionEmail extends Equatable {
   final String email;
   final String name;
 
-  factory DistributionEmail.fromJson(Map<String, dynamic>? json) =>
-      DistributionEmail(
-        email: json?['email'] as String,
-        name: json?['name'] as String,
-      );
+  factory DistributionEmail.fromJson(Map<String, dynamic> json) {
+    final data = json.at<DistributionEmail>();
+    return DistributionEmail(
+      email: data.parse<String>('email'),
+      name: data.parse<String>('name'),
+    );
+  }
 
   DistributionEmail copyWith({String? email, String? name}) =>
       DistributionEmail(email: email ?? this.email, name: name ?? this.name);
@@ -53,16 +58,18 @@ final class DistributionConfigModel extends BaseConfig {
   final bool appstore;
   final bool drive;
 
-  factory DistributionConfigModel.fromJson(Map<String, dynamic>? json) =>
-      DistributionConfigModel(
-        emails: json?['emails'] as List<DistributionEmail>? ?? [],
-        appstore: json?['appstore'] as bool? ?? false,
-        enabled: json?['enabled'] as bool? ?? true,
-        drive: json?['drive'] as bool? ?? false,
-        playstore: PlayStoreDistribution.fromString(
-          json?['playstore'] as String?,
-        ),
-      );
+  factory DistributionConfigModel.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const DistributionConfigModel();
+
+    final data = json.at<DistributionConfigModel>();
+    return DistributionConfigModel(
+      appstore: data.parse<bool>('appstore', defaultValue: Platform.isIOS),
+      enabled: data.parse<bool>('enabled', defaultValue: true),
+      playstore: .fromString(data.parse<String?>('playstore')),
+      emails: data.list('emails', DistributionEmail.fromJson),
+      drive: data.parse<bool>('drive', defaultValue: false),
+    );
+  }
 
   @override
   DistributionConfigModel copyWith({
