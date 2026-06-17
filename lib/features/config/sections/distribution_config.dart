@@ -31,8 +31,9 @@ class DistributionConfig extends StatelessWidget {
           ),
           title: "Distribution Config",
           description:
-              "Choose where Fluship uploads your build artifacts after compilation: publish to Google Play (production or internal track) or share via Google Drive. "
-              "Pick the right channel here so testers and store reviewers get the build without a manual upload step.",
+              "Choose where Fluship sends your build after compilation: Google Play, App Store, or Google Drive. "
+              "Play Store supports production and internal tracks; App Store builds are uploaded to TestFlight for beta testers and review. "
+              "Enable Google Drive to share the artifact with your team - expand recipients below to pick who receives it.",
           children: [
             SwitchLabelsRow<PlayStoreDistribution>(
               labels: PlayStoreDistribution.values,
@@ -52,7 +53,7 @@ class DistributionConfig extends StatelessWidget {
             SwitchLabel(
               disabled: !distribution.enabled,
               value: distribution.appstore,
-              label: "App Store",
+              label: "App Store → TestFlight",
               onChange: (value) => bloc.add(
                 UpdateConfig(config: distribution.copyWith(appstore: value)),
               ),

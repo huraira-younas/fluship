@@ -2,6 +2,7 @@ import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
 
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
+import 'package:fluship/shared/models/post_build_config.dart';
 import 'package:fluship/shared/models/post_git.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -60,6 +61,10 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
         emit(state.copyWith(distribution: distribution));
         await _sharedPrefs.setObject(.distribution, distribution.toJson());
 
+      case PostBuildConfigModel postBuild:
+        emit(state.copyWith(postBuild: postBuild));
+        await _sharedPrefs.setObject(.postBuild, postBuild.toJson());
+
       default:
         throw UnsupportedError(
           'Invalid config type: ${event.config.runtimeType}',
@@ -72,6 +77,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
 
     final distribution = _sharedPrefs.getObject(.distribution);
     final savedAppInfo = _sharedPrefs.getObject(.appInfo);
+    final postBuild = _sharedPrefs.getObject(.postBuild);
     final commonCmd = _sharedPrefs.getObject(.commonCmd);
     final android = _sharedPrefs.getObject(.android);
     final postGit = _sharedPrefs.getObject(.postGit);
@@ -96,6 +102,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
       state.copyWith(
         distribution: .fromJson(distribution),
         commonCmd: .fromJson(commonCmd),
+        postBuild: .fromJson(postBuild),
         postGit: .fromJson(postGit),
         android: .fromJson(android),
         preGit: .fromJson(preGit),
@@ -123,6 +130,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     await Future.wait([
       _sharedPrefs.setObject(.distribution, state.distribution.toJson()),
       _sharedPrefs.setObject(.commonCmd, state.commonCmd.toJson()),
+      _sharedPrefs.setObject(.postBuild, state.postBuild.toJson()),
       _sharedPrefs.setObject(.android, state.android.toJson()),
       _sharedPrefs.setObject(.appInfo, state.appInfo.toJson()),
       _sharedPrefs.setObject(.postGit, state.postGit.toJson()),

@@ -52,6 +52,7 @@ class ConfigScreen extends StatelessWidget {
             IosConfig(),
             PostGit(),
             DistributionConfig(),
+            PostBuild(),
           ],
         );
       },

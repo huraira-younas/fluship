@@ -3,6 +3,7 @@ part of 'shared_prefs.dart';
 enum SharedPrefsKeys {
   distribution('distribution'),
   commonCmd('common_cmd'),
+  postBuild('post_build'),
   themeMode('theme_mode'),
   appInfo('app_info'),
   postGit('post_git'),

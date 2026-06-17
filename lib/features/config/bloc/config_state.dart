@@ -2,6 +2,7 @@ part of 'config_bloc.dart';
 
 class ConfigState extends BaseBlocState {
   final DistributionConfigModel distribution;
+  final PostBuildConfigModel postBuild;
   final AndroidConfigModel android;
   final CommonCmdModel commonCmd;
   final PostGitModel postGit;
@@ -12,6 +13,7 @@ class ConfigState extends BaseBlocState {
   const ConfigState({
     required this.distribution,
     required this.commonCmd,
+    required this.postBuild,
     super.loading = false,
     required this.android,
     required this.postGit,
@@ -23,6 +25,7 @@ class ConfigState extends BaseBlocState {
 
   factory ConfigState.empty() => const ConfigState(
     distribution: DistributionConfigModel(),
+    postBuild: PostBuildConfigModel(),
     android: AndroidConfigModel(),
     commonCmd: CommonCmdModel(),
     postGit: PostGitModel(),
@@ -34,6 +37,7 @@ class ConfigState extends BaseBlocState {
   @override
   List<Object> get props => [
     distribution,
+    postBuild,
     commonCmd,
     postGit,
     android,
@@ -45,6 +49,7 @@ class ConfigState extends BaseBlocState {
   @override
   ConfigState copyWith({
     DistributionConfigModel? distribution,
+    PostBuildConfigModel? postBuild,
     AndroidConfigModel? android,
     CommonCmdModel? commonCmd,
     PostGitModel? postGit,
@@ -56,6 +61,7 @@ class ConfigState extends BaseBlocState {
   }) {
     return ConfigState(
       distribution: distribution ?? this.distribution,
+      postBuild: postBuild ?? this.postBuild,
       commonCmd: commonCmd ?? this.commonCmd,
       android: android ?? this.android,
       postGit: postGit ?? this.postGit,
