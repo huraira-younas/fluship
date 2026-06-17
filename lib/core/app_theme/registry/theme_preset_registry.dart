@@ -7,7 +7,9 @@ class ThemePresetRegistry {
 
   static const List<ThemePresetModule> modules = [
     CatppuccinMochaPreset(),
+    InstagramPreset(),
     OneDarkPreset(),
+    GitHubPreset(),
     NordPreset(),
   ];
 

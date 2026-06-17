@@ -1,8 +1,7 @@
+import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-
-import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 
 import 'registry/theme_preset_registry.dart';
 import 'mappers/app_theme_data_mapper.dart';

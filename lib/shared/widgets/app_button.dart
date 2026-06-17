@@ -84,7 +84,7 @@ class _AppButtonColors {
         pressed: colors.accentHover,
         hovered: colors.accentHover,
         background: colors.accent,
-        foreground: colors.bg,
+        foreground: colors.text,
       ),
       .secondary => _AppButtonColors(
         overlay: colors.hover.withValues(alpha: 0.35),

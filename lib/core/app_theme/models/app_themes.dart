@@ -2,9 +2,12 @@ enum AppThemes {
   catppuccinMocha('catppuccin_mocha', 'Catppuccin Mocha'),
   solarizedDark('solarized_dark', 'Solarized Dark'),
   tokyoNight('tokyo_night', 'Tokyo Night'),
+  instagram('instagram', 'Instagram'),
+  whatsapp('whatsapp', 'WhatsApp'),
   oneDark('one_dark', 'One Dark'),
   gruvbox('gruvbox', 'Gruvbox'),
   dracula('dracula', 'Dracula'),
+  github('github', 'GitHub'),
   nord('nord', 'Nord');
 
   const AppThemes(this.key, this.displayName);
