@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 class ThemeSwatch extends StatelessWidget {
   const ThemeSwatch({
     required this.color,
-    required this.radius,
     required this.size,
+    this.borderColor,
     super.key,
   });
 
-  final double radius;
+  final Color? borderColor;
   final Color color;
   final double size;
 
@@ -18,7 +18,10 @@ class ThemeSwatch extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
+        shape: BoxShape.circle,
+        border: borderColor == null
+            ? null
+            : Border.all(color: borderColor!, width: 1),
         color: color,
       ),
     );

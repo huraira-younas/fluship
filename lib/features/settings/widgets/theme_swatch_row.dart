@@ -6,38 +6,26 @@ import 'theme_swatch.dart';
 class ThemeSwatchRow extends StatelessWidget {
   const ThemeSwatchRow({
     required this.palette,
-    required this.gap,
-    required this.radius,
+    required this.size,
     super.key,
   });
 
   final ThemePalette palette;
-  final double gap;
-  final double radius;
-
-  static const _minSwatchSize = 14.0;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final swatchCount = palette.previewSwatches.length;
-        final gapTotal = gap * (swatchCount - 1);
-        final size = ((constraints.maxWidth - gapTotal) / swatchCount).clamp(
-          _minSwatchSize,
-          double.infinity,
-        );
-
-        return Row(
-          spacing: gap,
-          children: palette.previewSwatches
-              .map(
-                (color) =>
-                    ThemeSwatch(color: color, radius: radius, size: size),
-              )
-              .toList(),
-        );
-      },
+    return Row(
+      spacing: 5,
+      children: palette.previewSwatches
+          .map(
+            (color) => ThemeSwatch(
+              borderColor: Colors.black.withValues(alpha: 0.25),
+              color: color,
+              size: size,
+            ),
+          )
+          .toList(),
     );
   }
 }

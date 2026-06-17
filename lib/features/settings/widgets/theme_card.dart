@@ -1,9 +1,7 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
-import 'package:fluship/core/app_theme/mappers/app_theme_data_mapper.dart';
-import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:fluship/core/responsive/responsive_extension.dart';
-import 'package:fluship/shared/extensions/widget_extensions.dart';
-import 'package:fluship/shared/widgets/app_button.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
+import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
@@ -12,100 +10,194 @@ import 'theme_swatch_row.dart';
 
 class ThemeCard extends StatelessWidget {
   const ThemeCard({
-    required this.onApply,
     required this.isActive,
+    required this.isMobile,
+    required this.onApply,
     required this.theme,
     super.key,
   });
 
   final VoidCallback onApply;
   final AppTheme theme;
+  final bool isMobile;
   final bool isActive;
 
   @override
   Widget build(BuildContext context) {
+    final displayName = theme.id.displayName;
     final ft = context.flushipTheme;
     final palette = theme.palette;
-    final displayName = theme.id.displayName;
+    final radius = ft.radius.card;
 
-    final padding = context.responsiveValue(
-      compact: ft.spacing.sm,
-      medium: ft.spacing.md,
-      large: ft.spacing.lg,
+    final previewHeight = context.responsiveValue(
+      compact: 112.0,
+      medium: 116.0,
+      large: 120.0,
     );
-    final titleSize = context.responsiveValue(
-      compact: AppTextSize.body,
-      medium: AppTextSize.subtitle,
-      large: AppTextSize.subtitle,
-    );
-    final previewTextSize = context.responsiveValue(
-      compact: AppTextSize.caption,
-      medium: AppTextSize.body,
-      large: AppTextSize.body,
-    );
-    final previewMinHeight = context.responsiveValue(
-      compact: 48.0,
-      medium: 52.0,
-      large: 56.0,
-    );
-    final swatchGap = context.isMobile ? ft.spacing.sm : ft.spacing.sm + 2;
-    final buttonSize = context.isMobile ? AppButtonSize.md : AppButtonSize.sm;
-    final expandButton = context.isMobile;
 
-    return Container(
-      padding: EdgeInsets.all(padding),
+    final swatchSize = context.responsiveValue(
+      compact: 9.0,
+      medium: 10.0,
+      large: 10.0,
+    );
+
+    final footerPad = context.responsiveValue(
+      compact: ft.spacing.sm + 2,
+      medium: ft.spacing.sm + 4,
+      large: ft.spacing.md,
+    );
+
+    return AnimatedContainer(
+      padding: isMobile ? const .only(bottom: 10) : null,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
-        border: Border.all(
-          color: isActive ? ft.colors.accent : ft.colors.cardBorder,
-          width: isActive ? 2 : 1,
+        borderRadius: .circular(radius),
+        border: .all(
+          color: isActive
+              ? palette.accent.withValues(alpha: 0.85)
+              : ft.colors.cardBorder.withValues(alpha: 0.75),
+          width: isActive ? 1.5 : 1,
         ),
-        borderRadius: BorderRadius.circular(ft.radius.card),
-        color: ft.colors.codeBg,
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                  color: palette.accent.withValues(alpha: 0.22),
+                  offset: const Offset(0, 6),
+                  spreadRadius: 0,
+                  blurRadius: 18,
+                ),
+              ]
+            : null,
+        color: ft.colors.cardBg,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: ft.spacing.sm,
-        children: [
-          Row(
+      clipBehavior: .antiAlias,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isActive
+              ? null
+              : () {
+                  HapticFeedback.lightImpact();
+                  onApply();
+                },
+          hoverColor: palette.accent.withValues(alpha: 0.06),
+          splashColor: palette.accent.withValues(alpha: 0.1),
+          child: Column(
+            crossAxisAlignment: .stretch,
+            mainAxisSize: .min,
             children: [
-              AppText(
-                displayName,
-                size: titleSize,
-                weight: FontWeight.w600,
-              ).expanded(),
-              if (isActive)
-                const AppText.success('Active', size: AppTextSize.caption),
+              Stack(
+                children: [
+                  ThemePreviewCanvas(
+                    height: previewHeight,
+                    palette: palette,
+                    radius: radius,
+                  ),
+                  if (isActive)
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: _ActiveBadge(
+                        accent: palette.accent,
+                        bg: palette.bg,
+                      ),
+                    ),
+                ],
+              ),
+              Padding(
+                padding: .fromLTRB(
+                  footerPad,
+                  footerPad - 2,
+                  footerPad,
+                  footerPad,
+                ),
+                child: Column(
+                  crossAxisAlignment: .stretch,
+                  spacing: ft.spacing.sm,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AppText(
+                            size: context.isMobile ? .body : .subtitle,
+                            weight: .w600,
+                            displayName,
+                          ),
+                        ),
+                        if (isActive)
+                          _StatusPill(
+                            background: palette.success.withValues(alpha: 0.14),
+                            foreground: palette.success,
+                            label: 'In use',
+                          )
+                        else
+                          _StatusPill(
+                            background: palette.accent.withValues(alpha: 0.12),
+                            foreground: palette.accent,
+                            label: 'Tap to apply',
+                          ),
+                      ],
+                    ),
+                    ThemeSwatchRow(palette: palette, size: swatchSize),
+                  ],
+                ),
+              ),
             ],
           ),
-          ThemeSwatchRow(
-            palette: palette,
-            radius: theme.radius.input,
-            gap: swatchGap,
-          ),
-          ThemePreviewBox(
-            displayName: displayName,
-            textSize: previewTextSize,
-            minHeight: previewMinHeight,
-            radius: theme.radius.input,
-            palette: palette,
-          ),
-          if (!isActive)
-            Theme(
-              data: theme.toThemeData(),
-              child: expandButton
-                  ? AppButton.primary(
-                      onPressed: onApply,
-                      isExpanded: true,
-                      label: 'Apply',
-                      size: buttonSize,
-                    )
-                  : AppButton.primary(
-                      onPressed: onApply,
-                      label: 'Apply',
-                      size: buttonSize,
-                    ).align(align: Alignment.centerRight),
-            ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActiveBadge extends StatelessWidget {
+  const _ActiveBadge({required this.accent, required this.bg});
+
+  final Color accent;
+  final Color bg;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const .all(5),
+      decoration: BoxDecoration(
+        border: .all(color: accent.withValues(alpha: 0.6)),
+        color: bg.withValues(alpha: 0.92),
+        shape: .circle,
+        boxShadow: [
+          BoxShadow(color: accent.withValues(alpha: 0.35), blurRadius: 10),
         ],
+      ),
+      child: Icon(Icons.check_rounded, color: accent, size: 14),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({
+    required this.background,
+    required this.foreground,
+    required this.label,
+  });
+
+  final Color background;
+  final Color foreground;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(borderRadius: .circular(99), color: background),
+      padding: const .symmetric(horizontal: 10, vertical: 4),
+      child: Text(
+        label,
+        style: TextStyle(
+          letterSpacing: 0.15,
+          color: foreground,
+          fontWeight: .w600,
+          fontSize: 11,
+        ),
       ),
     );
   }

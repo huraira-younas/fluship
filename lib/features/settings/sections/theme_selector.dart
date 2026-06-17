@@ -29,6 +29,7 @@ class ThemeSelector extends StatelessWidget {
                 ThemeCard buildCard(AppThemes id) => ThemeCard(
                   onApply: () => themeCubit.setTheme(id),
                   theme: AppThemeRegistry.get(id),
+                  isMobile: info.isMobile,
                   isActive: id == active,
                 );
 
@@ -45,10 +46,10 @@ class ThemeSelector extends StatelessWidget {
                   large: 3,
                 );
 
-                final aspectRatio = context.responsiveValue(
-                  compact: 1.0,
-                  medium: 1.05,
-                  large: 1.12,
+                final cardHeight = context.responsiveValue(
+                  compact: 200.0,
+                  medium: 190.0,
+                  large: 200.0,
                 );
 
                 return GridView.builder(
@@ -57,7 +58,7 @@ class ThemeSelector extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   itemBuilder: (_, index) => buildCard(themes[index]),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    childAspectRatio: aspectRatio,
+                    mainAxisExtent: cardHeight,
                     crossAxisSpacing: spacing,
                     mainAxisSpacing: spacing,
                     crossAxisCount: columns,
