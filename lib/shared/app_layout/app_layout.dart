@@ -64,6 +64,8 @@ class _LayoutScreenState extends State<LayoutScreen> {
   }
 
   Widget _buildContent(BuildContext context, ThemeSpacing spacing) {
+    final isMobile = context.isMobile;
+    final hPad = isMobile ? spacing.md : spacing.lg;
     return Column(
       spacing: spacing.sm,
       children: [
@@ -71,9 +73,9 @@ class _LayoutScreenState extends State<LayoutScreen> {
           onTabChanged: (tab) => setState(() => _selectedTab = tab),
           selectedTab: _selectedTab,
           spacing: spacing,
-        ).padOnly(l: spacing.lg, r: spacing.lg),
+        ).padOnly(l: hPad, r: hPad),
         SingleChildScrollView(
-          padding: .all(spacing.lg),
+          padding: .all(hPad),
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: _tabs[_selectedTab.value],
@@ -81,7 +83,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
         ).expanded(),
       ],
     ).padOnly(
-      t: context.isMobile ? MediaQuery.paddingOf(context).top : spacing.lg,
+      t: isMobile ? MediaQuery.paddingOf(context).top : spacing.lg,
       b: spacing.lg,
     );
   }

@@ -1,5 +1,4 @@
-import 'package:fluship/shared/extensions/widget_extensions.dart';
-import 'package:fluship/shared/widgets/labels_builder.dart';
+import 'package:fluship/shared/widgets/switch_labels_row.dart';
 import 'package:fluship/shared/models/common_cmd.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 
@@ -39,32 +38,20 @@ class CommonCmd extends StatelessWidget {
                 UpdateConfig(config: commonCmd.copyWith(clean: value)),
               ),
             ),
-            Row(
-              spacing: 10,
-              children: <Widget>[
-                SwitchLabel(
-                  value: commonCmd.type != null,
-                  disabled: !commonCmd.enabled,
-                  label: "Dependencies",
-                  onChange: (value) => bloc.add(
-                    UpdateConfig(
-                      config: commonCmd.copyWith(
-                        type: value ? .get : null,
-                        clearType: !value,
-                      ),
-                    ),
+            SwitchLabelsRow<FlutterGetType>(
+              labels: FlutterGetType.values,
+              disabled: !commonCmd.enabled,
+              switchLabel: 'Dependencies',
+              value: commonCmd.type,
+              defaultValue: .get,
+              onChange: (value) => bloc.add(
+                UpdateConfig(
+                  config: commonCmd.copyWith(
+                    clearType: value == null,
+                    type: value,
                   ),
-                ).expanded(),
-                LabelsBuilder<FlutterGetType>(
-                  contentPadding: const .symmetric(horizontal: 20, vertical: 4),
-                  disabled: !commonCmd.enabled || commonCmd.type == null,
-                  onChange: (v) => bloc.add(
-                    UpdateConfig(config: commonCmd.copyWith(type: v)),
-                  ),
-                  label: commonCmd.type ?? .get,
-                  labels: FlutterGetType.values,
                 ),
-              ],
+              ),
             ),
           ],
         );

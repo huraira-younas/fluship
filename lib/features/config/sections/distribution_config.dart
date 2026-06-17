@@ -1,7 +1,10 @@
+import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/models/distribution_config.dart';
-import 'package:fluship/shared/widgets/labels_builder.dart';
+import 'package:fluship/shared/widgets/switch_labels_row.dart';
+import 'package:fluship/shared/widgets/checkbox_label.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
+import 'package:fluship/shared/widgets/app_text.dart';
 
 import 'package:fluship/shared/widgets/switch_label.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,45 +34,177 @@ class DistributionConfig extends StatelessWidget {
               "Choose where Fluship uploads your build artifacts after compilation: publish to Google Play (production or internal track) or share via Google Drive. "
               "Pick the right channel here so testers and store reviewers get the build without a manual upload step.",
           children: [
-            Row(
-              spacing: 10,
-              children: <Widget>[
-                SwitchLabel(
-                  label: "Play Store",
-                  value: distribution.playstore != null,
-                  disabled: !distribution.enabled,
-                  onChange: (value) => bloc.add(
-                    UpdateConfig(
-                      config: distribution.copyWith(
-                        playstore: value ? .production : null,
-                        clearPlaystore: !value,
-                      ),
-                    ),
+            SwitchLabelsRow<PlayStoreDistribution>(
+              labels: PlayStoreDistribution.values,
+              disabled: !distribution.enabled,
+              value: distribution.playstore,
+              switchLabel: 'Play Store',
+              defaultValue: .production,
+              onChange: (value) => bloc.add(
+                UpdateConfig(
+                  config: distribution.copyWith(
+                    clearPlaystore: value == null,
+                    playstore: value,
                   ),
-                ).expanded(),
-                LabelsBuilder<PlayStoreDistribution>(
-                  contentPadding: const .symmetric(horizontal: 20, vertical: 4),
-                  disabled:
-                      !distribution.enabled || distribution.playstore == null,
-                  onChange: (v) => bloc.add(
-                    UpdateConfig(config: distribution.copyWith(playstore: v)),
-                  ),
-                  label: distribution.playstore ?? .production,
-                  labels: PlayStoreDistribution.values,
                 ),
-              ],
+              ),
+            ),
+            SwitchLabel(
+              disabled: !distribution.enabled,
+              value: distribution.appstore,
+              label: "App Store",
+              onChange: (value) => bloc.add(
+                UpdateConfig(config: distribution.copyWith(appstore: value)),
+              ),
             ),
             SwitchLabel(
               disabled: !distribution.enabled,
               value: distribution.drive,
-              label: "Drive",
+              label: "Google Drive",
               onChange: (value) => bloc.add(
                 UpdateConfig(config: distribution.copyWith(drive: value)),
               ),
             ),
+
+            if (distribution.drive && distribution.emails.isNotEmpty)
+              _DriveRecipientsPanel(
+                disabled: !distribution.enabled,
+                emails: distribution.emails,
+                onToggle: (email, enabled) => bloc.add(
+                  UpdateConfig(
+                    config: distribution.copyWith(
+                      emails: distribution.emails.map((e) {
+                        return e.email == email.email
+                            ? e.copyWith(enabled: enabled)
+                            : e;
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ),
           ],
         );
       },
     );
+  }
+}
+
+class _DriveRecipientsPanel extends StatefulWidget {
+  const _DriveRecipientsPanel({
+    required this.onToggle,
+    required this.disabled,
+    required this.emails,
+  });
+
+  final void Function(DistributionEmail email, bool enabled) onToggle;
+  final List<DistributionEmail> emails;
+  final bool disabled;
+
+  @override
+  State<_DriveRecipientsPanel> createState() => _DriveRecipientsPanelState();
+}
+
+class _DriveRecipientsPanelState extends State<_DriveRecipientsPanel> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = widget.emails.length;
+    final ft = context.flushipTheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        border: .all(color: ft.colors.cardBorder),
+        borderRadius: .circular(ft.radius.btn),
+        color: ft.colors.cardBg,
+      ),
+      margin: const .only(top: 8),
+      child: AnimatedCrossFade(
+        crossFadeState: _expanded ? .showSecond : .showFirst,
+        duration: const Duration(milliseconds: 250),
+        sizeCurve: Curves.easeInOut,
+        firstChild: _RecipientsHeader(
+          key: const ValueKey('collapsed'),
+          actionLabel: 'Show',
+          total: total,
+          onAction: !widget.disabled
+              ? () => setState(() => _expanded = true)
+              : null,
+        ),
+        secondChild: Column(
+          key: const ValueKey('expanded'),
+          crossAxisAlignment: .stretch,
+          children: [
+            _RecipientsHeader(
+              onAction: () => setState(() => _expanded = false),
+              actionLabel: 'Hide',
+              total: total,
+            ),
+            const SizedBox(height: 8),
+            ...List.generate(widget.emails.length, (index) {
+              final email = widget.emails[index];
+              return Column(
+                children: [
+                  if (index > 0)
+                    Divider(height: 1, color: ft.colors.cardBorder),
+                  CheckboxLabel(
+                    onChange: (value) => widget.onToggle(email, value),
+                    disabled: widget.disabled,
+                    subtitle: email.email,
+                    value: email.enabled,
+                    label: email.name,
+                  ),
+                ],
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecipientsHeader extends StatelessWidget {
+  const _RecipientsHeader({
+    required this.actionLabel,
+    required this.onAction,
+    required this.total,
+    super.key,
+  });
+
+  final VoidCallback? onAction;
+  final String actionLabel;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final ft = context.flushipTheme;
+
+    return Row(
+      children: <Widget>[
+        AppText.custom(
+          color: ft.colors.section,
+          'Drive recipients',
+          weight: .w600,
+        ),
+        const Spacer(),
+        AppText.custom(
+          color: ft.colors.textDim,
+          size: .caption,
+          '$total total',
+        ),
+        const SizedBox(width: 8),
+        TextButton(
+          onPressed: onAction,
+          style: TextButton.styleFrom(
+            foregroundColor: ft.colors.accent,
+            padding: const .symmetric(horizontal: 8),
+            tapTargetSize: .shrinkWrap,
+            visualDensity: .compact,
+          ),
+          child: Text(actionLabel),
+        ),
+      ],
+    ).padSym(h: ft.spacing.md, v: ft.spacing.sm);
   }
 }

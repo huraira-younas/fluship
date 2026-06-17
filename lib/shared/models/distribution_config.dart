@@ -16,26 +16,40 @@ enum PlayStoreDistribution {
 }
 
 class DistributionEmail extends Equatable {
-  const DistributionEmail({required this.email, required this.name});
+  const DistributionEmail({
+    this.enabled = true,
+    required this.email,
+    required this.name,
+  });
 
+  final bool enabled;
   final String email;
   final String name;
 
   factory DistributionEmail.fromJson(Map<String, dynamic> json) {
     final data = json.at<DistributionEmail>();
     return DistributionEmail(
+      enabled: data.parse<bool>('enabled', defaultValue: true),
       email: data.parse<String>('email'),
       name: data.parse<String>('name'),
     );
   }
 
-  DistributionEmail copyWith({String? email, String? name}) =>
-      DistributionEmail(email: email ?? this.email, name: name ?? this.name);
+  DistributionEmail copyWith({bool? enabled, String? email, String? name}) =>
+      DistributionEmail(
+        enabled: enabled ?? this.enabled,
+        email: email ?? this.email,
+        name: name ?? this.name,
+      );
 
-  Map<String, dynamic> toJson() => {'email': email, 'name': name};
+  Map<String, dynamic> toJson() => {
+    'enabled': enabled,
+    'email': email,
+    'name': name,
+  };
 
   @override
-  List<Object?> get props => [email, name];
+  List<Object?> get props => [enabled, email, name];
 
   @override
   String toString() => toJson().toString();
@@ -46,7 +60,17 @@ class DistributionEmail extends Equatable {
 
 final class DistributionConfigModel extends BaseConfig {
   const DistributionConfigModel({
-    this.emails = const [],
+    this.emails = const [
+      DistributionEmail(email: 'test@test.com', name: 'Test'),
+      DistributionEmail(email: 'test2@test.com', name: 'Test2'),
+      DistributionEmail(email: 'test3@test.com', name: 'Test3'),
+      DistributionEmail(email: 'test4@test.com', name: 'Test4'),
+      DistributionEmail(email: 'test5@test.com', name: 'Test5'),
+      DistributionEmail(email: 'test6@test.com', name: 'Test6'),
+      DistributionEmail(email: 'test7@test.com', name: 'Test7'),
+      DistributionEmail(email: 'test8@test.com', name: 'Test8'),
+      DistributionEmail(email: 'test9@test.com', name: 'Test9'),
+    ],
     this.appstore = false,
     super.enabled = true,
     this.drive = false,

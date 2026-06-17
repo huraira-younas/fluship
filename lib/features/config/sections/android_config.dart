@@ -1,5 +1,4 @@
-import 'package:fluship/shared/extensions/widget_extensions.dart';
-import 'package:fluship/shared/widgets/labels_builder.dart';
+import 'package:fluship/shared/widgets/switch_labels_row.dart';
 import 'package:fluship/shared/models/android_config.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 
@@ -39,32 +38,20 @@ class AndroidConfig extends StatelessWidget {
                 UpdateConfig(config: android.copyWith(buildAab: value)),
               ),
             ),
-            Row(
-              spacing: 10,
-              children: <Widget>[
-                SwitchLabel(
-                  label: "Build Type",
-                  value: android.buildType != null,
-                  disabled: !android.enabled,
-                  onChange: (value) => bloc.add(
-                    UpdateConfig(
-                      config: android.copyWith(
-                        buildType: value ? .apk : null,
-                        clearBuildType: !value,
-                      ),
-                    ),
+            SwitchLabelsRow<AndroidBuildType>(
+              labels: AndroidBuildType.values,
+              disabled: !android.enabled,
+              switchLabel: 'Build Type',
+              value: android.buildType,
+              defaultValue: .apk,
+              onChange: (value) => bloc.add(
+                UpdateConfig(
+                  config: android.copyWith(
+                    clearBuildType: value == null,
+                    buildType: value,
                   ),
-                ).expanded(),
-                LabelsBuilder<AndroidBuildType>(
-                  contentPadding: const .symmetric(horizontal: 20, vertical: 4),
-                  disabled: !android.enabled || android.buildType == null,
-                  onChange: (v) => bloc.add(
-                    UpdateConfig(config: android.copyWith(buildType: v)),
-                  ),
-                  label: android.buildType ?? .apk,
-                  labels: AndroidBuildType.values,
                 ),
-              ],
+              ),
             ),
           ],
         );

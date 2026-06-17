@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 
 class LabelsBuilder<T> extends StatefulWidget {
   const LabelsBuilder({
+    this.scrollPadding = .zero,
     this.variant = .custom,
     required this.onChange,
     this.disabled = false,
     required this.labels,
     required this.label,
     this.contentPadding,
-    this.scrollPadding,
     super.key,
   });
 
@@ -94,7 +94,7 @@ class _LabelsBuilderState<T> extends State<LabelsBuilder<T>> {
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: widget.contentPadding,
+      padding: widget.scrollPadding,
       controller: _scrollController,
       clipBehavior: Clip.none,
       child: Container(
