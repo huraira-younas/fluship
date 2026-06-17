@@ -20,17 +20,23 @@ class ThemeState extends Equatable {
 
   AppThemes get activeTheme => preset;
 
-  AppTheme get theme => switch (mode) {
-    .system => bundle.dark,
-    .light => bundle.light,
-    .dark => bundle.dark,
+  Brightness get brightness => switch (mode) {
+    .system => .dark,
+    .light => .light,
+    .dark => .dark,
   };
 
-  ThemePalette get colors => theme.palette;
-
-  ThemeRadius get radius => theme.radius;
+  AppTheme get theme {
+    return switch (mode) {
+      .system => bundle.dark,
+      .light => bundle.light,
+      .dark => bundle.dark,
+    };
+  }
 
   ThemeSpacing get spacing => theme.spacing;
+  ThemePalette get colors => theme.palette;
+  ThemeRadius get radius => theme.radius;
 
   ThemeData get lightThemeData => bundle.light.toThemeData(brightness: .light);
   ThemeData get darkThemeData => bundle.dark.toThemeData(brightness: .dark);
@@ -44,10 +50,22 @@ class ThemeCubit extends Cubit<ThemeState> {
 
   static ThemeState _resolveInitial(AppThemes? initial) {
     ThemePresetRegistry.registerAll();
-    final saved = AppThemes.fromKey(SharedPrefs.i.themeMode);
 
-    return ThemeState(preset: saved ?? initial ?? AppThemes.defaultTheme);
+    final savedPreset = AppThemes.fromKey(SharedPrefs.i.themeMode);
+    final savedMode = _parseMode(SharedPrefs.i.themeBrightness);
+
+    return ThemeState(
+      preset: savedPreset ?? initial ?? .defaultTheme,
+      mode: savedMode,
+    );
   }
+
+  static ThemeMode _parseMode(String value) => switch (value) {
+    'light' => .light,
+    _ => .dark,
+  };
+
+  static String _modeKey(ThemeMode mode) => mode == .light ? 'light' : 'dark';
 
   void setTheme(AppThemes theme) {
     if (state.activeTheme == theme) return;
@@ -56,7 +74,8 @@ class ThemeCubit extends Cubit<ThemeState> {
   }
 
   void setThemeMode(ThemeMode mode) {
-    if (state.mode == mode) return;
+    if (mode == ThemeMode.system || state.mode == mode) return;
+    SharedPrefs.i.setThemeBrightness(_modeKey(mode));
     emit(ThemeState(preset: state.preset, mode: mode));
   }
 }

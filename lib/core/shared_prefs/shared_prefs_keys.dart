@@ -1,6 +1,7 @@
 part of 'shared_prefs.dart';
 
 enum SharedPrefsKeys {
+  themeBrightness('theme_brightness'),
   distribution('distribution'),
   commonCmd('common_cmd'),
   postBuild('post_build'),

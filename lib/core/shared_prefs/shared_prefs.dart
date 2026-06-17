@@ -17,8 +17,15 @@ class SharedPrefs {
   // ------------------ Theme ------------------
   String get themeMode => _prefs.getString(SharedPrefsKeys.themeMode.key) ?? '';
 
+  String get themeBrightness =>
+      _prefs.getString(SharedPrefsKeys.themeBrightness.key) ?? '';
+
   Future<void> setThemeMode(String value) async {
     await _prefs.setString(SharedPrefsKeys.themeMode.key, value);
+  }
+
+  Future<void> setThemeBrightness(String value) async {
+    await _prefs.setString(SharedPrefsKeys.themeBrightness.key, value);
   }
 
   // ------------------ Generic Methods ------------------

@@ -37,9 +37,9 @@ class AppThemeRegistry {
     return bundle;
   }
 
-  static AppTheme get(AppThemes id, {Brightness brightness = Brightness.dark}) {
+  static AppTheme get(AppThemes id, {Brightness brightness = .dark}) {
     final bundle = getBundle(id);
-    return brightness == Brightness.light ? bundle.light : bundle.dark;
+    return brightness == .light ? bundle.light : bundle.dark;
   }
 
   static List<AppThemes> get availableThemes {
