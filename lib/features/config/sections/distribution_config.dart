@@ -1,6 +1,7 @@
-import 'package:fluship/shared/widgets/app_text_field.dart';
+import 'package:fluship/shared/extensions/widget_extensions.dart';
+import 'package:fluship/shared/models/distribute_config.dart';
+import 'package:fluship/shared/widgets/labels_builder.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
-import 'package:fluship/shared/models/pre_git.dart';
 
 import 'package:fluship/shared/widgets/switch_label.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,45 +15,56 @@ class DistributionConfig extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = getIt<ConfigBloc>();
-    return BlocSelector<ConfigBloc, ConfigState, PreGitModel>(
-      selector: (state) => state.preGit,
-      builder: (context, preGit) {
+    return BlocSelector<ConfigBloc, ConfigState, DistributionConfigModel>(
+      selector: (state) => state.distribution,
+      builder: (context, distribution) {
         return AppCard(
           state: AppCardState(
-            onEnable: (value) =>
-                bloc.add(UpdateConfig(config: preGit.copyWith(enabled: value))),
-            enable: preGit.enabled,
+            onEnable: (value) => bloc.add(
+              UpdateConfig(config: distribution.copyWith(enabled: value)),
+            ),
+            enable: distribution.enabled,
             forceDisabled: false,
           ),
-          title: "Pre-Git Config",
+          title: "Distribution Config",
           description:
-              "Automate Git hygiene before each build: write a commit message and let Fluship stage and commit any local changes for you. "
-              "Enable Pre-Pull to sync with the remote branch first, so your build always starts from the latest code.",
+              "Choose where Fluship uploads your build artifacts after compilation: publish to Google Play (production or internal track) or share via Google Drive. "
+              "Pick the right channel here so testers and store reviewers get the build without a manual upload step.",
           children: [
-            AppTextField.label(
-              initialValue: preGit.commitMessage,
-              hint: "pre-release cleanup",
-              enabled: preGit.enabled,
-              label: "Commit Message",
-              onChanged: (value) => bloc.add(
-                UpdateConfig(config: preGit.copyWith(commitMessage: value)),
-              ),
+            Row(
+              spacing: 10,
+              children: <Widget>[
+                SwitchLabel(
+                  label: "Play Store",
+                  value: distribution.playstore != null,
+                  disabled: !distribution.enabled,
+                  onChange: (value) => bloc.add(
+                    UpdateConfig(
+                      config: distribution.copyWith(
+                        playstore: value ? .production : null,
+                        clearPlaystore: !value,
+                      ),
+                    ),
+                  ),
+                ).expanded(),
+                LabelsBuilder<PlayStoreDistribution>(
+                  contentPadding: const .symmetric(horizontal: 20, vertical: 4),
+                  disabled:
+                      !distribution.enabled || distribution.playstore == null,
+                  onChange: (v) => bloc.add(
+                    UpdateConfig(config: distribution.copyWith(playstore: v)),
+                  ),
+                  label: distribution.playstore ?? .production,
+                  labels: PlayStoreDistribution.values,
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
             SwitchLabel(
-              disabled: !preGit.enabled,
-              value: preGit.preCommit,
-              label: "Pre-Release commit → git add . && git commit",
+              disabled: !distribution.enabled,
+              value: distribution.drive,
+              label: "Drive",
               onChange: (value) => bloc.add(
-                UpdateConfig(config: preGit.copyWith(preCommit: value)),
-              ),
-            ),
-            SwitchLabel(
-              disabled: !preGit.enabled,
-              value: preGit.prePull,
-              label: "Pre-Pull → git pull",
-              onChange: (value) => bloc.add(
-                UpdateConfig(config: preGit.copyWith(prePull: value)),
+                UpdateConfig(config: distribution.copyWith(drive: value)),
               ),
             ),
           ],

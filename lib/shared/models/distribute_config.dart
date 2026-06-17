@@ -75,11 +75,12 @@ final class DistributionConfigModel extends BaseConfig {
   DistributionConfigModel copyWith({
     PlayStoreDistribution? playstore,
     List<DistributionEmail>? emails,
+    bool clearPlaystore = false,
     bool? appstore,
     bool? enabled,
     bool? drive,
   }) => DistributionConfigModel(
-    playstore: playstore ?? this.playstore,
+    playstore: clearPlaystore ? null : playstore ?? this.playstore,
     appstore: appstore ?? this.appstore,
     enabled: enabled ?? this.enabled,
     emails: emails ?? this.emails,
@@ -87,10 +88,14 @@ final class DistributionConfigModel extends BaseConfig {
   );
 
   @override
+  List<Object?> get props => [playstore, emails, appstore, drive, enabled];
+
+  @override
   Map<String, dynamic> toJson() => {
     'emails': emails.map((e) => e.toJson()).toList(),
     'playstore': playstore?.name,
     'appstore': appstore,
+    'enabled': enabled,
     'drive': drive,
   };
 
