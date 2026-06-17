@@ -2,10 +2,10 @@ import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
 
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
-import 'package:fluship/shared/models/distribute_config.dart';
 import 'package:fluship/shared/models/post_git.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:fluship/shared/models/distribution_config.dart';
 import 'package:fluship/shared/models/android_config.dart';
 import 'package:fluship/shared/models/base_config.dart';
 import 'package:fluship/shared/models/ios_config.dart';

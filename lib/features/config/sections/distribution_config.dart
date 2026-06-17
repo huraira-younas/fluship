@@ -1,5 +1,5 @@
 import 'package:fluship/shared/extensions/widget_extensions.dart';
-import 'package:fluship/shared/models/distribute_config.dart';
+import 'package:fluship/shared/models/distribution_config.dart';
 import 'package:fluship/shared/widgets/labels_builder.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 
