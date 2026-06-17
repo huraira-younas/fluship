@@ -67,6 +67,7 @@ class _AppTextFieldDecoration {
       suffixIcon: suffixIcon,
       prefixIcon: prefixIcon,
       hintText: hint,
+      isDense: true,
     );
   }
 }
