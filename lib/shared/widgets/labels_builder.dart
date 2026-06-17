@@ -5,16 +5,20 @@ import 'package:flutter/material.dart';
 
 class LabelsBuilder<T> extends StatefulWidget {
   const LabelsBuilder({
+    this.variant = .custom,
     required this.onChange,
-    required this.padding,
     this.disabled = false,
     required this.labels,
     required this.label,
+    this.contentPadding,
+    this.scrollPadding,
     super.key,
   });
 
   final void Function(T label) onChange;
-  final EdgeInsets padding;
+  final EdgeInsets? contentPadding;
+  final EdgeInsets? scrollPadding;
+  final AppTextVariant variant;
   final List<T> labels;
   final bool disabled;
   final T label;
@@ -90,9 +94,9 @@ class _LabelsBuilderState<T> extends State<LabelsBuilder<T>> {
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      padding: widget.contentPadding,
       controller: _scrollController,
       clipBehavior: Clip.none,
-      padding: widget.padding,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: .circular(radius.btn + 15),
@@ -122,6 +126,8 @@ class _LabelsBuilderState<T> extends State<LabelsBuilder<T>> {
 
             return _TabButton(
               onTap: widget.disabled ? null : () => widget.onChange(value),
+              contentPadding: widget.contentPadding,
+              variant: widget.variant,
               title: text.capitalize,
               isSelected: active,
               key: _keys[idx],
@@ -135,11 +141,16 @@ class _LabelsBuilderState<T> extends State<LabelsBuilder<T>> {
 
 class _TabButton extends StatelessWidget {
   const _TabButton({
+    required this.contentPadding,
     required this.isSelected,
+    required this.variant,
     required this.title,
     this.onTap,
     super.key,
   });
+
+  final EdgeInsets? contentPadding;
+  final AppTextVariant variant;
   final VoidCallback? onTap;
   final bool isSelected;
   final String title;
@@ -156,12 +167,14 @@ class _TabButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
-        padding: const .symmetric(horizontal: 24, vertical: 8),
+        padding:
+            contentPadding ?? const .symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected && !_disabled ? colors.text : Colors.transparent,
           borderRadius: .circular(20),
         ),
-        child: AppText.custom(
+        child: AppText(
+          variant: variant,
           color: _disabled
               ? colors.textDim.withValues(alpha: 0.4)
               : isSelected

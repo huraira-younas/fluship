@@ -26,7 +26,7 @@ class CommonCmd extends StatelessWidget {
             enable: commonCmd.enabled,
             forceDisabled: false,
           ),
-          title: "Common Cmd Config",
+          title: "Common Config",
           description:
               "Run Flutter housekeeping commands before the build kicks off: wipe stale artifacts with flutter clean and restore packages with pub get or pub upgrade. "
               "Keeping these steps consistent prevents build failures caused by outdated caches or missing dependencies.",
@@ -45,7 +45,7 @@ class CommonCmd extends StatelessWidget {
                 SwitchLabel(
                   value: commonCmd.type != null,
                   disabled: !commonCmd.enabled,
-                  label: "Get Dependencies",
+                  label: "Dependencies",
                   onChange: (value) => bloc.add(
                     UpdateConfig(
                       config: commonCmd.copyWith(
@@ -56,13 +56,13 @@ class CommonCmd extends StatelessWidget {
                   ),
                 ).expanded(),
                 LabelsBuilder<FlutterGetType>(
+                  contentPadding: const .symmetric(horizontal: 20, vertical: 4),
                   disabled: !commonCmd.enabled || commonCmd.type == null,
                   onChange: (v) => bloc.add(
                     UpdateConfig(config: commonCmd.copyWith(type: v)),
                   ),
                   label: commonCmd.type ?? .get,
                   labels: FlutterGetType.values,
-                  padding: .zero,
                 ),
               ],
             ),

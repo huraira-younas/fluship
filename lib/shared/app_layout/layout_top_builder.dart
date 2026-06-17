@@ -68,7 +68,10 @@ class LayoutTopBuilder extends StatelessWidget {
           },
         ),
         LabelsBuilder(
-          padding: .symmetric(horizontal: spacing.md),
+          contentPadding: .symmetric(
+            horizontal: spacing.lg + 10,
+            vertical: spacing.sm,
+          ),
           labels: LayoutTabs.values,
           onChange: onTabChanged,
           label: selectedTab,

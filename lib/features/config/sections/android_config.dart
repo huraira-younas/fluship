@@ -43,7 +43,7 @@ class AndroidConfig extends StatelessWidget {
               spacing: 10,
               children: <Widget>[
                 SwitchLabel(
-                  label: "Build Type → flutter build apk/split-apk",
+                  label: "Build Type",
                   value: android.buildType != null,
                   disabled: !android.enabled,
                   onChange: (value) => bloc.add(
@@ -56,13 +56,13 @@ class AndroidConfig extends StatelessWidget {
                   ),
                 ).expanded(),
                 LabelsBuilder<AndroidBuildType>(
+                  contentPadding: const .symmetric(horizontal: 20, vertical: 4),
                   disabled: !android.enabled || android.buildType == null,
                   onChange: (v) => bloc.add(
                     UpdateConfig(config: android.copyWith(buildType: v)),
                   ),
                   label: android.buildType ?? .apk,
                   labels: AndroidBuildType.values,
-                  padding: .zero,
                 ),
               ],
             ),
