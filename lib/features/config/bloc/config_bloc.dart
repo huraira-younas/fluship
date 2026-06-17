@@ -2,6 +2,7 @@ import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
 
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
+import 'package:fluship/shared/models/distribute_config.dart';
 import 'package:fluship/shared/models/post_git.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -31,38 +32,45 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     UpdateConfig event,
   ) async {
     switch (event.config) {
-      case AppInfoModel():
-        final appInfo = event.config as AppInfoModel;
+      case AppInfoModel appInfo:
         emit(state.copyWith(appInfo: appInfo));
         await _sharedPrefs.setObject(.appInfo, appInfo.toJson());
-      case PreGitModel():
-        final preGit = event.config as PreGitModel;
+
+      case PreGitModel preGit:
         emit(state.copyWith(preGit: preGit));
         await _sharedPrefs.setObject(.preGit, preGit.toJson());
-      case CommonCmdModel():
-        final commonCmd = event.config as CommonCmdModel;
+
+      case CommonCmdModel commonCmd:
         emit(state.copyWith(commonCmd: commonCmd));
         await _sharedPrefs.setObject(.commonCmd, commonCmd.toJson());
-      case AndroidConfigModel():
-        final android = event.config as AndroidConfigModel;
+
+      case AndroidConfigModel android:
         emit(state.copyWith(android: android));
         await _sharedPrefs.setObject(.android, android.toJson());
-      case IosConfigModel():
-        final ios = event.config as IosConfigModel;
+
+      case IosConfigModel ios:
         emit(state.copyWith(ios: ios));
         await _sharedPrefs.setObject(.ios, ios.toJson());
-      case PostGitModel():
-        final postGit = event.config as PostGitModel;
+
+      case PostGitModel postGit:
         emit(state.copyWith(postGit: postGit));
         await _sharedPrefs.setObject(.postGit, postGit.toJson());
+
+      case DistributionConfigModel distribution:
+        emit(state.copyWith(distribution: distribution));
+        await _sharedPrefs.setObject(.distribution, distribution.toJson());
+
       default:
-        throw Exception('Invalid config type: ${event.config.runtimeType}');
+        throw UnsupportedError(
+          'Invalid config type: ${event.config.runtimeType}',
+        );
     }
   }
 
   Future<void> _loadConfig(Emitter<ConfigState> emit, LoadConfig event) async {
     emit(state.copyWith(loading: true));
 
+    final distribution = _sharedPrefs.getObject(.distribution);
     final savedAppInfo = _sharedPrefs.getObject(.appInfo);
     final commonCmd = _sharedPrefs.getObject(.commonCmd);
     final android = _sharedPrefs.getObject(.android);
@@ -86,6 +94,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
 
     emit(
       state.copyWith(
+        distribution: .fromJson(distribution),
         commonCmd: .fromJson(commonCmd),
         postGit: .fromJson(postGit),
         android: .fromJson(android),
@@ -112,6 +121,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
 
   Future<void> _saveConfig(Emitter<ConfigState> emit, SaveConfig event) async {
     await Future.wait([
+      _sharedPrefs.setObject(.distribution, state.distribution.toJson()),
       _sharedPrefs.setObject(.commonCmd, state.commonCmd.toJson()),
       _sharedPrefs.setObject(.android, state.android.toJson()),
       _sharedPrefs.setObject(.appInfo, state.appInfo.toJson()),

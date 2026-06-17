@@ -1,3 +1,4 @@
+export 'distribution_config.dart';
 export 'android_config.dart';
 export 'build_config.dart';
 export 'ios_config.dart';

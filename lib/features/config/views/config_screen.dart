@@ -51,6 +51,7 @@ class ConfigScreen extends StatelessWidget {
             AndroidConfig(),
             IosConfig(),
             PostGit(),
+            DistributionConfig(),
           ],
         );
       },

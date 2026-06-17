@@ -1,6 +1,7 @@
 part of 'config_bloc.dart';
 
 class ConfigState extends BaseBlocState {
+  final DistributionConfigModel distribution;
   final AndroidConfigModel android;
   final CommonCmdModel commonCmd;
   final PostGitModel postGit;
@@ -9,6 +10,7 @@ class ConfigState extends BaseBlocState {
   final PreGitModel preGit;
 
   const ConfigState({
+    required this.distribution,
     required this.commonCmd,
     super.loading = false,
     required this.android,
@@ -20,6 +22,7 @@ class ConfigState extends BaseBlocState {
   });
 
   factory ConfigState.empty() => const ConfigState(
+    distribution: DistributionConfigModel(),
     android: AndroidConfigModel(),
     commonCmd: CommonCmdModel(),
     postGit: PostGitModel(),
@@ -29,10 +32,19 @@ class ConfigState extends BaseBlocState {
   );
 
   @override
-  List<Object> get props => [android, commonCmd, postGit, appInfo, preGit, ios];
+  List<Object> get props => [
+    distribution,
+    commonCmd,
+    postGit,
+    android,
+    appInfo,
+    preGit,
+    ios,
+  ];
 
   @override
   ConfigState copyWith({
+    DistributionConfigModel? distribution,
     AndroidConfigModel? android,
     CommonCmdModel? commonCmd,
     PostGitModel? postGit,
@@ -43,14 +55,15 @@ class ConfigState extends BaseBlocState {
     bool? loading,
   }) {
     return ConfigState(
+      distribution: distribution ?? this.distribution,
       commonCmd: commonCmd ?? this.commonCmd,
       android: android ?? this.android,
-      loading: loading ?? this.loading,
       postGit: postGit ?? this.postGit,
       appInfo: appInfo ?? this.appInfo,
       preGit: preGit ?? this.preGit,
-      error: error ?? this.error,
+      loading: loading ?? false,
       ios: ios ?? this.ios,
+      error: error,
     );
   }
 }
