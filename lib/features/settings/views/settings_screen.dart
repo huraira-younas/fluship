@@ -1,8 +1,7 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:flutter/material.dart';
 
-import '../widgets/credentials_builder.dart';
-import '../widgets/theme_selector.dart';
+import '../sections/exports.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});

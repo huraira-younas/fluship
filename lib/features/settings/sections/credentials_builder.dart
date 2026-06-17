@@ -1,7 +1,7 @@
 import 'package:fluship/shared/widgets/app_text_field.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:flutter/material.dart';
-import 'field_button.dart';
+import '../widgets/field_button.dart';
 
 class CredentialsBuilder extends StatelessWidget {
   const CredentialsBuilder({super.key, required this.spacing});
