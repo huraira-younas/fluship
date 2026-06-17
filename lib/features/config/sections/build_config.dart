@@ -50,6 +50,7 @@ class _BuildConfigState extends State<BuildConfig> {
   @override
   Widget build(BuildContext context) {
     return AppCard(
+      spacing: 15,
       title: "Build Config",
       description:
           "Set the release version and build number Fluship will apply before compiling your app. "
@@ -78,7 +79,6 @@ class _BuildConfigState extends State<BuildConfig> {
             ).expanded(),
           ],
         ),
-        const SizedBox(height: 16),
         AppTextField.label(
           controller: _controllers[2],
           label: "Target Git Branch",

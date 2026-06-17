@@ -25,6 +25,7 @@ class AppCard extends StatelessWidget {
     required this.description,
     required this.children,
     required this.title,
+    this.spacing = 0,
     this.state,
     super.key,
   });
@@ -32,6 +33,7 @@ class AppCard extends StatelessWidget {
   final List<Widget> children;
   final AppCardState? state;
   final String description;
+  final double spacing;
   final String title;
 
   @override
@@ -56,7 +58,7 @@ class AppCard extends StatelessWidget {
               if (nn)
                 Switch(
                   onChanged: (value) {
-                    if(state!.forceDisabled) return;
+                    if (state!.forceDisabled) return;
                     HapticFeedback.lightImpact();
                     state!.onEnable(value);
                   },
@@ -70,7 +72,7 @@ class AppCard extends StatelessWidget {
           if (!nn) const SizedBox(height: 6),
           AppText.label(description),
           const SizedBox(height: 16),
-          ...children,
+          Column(spacing: spacing, children: children),
         ],
       ),
     );

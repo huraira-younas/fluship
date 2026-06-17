@@ -1,3 +1,4 @@
+import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/context_extensions.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_cta_button.dart';
@@ -12,7 +13,9 @@ class ConfigScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = context.flushipTheme.spacing;
     final pad = context.screenHeight * 0.29;
+
     return BlocBuilder<ConfigBloc, ConfigState>(
       builder: (context, state) {
         if (state.loading) {
@@ -42,9 +45,9 @@ class ConfigScreen extends StatelessWidget {
           ).padOnly(t: pad);
         }
 
-        return const Column(
-          spacing: 20,
-          children: <Widget>[
+        return Column(
+          spacing: spacing.md,
+          children: const <Widget>[
             BuildConfig(),
             PreGit(),
             CommonCmd(),
