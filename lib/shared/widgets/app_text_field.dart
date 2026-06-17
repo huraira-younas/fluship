@@ -52,6 +52,7 @@ class _AppTextFieldDecoration {
       prefixIcon: prefixIcon,
       labelText: label,
       hintText: hint,
+      isDense: true,
     );
   }
 
