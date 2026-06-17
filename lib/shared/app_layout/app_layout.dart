@@ -81,6 +81,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
             child: _tabs[_selectedTab.value],
           ),
         ).expanded(),
+        const AppText.accent("Made with ❤️ by Senpai").center(),
       ],
     ).padOnly(
       t: isMobile ? MediaQuery.paddingOf(context).top : spacing.lg,
