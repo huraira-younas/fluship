@@ -3,8 +3,8 @@ import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
-class CustomLabelWidget extends StatelessWidget {
-  const CustomLabelWidget({
+class AppCtaButton extends StatelessWidget {
+  const AppCtaButton({
     this.iconSize = 100.0,
     required this.title,
     required this.icon,
@@ -35,9 +35,9 @@ class CustomLabelWidget extends StatelessWidget {
       children: <Widget>[
         Icon(icon, color: color ?? theme.highlightColor, size: iconSize),
         const SizedBox(height: 24),
-        AppText.title(title, textAlign: TextAlign.center),
+        AppText.title(title, textAlign: .center),
         const SizedBox(height: 10),
-        AppText.body(text, textAlign: TextAlign.center),
+        AppText.body(text, textAlign: .center),
 
         if (btnText != null) ...[
           const SizedBox(height: 30),

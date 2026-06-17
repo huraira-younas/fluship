@@ -1,14 +1,16 @@
-import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
-import 'package:fluship/shared/widgets/labels_builder.dart';
-import 'package:fluship/core/app_theme/models/theme.dart';
-import 'package:fluship/core/responsive/responsive.dart';
-import 'package:fluship/shared/widgets/app_button.dart';
-import 'package:fluship/shared/widgets/app_text.dart';
-import 'package:fluship/shared/models/app_info.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluship/di/locator.dart';
 import 'package:flutter/material.dart';
+
+import 'package:fluship/core/app_theme/models/theme.dart';
+import 'package:fluship/core/responsive/responsive.dart';
+
+import 'package:fluship/shared/extensions/widget_extensions.dart';
+import 'package:fluship/shared/widgets/app_button.dart';
+import 'package:fluship/shared/widgets/app_tabs.dart';
+import 'package:fluship/shared/widgets/app_text.dart';
+import 'package:fluship/shared/models/app_info.dart';
 
 enum LayoutTabs {
   config(0),
@@ -67,7 +69,7 @@ class LayoutTopBuilder extends StatelessWidget {
             );
           },
         ),
-        LabelsBuilder(
+        AppTabs(
           contentPadding: .symmetric(
             horizontal: spacing.lg + 10,
             vertical: spacing.sm,

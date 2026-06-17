@@ -1,8 +1,8 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
+import 'package:fluship/shared/widgets/app_checkbox.dart';
+import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
-import 'app_checkbox.dart';
-import 'app_text.dart';
 
 class CheckboxLabel extends StatelessWidget {
   const CheckboxLabel({

@@ -4,8 +4,8 @@ import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
-class LabelsBuilder<T> extends StatefulWidget {
-  const LabelsBuilder({
+class AppTabs<T> extends StatefulWidget {
+  const AppTabs({
     this.scrollPadding = .zero,
     this.variant = .custom,
     required this.onChange,
@@ -25,10 +25,10 @@ class LabelsBuilder<T> extends StatefulWidget {
   final T label;
 
   @override
-  State<LabelsBuilder<T>> createState() => _LabelsBuilderState<T>();
+  State<AppTabs<T>> createState() => _AppTabsState<T>();
 }
 
-class _LabelsBuilderState<T> extends State<LabelsBuilder<T>> {
+class _AppTabsState<T> extends State<AppTabs<T>> {
   late final ScrollController _scrollController;
   late List<GlobalKey> _keys;
 
@@ -45,7 +45,7 @@ class _LabelsBuilderState<T> extends State<LabelsBuilder<T>> {
   }
 
   @override
-  void didUpdateWidget(covariant LabelsBuilder<T> oldWidget) {
+  void didUpdateWidget(covariant AppTabs<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.labels.length != widget.labels.length) {
       _updateKeys();

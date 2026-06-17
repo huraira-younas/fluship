@@ -1,10 +1,11 @@
 import 'package:fluship/shared/models/ios_config.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 
-import 'package:fluship/shared/widgets/switch_label.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluship/di/locator.dart';
 import 'package:flutter/material.dart';
+
+import '../widgets/switch_label.dart';
 import '../bloc/config_bloc.dart';
 
 class IosConfig extends StatelessWidget {

@@ -1,6 +1,6 @@
 import 'package:fluship/shared/extensions/context_extensions.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
-import 'package:fluship/shared/widgets/custom_label_widget.dart';
+import 'package:fluship/shared/widgets/app_cta_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
@@ -22,7 +22,7 @@ class ConfigScreen extends StatelessWidget {
         }
 
         if (state.error != null) {
-          return CustomLabelWidget(
+          return AppCtaButton(
             onTap: () => context.read<ConfigBloc>().add(const LoadConfig()),
             text: state.error!.message,
             icon: Icons.error,
@@ -33,7 +33,7 @@ class ConfigScreen extends StatelessWidget {
 
         final fp = state.appInfo.flutterProjectPath;
         if (fp == null || fp.isEmpty) {
-          return CustomLabelWidget(
+          return AppCtaButton(
             onTap: () => context.read<ConfigBloc>().add(const LoadConfig()),
             text: "No Flutter project path found",
             btnText: "Select Project",

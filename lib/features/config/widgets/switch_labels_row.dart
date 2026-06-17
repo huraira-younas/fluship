@@ -1,7 +1,7 @@
 import 'package:fluship/shared/extensions/widget_extensions.dart';
-import 'package:fluship/shared/widgets/labels_builder.dart';
-import 'package:fluship/shared/widgets/switch_label.dart';
+import 'package:fluship/shared/widgets/app_tabs.dart';
 import 'package:flutter/material.dart';
+import 'switch_label.dart';
 
 class SwitchLabelsRow<T> extends StatelessWidget {
   const SwitchLabelsRow({
@@ -36,7 +36,7 @@ class SwitchLabelsRow<T> extends StatelessWidget {
           disabled: disabled,
           label: switchLabel,
         ).expanded(),
-        LabelsBuilder<T>(
+        AppTabs<T>(
           disabled: disabled || value == null,
           contentPadding: contentPadding,
           onChange: (s) => onChange(s),
