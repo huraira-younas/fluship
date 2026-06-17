@@ -29,7 +29,7 @@ class SwitchLabel extends StatelessWidget {
         visualDensity: .compact,
         contentPadding: .zero,
         title: AppText.custom(
-          color: disabled ? ft.colors.textDim : ft.colors.section,
+          color: disabled || !value ? ft.colors.textDim : ft.colors.section,
           label,
         ),
         leading: Switch(
