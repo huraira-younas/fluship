@@ -7,11 +7,7 @@ class ThemePresetRegistry {
 
   static const List<ThemePresetModule> modules = [
     CatppuccinMochaPreset(),
-    SolarizedDarkPreset(),
-    TokyoNightPreset(),
     OneDarkPreset(),
-    GruvboxPreset(),
-    DraculaPreset(),
     NordPreset(),
   ];
 
