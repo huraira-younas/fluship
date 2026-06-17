@@ -34,13 +34,17 @@ class SwitchLabel extends StatelessWidget {
           label,
         ),
         leading: Switch(
-          onChanged: (value) {
-            HapticFeedback.lightImpact();
-            if (disabled) return;
-            onChange(value);
-          },
-          inactiveTrackColor: ft.colors.cardBorder,
+          onChanged: disabled
+              ? null
+              : (value) {
+                  HapticFeedback.lightImpact();
+                  onChange(value);
+                },
+          trackOutlineColor: WidgetStateProperty.all(
+            value ? Colors.transparent : ft.colors.consoleBg,
+          ),
           inactiveThumbColor: ft.colors.textDim,
+          inactiveTrackColor: ft.colors.codeBg,
           activeThumbColor: ft.colors.accent,
           value: value,
         ),
