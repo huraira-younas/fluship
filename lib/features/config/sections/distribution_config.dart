@@ -116,7 +116,7 @@ class _DriveRecipientsPanelState extends State<_DriveRecipientsPanel> {
       decoration: BoxDecoration(
         border: .all(color: ft.colors.cardBorder),
         borderRadius: .circular(ft.radius.btn),
-        color: ft.colors.cardBg,
+        color: ft.colors.consoleBg,
       ),
       margin: const .only(top: 8),
       child: AnimatedCrossFade(

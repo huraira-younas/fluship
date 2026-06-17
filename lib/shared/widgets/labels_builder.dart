@@ -101,7 +101,7 @@ class _LabelsBuilderState<T> extends State<LabelsBuilder<T>> {
         decoration: BoxDecoration(
           borderRadius: .circular(radius.btn + 15),
           border: .all(color: colors.cardBorder),
-          color: colors.cardBg,
+          color: colors.consoleBg,
           boxShadow: [
             BoxShadow(
               color: colors.text.withValues(alpha: 0.06),
