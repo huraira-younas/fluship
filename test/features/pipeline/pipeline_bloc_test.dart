@@ -265,9 +265,9 @@ void main() {
       );
       final console = FakePipelineConsolePort();
       final bloc = PipelineBloc(
+        executor: const _StubPipelineExecutor(),
         configSource: config,
         consolePort: console,
-        executor: _StubPipelineExecutor(),
       );
 
       bloc.add(const RunPipeline());
