@@ -10,4 +10,27 @@ abstract class BaseConfig extends Equatable {
 
   @override
   List<Object?> get props => [enabled];
+
+  List<CommandStep> get steps;
+}
+
+abstract class GitBaseConfig extends BaseConfig {
+  const GitBaseConfig({
+    required super.enabled,
+    this.commitMessage,
+    this.targetBranch,
+  });
+
+  final String? commitMessage;
+  final String? targetBranch;
+}
+
+class CommandStep extends Equatable {
+  const CommandStep({required this.name, required this.command});
+
+  final String command;
+  final String name;
+
+  @override
+  List<Object?> get props => [name, command];
 }

@@ -102,4 +102,20 @@ class PostBuildConfigModel extends BaseConfig {
 
   @override
   bool? get stringify => true;
+
+  @override
+  List<CommandStep> get steps => enabled
+      ? [
+          if (openOutputs)
+            const CommandStep(
+              command: 'open build/outputs',
+              name: 'Open Outputs',
+            ),
+          if (powerConfig != null)
+            CommandStep(
+              command: 'power ${powerConfig!.action.name}',
+              name: 'Power',
+            ),
+        ]
+      : [];
 }

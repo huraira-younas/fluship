@@ -40,11 +40,20 @@ class _BuildConfigState extends State<BuildConfig> {
     final bloc = getIt<ConfigBloc>();
     final appInfo = bloc.state.appInfo.copyWith(
       buildNumber: buildNumber.isEmpty ? null : buildNumber,
-      gitBranch: gitBranch.isEmpty ? null : gitBranch,
       version: version.isEmpty ? null : version,
     );
 
+    final preGit = bloc.state.preGit.copyWith(
+      targetBranch: gitBranch.isEmpty ? null : gitBranch,
+    );
+
+    final postGit = bloc.state.postGit.copyWith(
+      targetBranch: gitBranch.isEmpty ? null : gitBranch,
+    );
+
     bloc.add(UpdateConfig(config: appInfo));
+    bloc.add(UpdateConfig(config: postGit));
+    bloc.add(UpdateConfig(config: preGit));
   }
 
   @override
@@ -95,8 +104,8 @@ class _BuildConfigState extends State<BuildConfig> {
   void initState() {
     super.initState();
     final bloc = getIt<ConfigBloc>();
+    _controllers[2].text = bloc.state.preGit.targetBranch ?? "master";
     _controllers[1].text = bloc.state.appInfo.buildNumber ?? "";
-    _controllers[2].text = bloc.state.appInfo.gitBranch ?? "";
     _controllers[0].text = bloc.state.appInfo.version ?? "";
   }
 
