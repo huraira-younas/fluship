@@ -1,3 +1,4 @@
+import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
 import 'package:fluship/features/console/bloc/console_bloc.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/core/app_theme/theme_cubit.dart';
@@ -15,6 +16,10 @@ class AppBlocProviders {
       ),
       BlocProvider<ConsoleBloc>(
         create: (_) => getIt<ConsoleBloc>(),
+        lazy: false,
+      ),
+      BlocProvider<PipelineBloc>(
+        create: (_) => getIt<PipelineBloc>(),
         lazy: false,
       ),
     ];

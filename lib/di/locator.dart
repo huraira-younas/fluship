@@ -1,8 +1,11 @@
 import 'package:fluship/services/console/contracts/console_session_pool.dart';
 import 'package:fluship/services/console/contracts/shell_runner_factory.dart';
-import 'package:fluship/services/console/runners/shell_runner_factory.dart';
 import 'package:fluship/services/console/console_session_pool.dart';
+import 'package:fluship/services/console/runners/shell_runner_factory.dart';
 
+import 'package:fluship/features/pipeline/contracts/pipeline_config_source.dart';
+import 'package:fluship/features/pipeline/contracts/pipeline_console_port.dart';
+import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
 import 'package:fluship/features/console/bloc/console_bloc.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/services/file_picker_service.dart';
@@ -20,5 +23,11 @@ class AppLocator {
       ConsoleSessionPool(factory: getIt<IShellRunnerFactory>()),
     );
     getIt.registerSingleton(ConsoleBloc(pool: getIt<IConsoleSessionPool>()));
+    getIt.registerSingleton(
+      PipelineBloc(
+        configSource: ConfigBlocPipelineSource(getIt<ConfigBloc>()),
+        consolePort: ConsoleBlocPipelinePort(getIt<ConsoleBloc>()),
+      ),
+    );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:async' show Timer;
 
 import 'package:fluship/services/console/contracts/console_session_pool.dart';
+import 'package:fluship/services/console/models/shell_run_result.dart';
 import 'package:fluship/services/console/console_limits.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +13,8 @@ import '../models/console_line.dart';
 part 'console_event.dart';
 part 'console_state.dart';
 
+const pipelineConsoleSessionId = '_pipeline_console';
+
 class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
   ConsoleBloc({required this._pool}) : super(ConsoleState.empty()) {
     on<DisposeAllSessions>(handler(_onDisposeAllSessions));
@@ -21,6 +24,12 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
     on<CloseSession>(handler(_onCloseSession));
     on<ClearConsole>(handler(_onClearConsole));
 
+    on<CreatePipelineSession>(handler(_onCreatePipelineSession));
+    on<CancelPipelineCommand>(handler(_onCancelPipelineCommand));
+    on<ClosePipelineSession>(handler(_onClosePipelineSession));
+    on<RunPipelineCommand>(handler(_onRunPipelineCommand));
+    on<LogPipelineLine>(handler(_onLogPipelineLine));
+
     on<SubmitCommand>(_onSubmitCommand);
     on<CancelCommand>(_onCancelCommand);
   }
@@ -28,6 +37,8 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
   final Map<String, List<ConsoleLine>> _pendingLines = {};
   final Map<String, Timer?> _flushTimers = {};
   final IConsoleSessionPool _pool;
+
+  String? _activeSessionBeforePipeline;
 
   @override
   Future<void> close() async {
@@ -37,6 +48,9 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
 
   bool _isSessionActive(String sessionId) =>
       !isClosed && state.sessionById(sessionId) != null;
+
+  bool _isPipelineSession(String sessionId) =>
+      sessionId.startsWith('_pipeline_');
 
   void _clearSessionBuffers(String sessionId) {
     _flushTimers.remove(sessionId)?.cancel();
@@ -49,6 +63,8 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
     for (final timer in _flushTimers.values) {
       timer?.cancel();
     }
+
+    _activeSessionBeforePipeline = null;
     _pendingLines.clear();
     _flushTimers.clear();
 
@@ -145,11 +161,188 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
     );
   }
 
+  Future<String> _onCreatePipelineSession(
+    Emitter<ConsoleState> emit,
+    CreatePipelineSession event,
+  ) async {
+    const id = pipelineConsoleSessionId;
+    _activeSessionBeforePipeline ??= state.activeSessionId;
+
+    final existing = state.sessionById(id);
+    if (existing != null) {
+      _clearSessionBuffers(id);
+      if (existing.isRunning) {
+        try {
+          await _pool.cancel(id);
+        } catch (_) {}
+      }
+
+      _updateSession(
+        emit: emit,
+        sessionId: id,
+        transform: (session) => session.copyWith(
+          workingDirectory: event.projectRoot,
+          commandHistory: const [],
+          isRunning: false,
+          lines: const [],
+        ),
+      );
+      emit(state.copyWith(activeSessionId: id));
+      return id;
+    }
+
+    await _pool.create(sessionId: id, projectRoot: event.projectRoot);
+
+    final session = ConsoleSession(
+      workingDirectory: event.projectRoot,
+      commandHistory: const [],
+      isRunning: false,
+      lines: const [],
+      title: 'Pipeline',
+      id: id,
+    );
+
+    emit(
+      state.copyWith(
+        sessions: [...state.sessions, session],
+        activeSessionId: id,
+      ),
+    );
+
+    return id;
+  }
+
+  Future<ShellRunResult> _onRunPipelineCommand(
+    Emitter<ConsoleState> emit,
+    RunPipelineCommand event,
+  ) async {
+    final sessionId = event.sessionId;
+    final command = event.command.trim();
+    final session = state.sessionById(sessionId);
+    if (command.isEmpty || session == null) {
+      return const ShellRunResult(exitCode: 1);
+    }
+
+    if (session.isRunning) {
+      return const ShellRunResult(exitCode: 1);
+    }
+
+    _updateSession(
+      emit: emit,
+      sessionId: sessionId,
+      transform: (current) => current.copyWith(
+        isRunning: true,
+        lines: ConsoleLineBuffer.appendLine(
+          lines: current.lines,
+          text: '> $command',
+          stream: .input,
+        ),
+      ),
+    );
+
+    return _runCommandOnSession(
+      sessionId: sessionId,
+      command: command,
+      emit: emit,
+    );
+  }
+
+  Future<void> _onCancelPipelineCommand(
+    Emitter<ConsoleState> emit,
+    CancelPipelineCommand event,
+  ) async {
+    final session = state.sessionById(event.sessionId);
+    if (session == null || !session.isRunning) return;
+
+    try {
+      await _pool.cancel(event.sessionId);
+    } catch (_) {}
+
+    _clearSessionBuffers(event.sessionId);
+    if (!_isSessionActive(event.sessionId)) return;
+
+    _updateSession(
+      transform: (c) => c.copyWith(isRunning: false),
+      sessionId: event.sessionId,
+      emit: emit,
+    );
+  }
+
+  Future<void> _onClosePipelineSession(
+    Emitter<ConsoleState> emit,
+    ClosePipelineSession event,
+  ) async {
+    final id = event.sessionId;
+    final session = state.sessionById(id);
+    if (session == null) return;
+
+    if (session.isRunning) {
+      try {
+        await _pool.cancel(id);
+      } catch (_) {}
+    }
+
+    try {
+      await _pool.dispose(id);
+    } catch (_) {}
+
+    _clearSessionBuffers(id);
+
+    final remaining = state.sessions
+        .where((session) => session.id != id)
+        .toList();
+
+    final pa = _activeSessionBeforePipeline;
+    _activeSessionBeforePipeline = null;
+
+    String? activeId;
+    if (remaining.isNotEmpty) {
+      if (pa != null && remaining.any((s) => s.id == pa)) {
+        activeId = pa;
+      } else {
+        activeId = remaining.first.id;
+      }
+    }
+
+    if (isClosed) return;
+    emit(
+      state.copyWith(
+        clearActiveSessionId: activeId == null,
+        activeSessionId: activeId,
+        sessions: remaining,
+      ),
+    );
+  }
+
+  Future<void> _onLogPipelineLine(
+    Emitter<ConsoleState> emit,
+    LogPipelineLine event,
+  ) async {
+    if (!_isSessionActive(event.sessionId)) return;
+    _updateSession(
+      emit: emit,
+      sessionId: event.sessionId,
+      transform: (session) => session.copyWith(
+        lines: ConsoleLineBuffer.appendLine(
+          lines: session.lines,
+          stream: event.stream,
+          text: event.text,
+        ),
+      ),
+    );
+  }
+
   Future<void> _onCloseSession(
     Emitter<ConsoleState> emit,
     CloseSession event,
   ) async {
-    if (state.sessions.length <= 1) return;
+    if (_isPipelineSession(event.sessionId)) return;
+
+    final userSessions = state.sessions
+        .where((session) => !_isPipelineSession(session.id))
+        .length;
+
+    if (userSessions <= 1) return;
 
     final id = event.sessionId;
     final session = state.sessionById(id);
@@ -169,7 +362,12 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
 
     final remaining = state.sessions.where((s) => s.id != id).toList();
     final activeId = state.activeSessionId == id
-        ? remaining.first.id
+        ? remaining
+              .firstWhere(
+                (session) => !_isPipelineSession(session.id),
+                orElse: () => remaining.first,
+              )
+              .id
         : state.activeSessionId;
 
     if (isClosed) return;
@@ -231,17 +429,29 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
     _updateSession(
       emit: emit,
       sessionId: sessionId,
-      transform: (s) => s.copyWith(
+      transform: (current) => current.copyWith(
         commandHistory: history,
         isRunning: true,
         lines: ConsoleLineBuffer.appendLine(
+          lines: current.lines,
           text: '> $command',
-          lines: s.lines,
           stream: .input,
         ),
       ),
     );
 
+    await _runCommandOnSession(
+      sessionId: sessionId,
+      command: command,
+      emit: emit,
+    );
+  }
+
+  Future<ShellRunResult> _runCommandOnSession({
+    required Emitter<ConsoleState> emit,
+    required String sessionId,
+    required String command,
+  }) async {
     _pendingLines[sessionId] = List<ConsoleLine>.from(
       state.sessionById(sessionId)!.lines,
     );
@@ -253,7 +463,10 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
       final pending = _pendingLines[sessionId];
       if (pending == null) return;
       _updateSession(
-        transform: (s) => s.copyWith(lines: .from(pending), isRunning: true),
+        transform: (session) => session.copyWith(
+          lines: List<ConsoleLine>.from(pending),
+          isRunning: true,
+        ),
         sessionId: sessionId,
         emit: emit,
       );
@@ -276,8 +489,8 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
           if (!_isSessionActive(sessionId)) return;
           final pending = _pendingLines[sessionId] ??= [];
           ConsoleLineBuffer.mergeChunkInPlace(
-            lines: pending,
             stream: .stdout,
+            lines: pending,
             chunk: chunk,
           );
           scheduleFlush();
@@ -286,8 +499,8 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
           if (!_isSessionActive(sessionId)) return;
           final pending = _pendingLines[sessionId] ??= [];
           ConsoleLineBuffer.mergeChunkInPlace(
-            lines: pending,
             stream: .stderr,
+            lines: pending,
             chunk: chunk,
           );
           scheduleFlush();
@@ -304,22 +517,22 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
 
       flushPending();
       _clearSessionBuffers(sessionId);
-      if (!_isSessionActive(sessionId)) return;
+      if (!_isSessionActive(sessionId)) return result;
 
       if (result.wasCancelled) {
         _updateSession(
           emit: emit,
           sessionId: sessionId,
-          transform: (s) => s.copyWith(
+          transform: (session) => session.copyWith(
             isRunning: false,
             lines: ConsoleLineBuffer.appendLine(
+              lines: session.lines,
               text: '[cancelled]',
               stream: .system,
-              lines: s.lines,
             ),
           ),
         );
-        return;
+        return result;
       }
 
       if (result.cwd != null && result.cwd!.isNotEmpty) {
@@ -333,31 +546,37 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
       _updateSession(
         emit: emit,
         sessionId: sessionId,
-        transform: (s) => s.copyWith(
+        transform: (session) => session.copyWith(
           isRunning: false,
           lines: ConsoleLineBuffer.appendLine(
             text: '[exit ${result.exitCode}]',
+            lines: session.lines,
             stream: .system,
-            lines: s.lines,
           ),
         ),
       );
-    } catch (e) {
+      return result;
+    } catch (error) {
       flushPending();
       _clearSessionBuffers(sessionId);
-      if (!_isSessionActive(sessionId)) return;
+
+      if (!_isSessionActive(sessionId)) {
+        return const ShellRunResult(exitCode: 1);
+      }
+
       _updateSession(
         emit: emit,
         sessionId: sessionId,
-        transform: (s) => s.copyWith(
+        transform: (session) => session.copyWith(
           lines: ConsoleLineBuffer.appendLine(
-            text: e.toString(),
+            text: error.toString(),
+            lines: session.lines,
             stream: .system,
-            lines: s.lines,
           ),
           isRunning: false,
         ),
       );
+      return const ShellRunResult(exitCode: 1);
     }
   }
 
@@ -378,7 +597,7 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
     if (!_isSessionActive(id)) return;
 
     _updateSession(
-      transform: (s) => s.copyWith(isRunning: false),
+      transform: (session) => session.copyWith(isRunning: false),
       sessionId: id,
       emit: emit,
     );
@@ -407,10 +626,10 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
     _updateSession(
       emit: emit,
       sessionId: sessionId,
-      transform: (s) => s.copyWith(
+      transform: (session) => session.copyWith(
         lines: ConsoleLineBuffer.appendLine(
+          lines: session.lines,
           stream: .system,
-          lines: s.lines,
           text: text,
         ),
       ),

@@ -19,12 +19,18 @@ class ConsoleSessionPool implements IConsoleSessionPool {
 
   @override
   Future<void> create({
-    required String sessionId,
     required String projectRoot,
+    required String sessionId,
   }) async {
     if (_runners.containsKey(sessionId)) return;
+
+    final isPipeline = sessionId.startsWith('_pipeline_');
+    final userSessions = _runners.keys
+        .where((id) => !id.startsWith('_pipeline_'))
+        .length;
+
     final max = ConsoleLimits.maxSessions;
-    if (_runners.length >= max) {
+    if (!isPipeline && userSessions >= max) {
       throw SessionLimitException(max);
     }
 

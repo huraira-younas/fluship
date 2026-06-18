@@ -158,7 +158,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     emit(state.copyWith(appInfo: appInfo));
   }
 
-  Future<void> _saveConfig(Emitter<ConfigState> emit, SaveConfig event) async {
+  Future<void> persistCurrentConfig() async {
     await Future.wait([
       _sharedPrefs.setObject(.distribution, state.distribution.toJson()),
       _sharedPrefs.setObject(.commonCmd, state.commonCmd.toJson()),
@@ -169,5 +169,9 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
       _sharedPrefs.setObject(.preGit, state.preGit.toJson()),
       _sharedPrefs.setObject(.ios, state.ios.toJson()),
     ]);
+  }
+
+  Future<void> _saveConfig(Emitter<ConfigState> emit, SaveConfig event) async {
+    await persistCurrentConfig();
   }
 }

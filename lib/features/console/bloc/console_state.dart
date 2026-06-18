@@ -22,7 +22,9 @@ class ConsoleState extends BaseBlocState {
     sessions: [],
   );
 
-  bool get canAddSession => sessions.length < ConsoleLimits.maxSessions;
+  bool get canAddSession =>
+      sessions.where((session) => !session.id.startsWith('_pipeline_')).length <
+      ConsoleLimits.maxSessions;
 
   ConsoleSession? get activeSession {
     final id = activeSessionId;

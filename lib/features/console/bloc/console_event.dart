@@ -75,3 +75,81 @@ class DisposeAllSessions extends ConsoleEvent {
   @override
   Map<String, dynamic> toJson() => {};
 }
+
+class CreatePipelineSession extends ConsoleEvent {
+  const CreatePipelineSession({
+    required this.projectRoot,
+    super.onSuccess,
+    super.onError,
+  }) : super(name: 'Create_Pipeline_Session');
+
+  final String projectRoot;
+
+  @override
+  Map<String, dynamic> toJson() => {'project_root': projectRoot};
+}
+
+class RunPipelineCommand extends ConsoleEvent {
+  const RunPipelineCommand({
+    required this.sessionId,
+    required this.command,
+    super.onSuccess,
+    super.onError,
+  }) : super(name: 'Run_Pipeline_Command');
+
+  final String sessionId;
+  final String command;
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'session_id': sessionId,
+    'command': command,
+  };
+}
+
+class CancelPipelineCommand extends ConsoleEvent {
+  const CancelPipelineCommand({
+    required this.sessionId,
+    super.onSuccess,
+    super.onError,
+  }) : super(name: 'Cancel_Pipeline_Command');
+
+  final String sessionId;
+
+  @override
+  Map<String, dynamic> toJson() => {'session_id': sessionId};
+}
+
+class ClosePipelineSession extends ConsoleEvent {
+  const ClosePipelineSession({
+    required this.sessionId,
+    super.onSuccess,
+    super.onError,
+  }) : super(name: 'Close_Pipeline_Session');
+
+  final String sessionId;
+
+  @override
+  Map<String, dynamic> toJson() => {'session_id': sessionId};
+}
+
+class LogPipelineLine extends ConsoleEvent {
+  const LogPipelineLine({
+    required this.sessionId,
+    required this.stream,
+    required this.text,
+    super.onSuccess,
+    super.onError,
+  }) : super(name: 'Log_Pipeline_Line');
+
+  final ConsoleStream stream;
+  final String sessionId;
+  final String text;
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'session_id': sessionId,
+    'stream': stream.name,
+    'text': text,
+  };
+}

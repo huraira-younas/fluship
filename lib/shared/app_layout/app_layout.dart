@@ -1,4 +1,7 @@
 import 'package:fluship/core/responsive/models/layout_constraints.dart';
+import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
+import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
+import 'package:fluship/features/pipeline/widgets/pipeline_runner_panel.dart';
 import 'package:fluship/features/settings/views/settings_screen.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/features/console/views/console_screen.dart';
@@ -96,23 +99,35 @@ class _LayoutScreenState extends State<LayoutScreen>
         ? Padding(padding: .all(hPad), child: tab)
         : SingleChildScrollView(padding: .all(hPad), child: tab);
 
-    return Column(
-      spacing: spacing.sm,
-      children: [
-        LayoutTopBuilder(
-          onTabChanged: (tab) => setState(() => _selectedTab = tab),
-          selectedTab: _selectedTab,
-          spacing: spacing,
-        ).padOnly(l: hPad, r: hPad),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: KeyedSubtree(key: key, child: body),
-        ).expanded(),
-        const AppText.accent("Made with ❤️ by Senpai").center(),
-      ],
-    ).padOnly(
-      t: isMobile ? MediaQuery.paddingOf(context).top : spacing.lg,
-      b: spacing.lg,
+    return BlocListener<PipelineBloc, PipelineState>(
+      listenWhen: (previous, current) =>
+          previous.runStatus != PipelineRunStatus.running &&
+          current.runStatus == PipelineRunStatus.running,
+      listener: (context, state) {
+        if (_selectedTab != LayoutTabs.console) {
+          setState(() => _selectedTab = LayoutTabs.console);
+        }
+      },
+      child:
+          Column(
+            spacing: spacing.sm,
+            children: [
+              LayoutTopBuilder(
+                onTabChanged: (tab) => setState(() => _selectedTab = tab),
+                selectedTab: _selectedTab,
+                spacing: spacing,
+              ).padOnly(l: hPad, r: hPad),
+              const PipelineRunnerPanel().padOnly(l: hPad, r: hPad),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: KeyedSubtree(key: key, child: body),
+              ).expanded(),
+              const AppText.accent("Made with ❤️ by Senpai").center(),
+            ],
+          ).padOnly(
+            t: isMobile ? MediaQuery.paddingOf(context).top : spacing.lg,
+            b: spacing.lg,
+          ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluship/di/locator.dart';
@@ -49,10 +50,19 @@ class LayoutTopBuilder extends StatelessWidget {
                     AppText.display(appInfo.appName ?? 'Fluship')
                   else
                     AppText.display(appInfo.appName ?? 'Fluship').expanded(),
-                  AppButton.primary(
-                    onPressed: () =>
-                        getIt<ConfigBloc>().add(const SaveConfig()),
-                    label: 'Run Pipeline',
+                  BlocSelector<PipelineBloc, PipelineState, bool>(
+                    selector: (state) => state.isRunning,
+                    builder: (context, isRunning) {
+                      return AppButton.primary(
+                        isLoading: isRunning,
+                        onPressed: isRunning
+                            ? null
+                            : () => getIt<PipelineBloc>().add(
+                                const RunPipeline(),
+                              ),
+                        label: isRunning ? 'Running…' : 'Run Pipeline',
+                      );
+                    },
                   ),
                 ];
 
