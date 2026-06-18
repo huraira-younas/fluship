@@ -20,7 +20,7 @@ class ConsoleToolbar extends StatelessWidget {
         final ft = context.flushipTheme;
         final path = projectPath?.trim();
         final cwd = (path == null || path.isEmpty)
-            ? 'No project path set — configure in Settings'
+            ? 'No project path set - configure in Settings'
             : path;
 
         return Container(
