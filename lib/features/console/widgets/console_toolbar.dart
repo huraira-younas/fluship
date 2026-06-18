@@ -28,11 +28,11 @@ class ConsoleToolbar extends StatelessWidget {
 
         return Container(
           decoration: BoxDecoration(
-            border: Border.all(color: ft.colors.consoleBorder),
-            borderRadius: BorderRadius.circular(ft.radius.btn),
+            border: .all(color: ft.colors.consoleBorder),
+            borderRadius: .circular(ft.radius.btn),
             color: ft.colors.consoleBg,
           ),
-          padding: EdgeInsets.symmetric(
+          padding: .symmetric(
             horizontal: ft.spacing.md,
             vertical: ft.spacing.md,
           ),
