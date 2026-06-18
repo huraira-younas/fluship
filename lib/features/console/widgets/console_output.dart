@@ -162,7 +162,10 @@ class _ConsoleOutputViewState extends State<_ConsoleOutputView> {
       width: .infinity,
       decoration: BoxDecoration(
         border: .all(color: colors.consoleBorder),
-        borderRadius: .circular(ft.radius.btn),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(ft.radius.btn),
+          bottomRight: Radius.circular(ft.radius.btn),
+        ),
         color: colors.consoleInner,
       ),
       padding: .all(ft.spacing.md),

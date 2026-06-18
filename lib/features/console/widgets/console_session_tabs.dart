@@ -1,11 +1,15 @@
 import 'package:fluship/features/console/models/console_session.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
+import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
 import 'console_close_session.dart';
 import '../bloc/console_bloc.dart';
+
+const _animDuration = Duration(milliseconds: 200);
+const _tabRadius = 8.0;
 
 class ConsoleSessionTabsData {
   const ConsoleSessionTabsData({
@@ -39,7 +43,7 @@ class ConsoleSessionTabs extends StatelessWidget {
               : null,
           onSelectSession: (sessionId) =>
               bloc.add(SelectSession(sessionId: sessionId)),
-          onCloseSession: (session) => _closeSession(context, bloc, session),
+          onCloseSession: (session) => _closeSession(session, context, bloc),
           activeSessionId: data.activeSessionId,
           canClose: data.sessions.length > 1,
           sessions: data.sessions,
@@ -50,20 +54,29 @@ class ConsoleSessionTabs extends StatelessWidget {
 }
 
 Future<void> _closeSession(
+  ConsoleSession session,
   BuildContext context,
   ConsoleBloc bloc,
-  ConsoleSession session,
 ) async {
   final confirmed = await confirmCloseSession(context, session);
   if (!confirmed || !context.mounted) return;
   bloc.add(CloseSession(sessionId: session.id));
 }
 
+class _TabEntry {
+  _TabEntry({required this.session, required this.controller})
+    : key = GlobalKey();
+
+  final AnimationController controller;
+  ConsoleSession session;
+  final GlobalKey key;
+}
+
 class _ConsoleSessionTabsBar extends StatefulWidget {
   const _ConsoleSessionTabsBar({
-    required this.onCloseSession,
     required this.onSelectSession,
     required this.activeSessionId,
+    required this.onCloseSession,
     required this.onAddSession,
     required this.canClose,
     required this.sessions,
@@ -71,8 +84,8 @@ class _ConsoleSessionTabsBar extends StatefulWidget {
 
   final Future<void> Function(ConsoleSession session) onCloseSession;
   final void Function(String sessionId) onSelectSession;
-  final VoidCallback? onAddSession;
   final List<ConsoleSession> sessions;
+  final VoidCallback? onAddSession;
   final String? activeSessionId;
   final bool canClose;
 
@@ -80,27 +93,30 @@ class _ConsoleSessionTabsBar extends StatefulWidget {
   State<_ConsoleSessionTabsBar> createState() => _ConsoleSessionTabsBarState();
 }
 
-class _ConsoleSessionTabsBarState extends State<_ConsoleSessionTabsBar> {
-  static const _animationDuration = Duration(milliseconds: 300);
-
+class _ConsoleSessionTabsBarState extends State<_ConsoleSessionTabsBar>
+    with TickerProviderStateMixin {
   late final ScrollController _scrollController;
-  late List<GlobalKey> _keys;
-
-  final _stackKey = GlobalKey();
-
-  bool _indicatorReady = false;
-  double _indicatorWidth = 0;
-  double _indicatorLeft = 0;
+  final List<_TabEntry> _entries = [];
 
   @override
   void initState() {
     super.initState();
-
     _scrollController = ScrollController();
-    _updateKeys();
+
+    for (final session in widget.sessions) {
+      _entries.add(
+        _TabEntry(
+          session: session,
+          controller: AnimationController(
+            duration: _animDuration,
+            vsync: this,
+            value: 1.0,
+          ),
+        ),
+      );
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateIndicator();
       _scrollToActive(animate: false);
     });
   }
@@ -109,117 +125,52 @@ class _ConsoleSessionTabsBarState extends State<_ConsoleSessionTabsBar> {
   void didUpdateWidget(covariant _ConsoleSessionTabsBar oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    final sessionsChanged = _sessionsChanged(
-      oldWidget.sessions,
-      widget.sessions,
-    );
-    final layoutChanged = _sessionsLayoutChanged(
-      oldWidget.sessions,
-      widget.sessions,
-    );
-    final selectionChanged =
-        oldWidget.activeSessionId != widget.activeSessionId;
-
-    if (sessionsChanged) {
-      _updateKeys();
-      _indicatorReady = false;
-    }
-
-    if (selectionChanged) {
-      _scrollToActive();
-    }
-
-    if (sessionsChanged || layoutChanged || selectionChanged) {
-      _scheduleIndicatorUpdate();
-    }
-  }
-
-  bool _sessionsChanged(
-    List<ConsoleSession> previous,
-    List<ConsoleSession> current,
-  ) {
-    if (previous.length != current.length) return true;
-
-    for (var i = 0; i < previous.length; i++) {
-      if (previous[i].id != current[i].id) return true;
-    }
-
-    return false;
-  }
-
-  bool _sessionsLayoutChanged(
-    List<ConsoleSession> previous,
-    List<ConsoleSession> current,
-  ) {
-    if (previous.length != current.length) return true;
-
-    for (var i = 0; i < previous.length; i++) {
-      final oldSession = previous[i];
-      final newSession = current[i];
-
-      if (oldSession.id != newSession.id ||
-          oldSession.title != newSession.title ||
-          oldSession.isRunning != newSession.isRunning) {
-        return true;
+    final nextIds = widget.sessions.map((s) => s.id).toSet();
+    for (final entry in List.of(_entries)) {
+      if (!nextIds.contains(entry.session.id)) {
+        _animateRemove(entry);
       }
     }
 
-    return false;
+    final currentIds = _entries.map((e) => e.session.id).toSet();
+    for (final session in widget.sessions) {
+      final existing = _entries
+          .where((e) => e.session.id == session.id)
+          .firstOrNull;
+      if (existing != null) {
+        existing.session = session;
+      } else if (!currentIds.contains(session.id)) {
+        final controller = AnimationController(
+          duration: _animDuration,
+          vsync: this,
+        );
+        _entries.add(_TabEntry(session: session, controller: controller));
+        controller.forward();
+      }
+    }
+
+    if (oldWidget.activeSessionId != widget.activeSessionId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToActive());
+    }
   }
 
-  void _updateKeys() {
-    _keys = List.generate(widget.sessions.length, (_) => GlobalKey());
-  }
-
-  void _scheduleIndicatorUpdate() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+  void _animateRemove(_TabEntry entry) {
+    entry.controller.reverse().then((_) {
       if (!mounted) return;
-      _updateIndicator();
-    });
-  }
-
-  void _updateIndicator() {
-    final activeIndex = widget.sessions.indexWhere(
-      (session) => session.id == widget.activeSessionId,
-    );
-    if (activeIndex == -1) {
-      if (_indicatorReady) {
-        setState(() => _indicatorReady = false);
-      }
-      return;
-    }
-
-    final tabContext = _keys[activeIndex].currentContext;
-    final stackContext = _stackKey.currentContext;
-    if (tabContext == null || stackContext == null) return;
-
-    final tabBox = tabContext.findRenderObject() as RenderBox?;
-    final stackBox = stackContext.findRenderObject() as RenderBox?;
-    if (tabBox == null || stackBox == null || !tabBox.hasSize) return;
-
-    final stackOrigin = stackBox.localToGlobal(Offset.zero);
-    final tabOrigin = tabBox.localToGlobal(Offset.zero);
-    final left = tabOrigin.dx - stackOrigin.dx;
-    final width = tabBox.size.width;
-
-    if (left == _indicatorLeft && width == _indicatorWidth && _indicatorReady) {
-      return;
-    }
-
-    setState(() {
-      _indicatorWidth = width;
-      _indicatorReady = true;
-      _indicatorLeft = left;
+      setState(() {
+        _entries.removeWhere((e) => e.session.id == entry.session.id);
+      });
+      entry.controller.dispose();
     });
   }
 
   void _scrollToActive({bool animate = true}) {
-    final activeIndex = widget.sessions.indexWhere(
-      (session) => session.id == widget.activeSessionId,
-    );
-    if (activeIndex == -1) return;
+    final active = _entries
+        .where((e) => e.session.id == widget.activeSessionId)
+        .firstOrNull;
+    if (active == null) return;
 
-    final tabContext = _keys[activeIndex].currentContext;
+    final tabContext = active.key.currentContext;
     if (tabContext == null) return;
 
     final scrollable = Scrollable.maybeOf(tabContext);
@@ -229,7 +180,7 @@ class _ConsoleSessionTabsBarState extends State<_ConsoleSessionTabsBar> {
     if (renderObject == null) return;
 
     scrollable.position.ensureVisible(
-      duration: animate ? _animationDuration : Duration.zero,
+      duration: animate ? _animDuration : Duration.zero,
       curve: Curves.easeInOut,
       alignment: 0.5,
       renderObject,
@@ -238,80 +189,91 @@ class _ConsoleSessionTabsBarState extends State<_ConsoleSessionTabsBar> {
 
   @override
   void dispose() {
+    for (final entry in _entries) {
+      entry.controller.dispose();
+    }
     _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final ft = context.flushipTheme;
-    final colors = ft.colors;
+    final colors = context.flushipTheme.colors;
 
-    return SingleChildScrollView(
-      scrollDirection: .horizontal,
-      controller: _scrollController,
-      clipBehavior: .none,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: .circular(ft.radius.btn + 15),
-          border: .all(color: colors.cardBorder),
-          color: colors.consoleBg,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.consoleBg,
+        border: Border(bottom: BorderSide(color: colors.consoleBorder)),
+        borderRadius: .vertical(
+          top: .circular(context.flushipTheme.radius.btn),
         ),
-        padding: const .all(4),
-        child: LayoutBuilder(
-          builder: (context, _) {
-            _scheduleIndicatorUpdate();
-
-            return Stack(
-              key: _stackKey,
-              clipBehavior: .none,
-              children: [
-                if (_indicatorReady)
-                  AnimatedPositioned(
-                    duration: _animationDuration,
-                    curve: Curves.easeInOut,
-                    width: _indicatorWidth,
-                    left: _indicatorLeft,
-                    top: 0,
-                    bottom: 0,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        borderRadius: .circular(20),
-                        color: colors.text,
-                      ),
-                    ),
-                  ),
-                Row(
-                  mainAxisSize: .min,
-                  spacing: 4,
-                  children: [
-                    ...widget.sessions.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final session = entry.value;
-                      final active = session.id == widget.activeSessionId;
-
-                      return _SessionTab(
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            scrollDirection: .horizontal,
+            controller: _scrollController,
+            clipBehavior: .none,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: Row(
+                crossAxisAlignment: .end,
+                children: [
+                  ..._entries.map((entry) {
+                    final session = entry.session;
+                    return _TabEnterExitTransition(
+                      animation: entry.controller,
+                      child: _SessionTab(
                         onClose: widget.canClose
                             ? () => widget.onCloseSession(session)
                             : null,
                         onTap: () => widget.onSelectSession(session.id),
+                        isSelected: session.id == widget.activeSessionId,
                         isRunning: session.isRunning,
-                        isSelected: active,
                         title: session.title,
-                        key: _keys[index],
-                      );
-                    }),
-                    _AddTabButton(onTap: widget.onAddSession),
-                  ],
-                ),
-              ],
-            );
-          },
-        ),
+                        key: entry.key,
+                      ),
+                    );
+                  }),
+                  _AddTabButton(onTap: widget.onAddSession),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Enter / exit transition — slide-expand + fade (Chrome-like)
+// ---------------------------------------------------------------------------
+
+class _TabEnterExitTransition extends StatelessWidget {
+  const _TabEnterExitTransition({required this.animation, required this.child});
+
+  final Animation<double> animation;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final curved = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
+    return FadeTransition(
+      opacity: curved,
+      child: SizeTransition(
+        alignment: const Alignment(-1.0, 0.0),
+        sizeFactor: curved,
+        axis: .horizontal,
+        child: child,
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Individual session tab
+// ---------------------------------------------------------------------------
 
 class _SessionTab extends StatelessWidget {
   const _SessionTab({
@@ -332,54 +294,87 @@ class _SessionTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.flushipTheme.colors;
+    final canClose = onClose != null;
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: .opaque,
-      child: Padding(
-        padding: const .symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          mainAxisSize: .min,
-          spacing: 6,
-          children: [
-            if (isRunning)
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: isSelected ? colors.bg : colors.accent,
-                  shape: .circle,
-                ),
-              ),
-            AppText(
-              title,
-              color: isSelected ? colors.bg : colors.textDim,
-              variant: isSelected ? .custom : .dim,
-              weight: isSelected ? .w700 : .w500,
-            ),
-            if (onClose != null)
-              GestureDetector(
-                behavior: .opaque,
-                onTap: onClose,
-                child: Padding(
-                  padding: const .all(4),
-                  child: Icon(
-                    color: isSelected ? colors.bg : colors.textDim,
-                    Icons.close,
-                    size: 16,
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: isSelected ? 1.0 : 0.0),
+      duration: const Duration(milliseconds: 160),
+      curve: Curves.easeInOut,
+      builder: (context, t, child) {
+        final bgColor = Color.lerp(colors.consoleBg, colors.consoleInner, t)!;
+        final labelColor = Color.lerp(colors.textDim, colors.text, t)!;
+        final closeColor = Color.lerp(colors.muted, colors.textDim, t)!;
+
+        // Selected tab drops 1px onto the output panel (Chrome-style merge).
+        return Transform.translate(
+          offset: Offset(0, t),
+          child: GestureDetector(
+            behavior: .opaque,
+            onTap: onTap,
+            child: Stack(
+              clipBehavior: .none,
+              children: [
+                Container(
+                  padding: .symmetric(
+                    vertical: canClose ? 8 : 10,
+                    horizontal: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: const .vertical(top: .circular(_tabRadius)),
+                    border: .all(color: colors.consoleBorder),
+                    color: bgColor,
+                  ),
+                  child: Row(
+                    mainAxisSize: .min,
+                    spacing: 6,
+                    children: [
+                      if (isRunning)
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: colors.accent,
+                            shape: .circle,
+                          ),
+                        ),
+                      AppText(
+                        weight: t > 0.5 ? .w600 : .w500,
+                        color: labelColor,
+                        variant: .custom,
+                        title,
+                      ),
+                      if (onClose != null)
+                        GestureDetector(
+                          behavior: .opaque,
+                          onTap: onClose,
+                          child: Icon(
+                            color: closeColor,
+                            Icons.close,
+                            size: 16,
+                          ).padOnly(t: 4, l: 4, b: 4),
+                        ),
+                    ],
                   ),
                 ),
-              ),
-          ],
-        ),
-      ),
+                if (t > 0)
+                  Positioned(
+                    left: 1,
+                    right: 1,
+                    bottom: 0,
+                    height: 1,
+                    child: ColoredBox(color: bgColor),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
 
 class _AddTabButton extends StatelessWidget {
   const _AddTabButton({required this.onTap});
-
   final VoidCallback? onTap;
 
   @override
@@ -388,18 +383,15 @@ class _AddTabButton extends StatelessWidget {
     final enabled = onTap != null;
 
     return GestureDetector(
-      onTap: onTap,
       behavior: .opaque,
-      child: Padding(
-        padding: const .symmetric(horizontal: 12, vertical: 8),
-        child: Icon(
-          Icons.add,
-          size: 20,
-          color: enabled
-              ? colors.textDim
-              : colors.textDim.withValues(alpha: 0.35),
-        ),
-      ),
+      onTap: onTap,
+      child: Icon(
+        Icons.add,
+        size: 20,
+        color: enabled
+            ? colors.textDim
+            : colors.textDim.withValues(alpha: 0.35),
+      ).padSym(h: 12, v: 8),
     );
   }
 }
