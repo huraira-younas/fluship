@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 
 import '../widgets/field_button.dart';
 
-class GmailSmtp extends StatelessWidget {
-  const GmailSmtp({super.key});
+class GoogleDrive extends StatelessWidget {
+  const GoogleDrive({super.key});
 
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      title: 'Gmail Drive',
+      title: 'Google Drive',
       description:
           '• Add your OAuth client JSON from Google Cloud Console to enable Drive uploads.\n'
           '• Optionally provide a saved token JSON to skip re-authorization on the next run.\n'

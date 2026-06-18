@@ -1,6 +1,6 @@
+import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
-import 'package:fluship/shared/models/distribution_config.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 
@@ -16,12 +16,21 @@ import '../bloc/config_bloc.dart';
 class DistributionConfig extends StatelessWidget {
   const DistributionConfig({super.key});
 
+  GoogleDriveConfig _drive(GoogleDriveConfig? config) =>
+      config ?? const GoogleDriveConfig();
+
+  ReportRecipientConfig _report(ReportRecipientConfig? config) =>
+      config ?? const ReportRecipientConfig();
+
   @override
   Widget build(BuildContext context) {
     final bloc = getIt<ConfigBloc>();
     return BlocSelector<ConfigBloc, ConfigState, DistributionConfigModel>(
       selector: (state) => state.distribution,
       builder: (context, distribution) {
+        final report = _report(distribution.reportRecipient);
+        final drive = _drive(distribution.driveConfig);
+
         return AppCard(
           state: AppCardState(
             onEnable: (value) => bloc.add(
@@ -61,25 +70,30 @@ class DistributionConfig extends StatelessWidget {
             ),
             SwitchLabel(
               disabled: !distribution.enabled,
-              value: distribution.drive,
+              value: drive.enabled,
               label: "Google Drive",
               onChange: (value) => bloc.add(
-                UpdateConfig(config: distribution.copyWith(drive: value)),
+                UpdateConfig(
+                  config: distribution.copyWith(
+                    driveConfig: drive.copyWith(enabled: value),
+                  ),
+                ),
               ),
             ),
-
-            if (distribution.drive && distribution.emails.isNotEmpty)
+            if (drive.enabled && report.emails.isNotEmpty)
               _DriveRecipientsPanel(
                 disabled: !distribution.enabled,
-                emails: distribution.emails,
+                emails: report.emails,
                 onToggle: (email, enabled) => bloc.add(
                   UpdateConfig(
                     config: distribution.copyWith(
-                      emails: distribution.emails.map((e) {
-                        return e.email == email.email
-                            ? e.copyWith(enabled: enabled)
-                            : e;
-                      }).toList(),
+                      reportRecipient: report.copyWith(
+                        emails: report.emails.map((e) {
+                          return e.email == email.email
+                              ? e.copyWith(enabled: enabled)
+                              : e;
+                        }).toList(),
+                      ),
                     ),
                   ),
                 ),

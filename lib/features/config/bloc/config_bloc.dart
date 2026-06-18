@@ -6,7 +6,7 @@ import 'package:fluship/shared/models/post_build_config.dart';
 import 'package:fluship/shared/models/post_git.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:fluship/shared/models/distribution_config.dart';
+import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:fluship/shared/models/android_config.dart';
 import 'package:fluship/shared/models/base_config.dart';
 import 'package:fluship/shared/models/ios_config.dart';

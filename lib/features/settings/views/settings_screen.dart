@@ -15,7 +15,7 @@ class SettingsScreen extends StatelessWidget {
       children: [
         const ProjectRoot(),
         const GooglePlayConsole(),
-        const GmailSmtp(),
+        const GoogleDrive(),
         const ReportsRecipients(),
         ThemeSelector(spacing: spacing.md),
       ],
