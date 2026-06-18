@@ -49,7 +49,7 @@ class AppCard extends StatelessWidget {
 
     final body = Column(spacing: spacing, children: children);
     return Container(
-      height: height,
+      height: height ?? (expandedBody ? double.infinity : null),
       width: width,
       padding: .all(ft.spacing.lg),
       decoration: BoxDecoration(
