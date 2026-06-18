@@ -12,13 +12,31 @@ class ConsoleLineBuffer {
     if (chunk.isEmpty) return lines;
 
     final result = List<ConsoleLine>.from(lines);
-    if (result.isNotEmpty && result.last.stream == stream) {
-      final merged = limitText(result.last.text + chunk);
-      result[result.length - 1] = result.last.copyWith(text: merged);
+    _mergeInto(result, stream: stream, chunk: chunk);
+    return result;
+  }
+
+  static void mergeChunkInPlace({
+    required List<ConsoleLine> lines,
+    required ConsoleStream stream,
+    required String chunk,
+  }) {
+    if (chunk.isEmpty) return;
+    _mergeInto(lines, stream: stream, chunk: chunk);
+  }
+
+  static void _mergeInto(
+    List<ConsoleLine> lines, {
+    required ConsoleStream stream,
+    required String chunk,
+  }) {
+    if (lines.isNotEmpty && lines.last.stream == stream) {
+      final merged = limitText(lines.last.text + chunk);
+      lines[lines.length - 1] = lines.last.copyWith(text: merged);
     } else {
-      result.add(ConsoleLine(stream: stream, text: limitText(chunk)));
+      lines.add(ConsoleLine(stream: stream, text: limitText(chunk)));
     }
-    return trimLines(result);
+    trimLinesInPlace(lines);
   }
 
   static List<ConsoleLine> appendLine({
@@ -32,6 +50,12 @@ class ConsoleLineBuffer {
   static List<ConsoleLine> trimLines(List<ConsoleLine> lines) {
     if (lines.length <= ConsoleLimits.maxLinesPerSession) return lines;
     return lines.sublist(lines.length - ConsoleLimits.maxLinesPerSession);
+  }
+
+  static void trimLinesInPlace(List<ConsoleLine> lines) {
+    final excess = lines.length - ConsoleLimits.maxLinesPerSession;
+    if (excess <= 0) return;
+    lines.removeRange(0, excess);
   }
 
   static String limitText(String text) {

@@ -3,7 +3,6 @@ import 'dart:io' show Directory, Platform, Process;
 import 'dart:convert' show utf8;
 
 import '../exceptions/console_shell_exceptions.dart';
-import '../parsing/marker_shell_output_parser.dart';
 import '../contracts/shell_output_parser.dart';
 import '../models/shell_parse_result.dart';
 import '../models/shell_run_result.dart';
@@ -11,12 +10,12 @@ import '../contracts/shell_runner.dart';
 
 abstract base class BaseShellRunner implements IShellRunner {
   BaseShellRunner({required this._parser});
-
   final IShellOutputParser _parser;
 
   Completer<ShellRunResult>? _runCompleter;
   StreamSubscription<String>? _stdoutSub;
   StreamSubscription<String>? _stderrSub;
+
   void Function(String cwd)? _onCwdChanged;
   void Function(String chunk)? _onStdout;
   void Function(String chunk)? _onStderr;
@@ -54,37 +53,36 @@ abstract base class BaseShellRunner implements IShellRunner {
     );
     _process = process;
 
-    _stdoutSub = process.stdout.transform(utf8.decoder).listen(
-      onError: _handleStdoutError,
-      cancelOnError: false,
-      _handleStdoutChunk,
-    );
+    _stdoutSub = process.stdout
+        .transform(utf8.decoder)
+        .listen(
+          onError: _handleStreamError,
+          cancelOnError: false,
+          _handleStdoutChunk,
+        );
 
-    _stderrSub = process.stderr.transform(utf8.decoder).listen(
-      onError: _handleStderrError,
-      cancelOnError: false,
-      _handleStderrChunk,
-    );
+    _stderrSub = process.stderr
+        .transform(utf8.decoder)
+        .listen(
+          onError: _handleStreamError,
+          cancelOnError: false,
+          _handleStderrChunk,
+        );
   }
 
   void _handleStdoutChunk(String chunk) {
-    if (!_isAlive || _disposed || !_running) return;
+    if (!_isAlive || !_running) return;
     _handleParse(_parser.feed(chunk));
   }
 
-  void _handleStdoutError(Object error) {
-    if (!_isAlive || _disposed || !_running) return;
+  void _handleStreamError(Object error) {
+    if (!_isAlive || !_running) return;
     _onStderr?.call(error.toString());
   }
 
   void _handleStderrChunk(String chunk) {
-    if (!_isAlive || _disposed || !_running) return;
+    if (!_isAlive || !_running) return;
     _onStderr?.call(chunk);
-  }
-
-  void _handleStderrError(Object error) {
-    if (!_isAlive || _disposed || !_running) return;
-    _onStderr?.call(error.toString());
   }
 
   @override
@@ -108,11 +106,17 @@ abstract base class BaseShellRunner implements IShellRunner {
     _parser.reset();
     _running = true;
 
-    process.stdin.writeln(wrapCommand(command));
-    await process.stdin.flush();
-
     try {
+      process.stdin.writeln(wrapCommand(command));
+      await process.stdin.flush();
       return await _runCompleter!.future;
+    } catch (e) {
+      if (_runCompleter != null && !_runCompleter!.isCompleted) {
+        _runCompleter!.complete(
+          ShellRunResult(exitCode: -1, wasCancelled: false, cwd: _lastCwd),
+        );
+      }
+      rethrow;
     } finally {
       _runCompleter = null;
       _onCwdChanged = null;
@@ -123,7 +127,7 @@ abstract base class BaseShellRunner implements IShellRunner {
   }
 
   void _handleParse(ShellParseResult result) {
-    if (!_isAlive || _disposed || !_running) return;
+    if (!_isAlive || !_running) return;
 
     var exitCode = 0;
 
@@ -158,9 +162,8 @@ abstract base class BaseShellRunner implements IShellRunner {
   @override
   Future<void> cancel() async {
     if (!_running) return;
+    _parser.markCancelled();
     _cancelled = true;
-    final parser = _parser;
-    if (parser is MarkerShellOutputParser) parser.markCancelled();
 
     try {
       _process?.stdin.writeln('\x03');
@@ -186,9 +189,9 @@ abstract base class BaseShellRunner implements IShellRunner {
 
     await _stdoutSub?.cancel();
     await _stderrSub?.cancel();
+    _onCwdChanged = null;
     _stdoutSub = null;
     _stderrSub = null;
-    _onCwdChanged = null;
     _onStdout = null;
     _onStderr = null;
 

@@ -1,4 +1,5 @@
 import 'package:fluship/services/console/contracts/console_session_pool.dart';
+import 'package:fluship/services/console/contracts/shell_runner_factory.dart';
 import 'package:fluship/services/console/runners/shell_runner_factory.dart';
 import 'package:fluship/services/console/console_session_pool.dart';
 
@@ -14,9 +15,9 @@ class AppLocator {
     getIt.registerSingleton(const FilePickerService());
     getIt.registerSingleton(ConfigBloc());
 
-    getIt.registerSingleton(ShellRunnerFactory());
+    getIt.registerSingleton<IShellRunnerFactory>(ShellRunnerFactory());
     getIt.registerSingleton<IConsoleSessionPool>(
-      ConsoleSessionPool(factory: getIt<ShellRunnerFactory>()),
+      ConsoleSessionPool(factory: getIt<IShellRunnerFactory>()),
     );
     getIt.registerSingleton(ConsoleBloc(pool: getIt<IConsoleSessionPool>()));
   }

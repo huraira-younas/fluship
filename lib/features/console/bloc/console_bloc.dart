@@ -242,7 +242,9 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
       ),
     );
 
-    _pendingLines[sessionId] = state.sessionById(sessionId)!.lines;
+    _pendingLines[sessionId] = List<ConsoleLine>.from(
+      state.sessionById(sessionId)!.lines,
+    );
 
     void flushPending() {
       _flushTimers[sessionId]?.cancel();
@@ -251,7 +253,10 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
       final pending = _pendingLines[sessionId];
       if (pending == null) return;
       _updateSession(
-        transform: (s) => s.copyWith(lines: pending, isRunning: true),
+        transform: (s) => s.copyWith(
+          lines: List<ConsoleLine>.from(pending),
+          isRunning: true,
+        ),
         sessionId: sessionId,
         emit: emit,
       );
@@ -272,8 +277,9 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
         command,
         onStdout: (chunk) {
           if (!_isSessionActive(sessionId)) return;
-          _pendingLines[sessionId] = ConsoleLineBuffer.mergeChunk(
-            lines: _pendingLines[sessionId] ?? [],
+          final pending = _pendingLines[sessionId] ??= [];
+          ConsoleLineBuffer.mergeChunkInPlace(
+            lines: pending,
             stream: .stdout,
             chunk: chunk,
           );
@@ -281,8 +287,9 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
         },
         onStderr: (chunk) {
           if (!_isSessionActive(sessionId)) return;
-          _pendingLines[sessionId] = ConsoleLineBuffer.mergeChunk(
-            lines: _pendingLines[sessionId] ?? [],
+          final pending = _pendingLines[sessionId] ??= [];
+          ConsoleLineBuffer.mergeChunkInPlace(
+            lines: pending,
             stream: .stderr,
             chunk: chunk,
           );
@@ -386,14 +393,11 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
     required String sessionId,
   }) {
     if (isClosed) return;
-    emit(
-      state.copyWith(
-        sessions: state.sessions.map((session) {
-          if (session.id != sessionId) return session;
-          return transform(session);
-        }).toList(),
-      ),
-    );
+    final index = state.sessions.indexWhere((session) => session.id == sessionId);
+    if (index == -1) return;
+    final updated = List<ConsoleSession>.of(state.sessions);
+    updated[index] = transform(state.sessions[index]);
+    emit(state.copyWith(sessions: updated));
   }
 
   void _appendSystem(

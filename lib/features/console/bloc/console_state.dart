@@ -2,8 +2,8 @@ part of 'console_bloc.dart';
 
 class ConsoleState extends BaseBlocState {
   const ConsoleState({
-    required this.activeSessionId,
     required this.nextTerminalIndex,
+    required this.activeSessionId,
     required this.projectRoot,
     required this.sessions,
     super.loading = false,
@@ -12,8 +12,8 @@ class ConsoleState extends BaseBlocState {
 
   final List<ConsoleSession> sessions;
   final String? activeSessionId;
-  final String? projectRoot;
   final int nextTerminalIndex;
+  final String? projectRoot;
 
   factory ConsoleState.empty() => const ConsoleState(
     activeSessionId: null,
@@ -39,8 +39,8 @@ class ConsoleState extends BaseBlocState {
 
   @override
   List<Object?> get props => [
-    activeSessionId,
     nextTerminalIndex,
+    activeSessionId,
     projectRoot,
     sessions,
     loading,
@@ -49,17 +49,21 @@ class ConsoleState extends BaseBlocState {
 
   @override
   ConsoleState copyWith({
+    bool clearActiveSessionId = false,
     List<ConsoleSession>? sessions,
+    bool clearProjectRoot = false,
     String? activeSessionId,
-    String? projectRoot,
     int? nextTerminalIndex,
+    String? projectRoot,
     CustomState? error,
     bool? loading,
   }) {
     return ConsoleState(
-      activeSessionId: activeSessionId ?? this.activeSessionId,
+      activeSessionId: !clearActiveSessionId
+          ? (activeSessionId ?? this.activeSessionId)
+          : null,
+      projectRoot: clearProjectRoot ? null : (projectRoot ?? this.projectRoot),
       nextTerminalIndex: nextTerminalIndex ?? this.nextTerminalIndex,
-      projectRoot: projectRoot ?? this.projectRoot,
       sessions: sessions ?? this.sessions,
       loading: loading ?? this.loading,
       error: error,

@@ -1,8 +1,8 @@
+import 'package:fluship/services/console/exceptions/console_shell_exceptions.dart';
+import 'package:fluship/services/console/contracts/shell_runner_factory.dart';
+import 'package:fluship/services/console/models/shell_run_result.dart';
 import 'package:fluship/services/console/contracts/shell_runner.dart';
 import 'package:fluship/services/console/console_session_pool.dart';
-import 'package:fluship/services/console/exceptions/console_shell_exceptions.dart';
-import 'package:fluship/services/console/models/shell_run_result.dart';
-import 'package:fluship/services/console/runners/shell_runner_factory.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakeShellRunner implements IShellRunner {
@@ -46,7 +46,7 @@ class FakeShellRunner implements IShellRunner {
   }
 }
 
-class FakeShellRunnerFactory extends ShellRunnerFactory {
+class FakeShellRunnerFactory implements IShellRunnerFactory {
   FakeShellRunnerFactory(this.runner);
 
   final FakeShellRunner runner;

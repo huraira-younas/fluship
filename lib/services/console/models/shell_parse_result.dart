@@ -14,8 +14,4 @@ class ShellParseResult {
   final bool wasCancelled;
   final int? exitCode;
   final String? cwd;
-
-  bool get hasOutput =>
-      (stdoutChunk != null && stdoutChunk!.isNotEmpty) ||
-      (stderrChunk != null && stderrChunk!.isNotEmpty);
 }

@@ -1,6 +1,6 @@
 import 'exceptions/console_shell_exceptions.dart';
 import 'contracts/console_session_pool.dart';
-import 'runners/shell_runner_factory.dart';
+import 'contracts/shell_runner_factory.dart';
 import 'models/shell_run_result.dart';
 import 'contracts/shell_runner.dart';
 import 'console_limits.dart';
@@ -9,7 +9,7 @@ class ConsoleSessionPool implements IConsoleSessionPool {
   ConsoleSessionPool({required this._factory});
 
   final Map<String, IShellRunner> _runners = {};
-  final ShellRunnerFactory _factory;
+  final IShellRunnerFactory _factory;
 
   @override
   int get sessionCount => _runners.length;
