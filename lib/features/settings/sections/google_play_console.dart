@@ -13,24 +13,19 @@ import '../widgets/field_button.dart';
 class GooglePlayConsole extends StatelessWidget {
   const GooglePlayConsole({super.key});
 
-  GooglePlayConsoleConfig _gp(GooglePlayConsoleConfig? gp) =>
-      gp ?? const GooglePlayConsoleConfig();
-
-  void _updateGp(
-    GooglePlayConsoleConfig Function(GooglePlayConsoleConfig?) patch,
-  ) {
+  void _updateGp(GooglePlayConsoleConfig config) {
     final bloc = getIt<ConfigBloc>();
     final android = bloc.state.android;
 
     bloc.add(
       UpdateConfig(
-        config: android.copyWith(gpConfig: patch(android.gpConfig)),
         onError: (error) => AppToast.error(error.message),
+        config: android.copyWith(gpConfig: config),
       ),
     );
   }
 
-  Future<void> _pickSaJson() async {
+  Future<void> _pickSaJson(GooglePlayConsoleConfig gpConfig) async {
     final path = await getIt<FilePickerService>().pickFile(
       dialogTitle: 'Select Service Account JSON file',
       allowedExtensions: ['json'],
@@ -38,14 +33,16 @@ class GooglePlayConsole extends StatelessWidget {
 
     if (path == null) return;
 
-    _updateGp((gp) => _gp(gp).copyWith(saJsonPath: path));
+    _updateGp(gpConfig.copyWith(saJsonPath: path));
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ConfigBloc, ConfigState, GooglePlayConsoleConfig?>(
-      selector: (state) => state.android.gpConfig,
-      builder: (context, gpConfig) {
+      selector: (s) => s.android.gpConfig ?? const GooglePlayConsoleConfig(),
+      builder: (_, c) {
+        if (c == null) return const SizedBox.shrink();
+
         return AppCard(
           title: 'Google Play Console',
           description:
@@ -53,18 +50,16 @@ class GooglePlayConsole extends StatelessWidget {
           spacing: 15,
           children: [
             AppTextField.label(
-              onChanged: (value) => _updateGp((gp) {
-                return _gp(gp).copyWith(packageName: value);
-              }),
-              initialValue: gpConfig?.packageName,
+              onChanged: (value) => _updateGp(c.copyWith(packageName: value)),
               label: 'Package name (optional)',
+              initialValue: c.packageName,
               hint: 'com.example.my_app',
             ),
             FieldButton(
               hint: 'C:/Users/Username/Documents/play_service_account.json',
+              onBrowse: () => _pickSaJson(c),
               label: 'Service account JSON',
-              value: gpConfig?.saJsonPath,
-              onBrowse: _pickSaJson,
+              value: c.saJsonPath,
             ),
           ],
         );
