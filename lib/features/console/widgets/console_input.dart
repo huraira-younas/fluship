@@ -52,6 +52,25 @@ class _ConsoleInputFieldState extends State<_ConsoleInputField> {
     _controller.clear();
   }
 
+  void _restoreFocus() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || widget.disabled) return;
+      _focusNode.requestFocus();
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _ConsoleInputField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.disabled != widget.disabled) {
+      if (!widget.disabled) {
+        _restoreFocus();
+      } else {
+        _focusNode.unfocus();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
