@@ -77,6 +77,14 @@ class MarkerShellOutputParser implements IShellOutputParser {
       if (_inCommand) {
         final endIdx = content.indexOf(endPrefix);
         if (endIdx == -1) {
+          final overlap = _partialMarkerOverlap(content, endPrefix);
+          final emitLength = content.length - overlap;
+          if (emitLength > 0) {
+            stdout += content.substring(0, emitLength);
+            _buffer
+              ..clear()
+              ..write(content.substring(emitLength));
+          }
           break;
         }
 
@@ -127,5 +135,15 @@ class MarkerShellOutputParser implements IShellOutputParser {
       exitCode: exitCode,
       cwd: cwd,
     );
+  }
+
+  int _partialMarkerOverlap(String content, String marker) {
+    final max = marker.length < content.length ? marker.length : content.length;
+    for (var overlap = max; overlap > 0; overlap--) {
+      if (marker.startsWith(content.substring(content.length - overlap))) {
+        return overlap;
+      }
+    }
+    return 0;
   }
 }

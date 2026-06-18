@@ -244,7 +244,7 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
 
     _pendingLines[sessionId] = state.sessionById(sessionId)!.lines;
 
-    void flush() {
+    void flushPending() {
       _flushTimers[sessionId]?.cancel();
       _flushTimers[sessionId] = null;
       if (!_isSessionActive(sessionId)) return;
@@ -262,7 +262,7 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
       if (_flushTimers[sessionId] != null) return;
       _flushTimers[sessionId] = Timer(
         const Duration(milliseconds: ConsoleLimits.flushIntervalMs),
-        flush,
+        flushPending,
       );
     }
 
@@ -298,6 +298,7 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
         },
       );
 
+      flushPending();
       _clearSessionBuffers(sessionId);
       if (!_isSessionActive(sessionId)) return;
 
@@ -338,6 +339,7 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
         ),
       );
     } catch (e) {
+      flushPending();
       _clearSessionBuffers(sessionId);
       if (!_isSessionActive(sessionId)) return;
       _updateSession(

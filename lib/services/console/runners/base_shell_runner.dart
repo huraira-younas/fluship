@@ -17,6 +17,9 @@ abstract base class BaseShellRunner implements IShellRunner {
   Completer<ShellRunResult>? _runCompleter;
   StreamSubscription<String>? _stdoutSub;
   StreamSubscription<String>? _stderrSub;
+  void Function(String cwd)? _onCwdChanged;
+  void Function(String chunk)? _onStdout;
+  void Function(String chunk)? _onStderr;
   Process? _process;
 
   var _cancelled = false;
@@ -43,12 +46,45 @@ abstract base class BaseShellRunner implements IShellRunner {
       throw StateError('Working directory does not exist: $workingDirectory');
     }
 
-    _process = await Process.start(
+    final process = await Process.start(
       executable,
       startupArguments,
       workingDirectory: workingDirectory,
       environment: Platform.environment,
     );
+    _process = process;
+
+    _stdoutSub = process.stdout.transform(utf8.decoder).listen(
+      onError: _handleStdoutError,
+      cancelOnError: false,
+      _handleStdoutChunk,
+    );
+
+    _stderrSub = process.stderr.transform(utf8.decoder).listen(
+      onError: _handleStderrError,
+      cancelOnError: false,
+      _handleStderrChunk,
+    );
+  }
+
+  void _handleStdoutChunk(String chunk) {
+    if (!_isAlive || _disposed || !_running) return;
+    _handleParse(_parser.feed(chunk));
+  }
+
+  void _handleStdoutError(Object error) {
+    if (!_isAlive || _disposed || !_running) return;
+    _onStderr?.call(error.toString());
+  }
+
+  void _handleStderrChunk(String chunk) {
+    if (!_isAlive || _disposed || !_running) return;
+    _onStderr?.call(chunk);
+  }
+
+  void _handleStderrError(Object error) {
+    if (!_isAlive || _disposed || !_running) return;
+    _onStderr?.call(error.toString());
   }
 
   @override
@@ -65,66 +101,12 @@ abstract base class BaseShellRunner implements IShellRunner {
     if (_running) throw const ShellBusyException();
 
     _runCompleter = Completer<ShellRunResult>();
+    _onCwdChanged = onCwdChanged;
+    _onStdout = onStdout;
+    _onStderr = onStderr;
     _cancelled = false;
     _parser.reset();
     _running = true;
-
-    var exitCode = 0;
-
-    void handleParse(ShellParseResult result) {
-      if (!_isAlive || _disposed) return;
-      if (result.stdoutChunk != null && result.stdoutChunk!.isNotEmpty) {
-        onStdout(result.stdoutChunk!);
-      }
-      if (result.stderrChunk != null && result.stderrChunk!.isNotEmpty) {
-        onStderr(result.stderrChunk!);
-      }
-      if (result.cwd != null && result.cwd!.isNotEmpty) {
-        _lastCwd = result.cwd;
-        onCwdChanged(result.cwd!);
-      }
-      if (result.exitCode != null) exitCode = result.exitCode!;
-      if (result.isCommandComplete) {
-        _completeRun(
-          ShellRunResult(
-            wasCancelled: result.wasCancelled || _cancelled,
-            exitCode: exitCode,
-            cwd: _lastCwd,
-          ),
-        );
-      }
-    }
-
-    await _stdoutSub?.cancel();
-    await _stderrSub?.cancel();
-
-    _stdoutSub = process.stdout
-        .transform(utf8.decoder)
-        .listen(
-          (chunk) {
-            if (!_isAlive || _disposed) return;
-            handleParse(_parser.feed(chunk));
-          },
-          onError: (Object e) {
-            if (!_isAlive || _disposed) return;
-            onStderr(e.toString());
-          },
-          cancelOnError: false,
-        );
-
-    _stderrSub = process.stderr
-        .transform(utf8.decoder)
-        .listen(
-          (chunk) {
-            if (!_isAlive || _disposed) return;
-            onStderr(chunk);
-          },
-          onError: (Object e) {
-            if (!_isAlive || _disposed) return;
-            onStderr(e.toString());
-          },
-          cancelOnError: false,
-        );
 
     process.stdin.writeln(wrapCommand(command));
     await process.stdin.flush();
@@ -133,7 +115,38 @@ abstract base class BaseShellRunner implements IShellRunner {
       return await _runCompleter!.future;
     } finally {
       _runCompleter = null;
+      _onCwdChanged = null;
+      _onStdout = null;
+      _onStderr = null;
       _running = false;
+    }
+  }
+
+  void _handleParse(ShellParseResult result) {
+    if (!_isAlive || _disposed || !_running) return;
+
+    var exitCode = 0;
+
+    if (result.stdoutChunk != null && result.stdoutChunk!.isNotEmpty) {
+      _onStdout?.call(result.stdoutChunk!);
+    }
+    if (result.stderrChunk != null && result.stderrChunk!.isNotEmpty) {
+      _onStderr?.call(result.stderrChunk!);
+    }
+    if (result.cwd != null && result.cwd!.isNotEmpty) {
+      _lastCwd = result.cwd;
+      _onCwdChanged?.call(result.cwd!);
+    }
+    if (result.exitCode != null) exitCode = result.exitCode!;
+
+    if (result.isCommandComplete) {
+      _completeRun(
+        ShellRunResult(
+          wasCancelled: result.wasCancelled || _cancelled,
+          exitCode: exitCode,
+          cwd: _lastCwd,
+        ),
+      );
     }
   }
 
@@ -175,6 +188,9 @@ abstract base class BaseShellRunner implements IShellRunner {
     await _stderrSub?.cancel();
     _stdoutSub = null;
     _stderrSub = null;
+    _onCwdChanged = null;
+    _onStdout = null;
+    _onStderr = null;
 
     try {
       await _process?.stdin.close();

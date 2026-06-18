@@ -46,14 +46,26 @@ void main() {
     });
 
     test('handles partial chunks across feeds', () {
-      parser.feed('__FLUSHIP_BEGIN__\nhel');
+      final first = parser.feed('__FLUSHIP_BEGIN__\nhel');
+      expect(first.stdoutChunk ?? '', contains('hel'));
+
       final mid = parser.feed('lo\n__FLUSHIP_END__:1\n__FLUSHIP_CWD__\npwd\n');
 
-      expect(mid.stdoutChunk ?? '', contains('hello'));
+      expect(mid.stdoutChunk ?? '', contains('lo'));
       expect(mid.exitCode, 1);
 
       final done = parser.feed('__FLUSHIP_CWD_END__\n');
       expect(done.isCommandComplete, isTrue);
+    });
+
+    test('streams stdout before end marker arrives', () {
+      final first = parser.feed('__FLUSHIP_BEGIN__\nDeleting build...');
+      expect(first.stdoutChunk, contains('Deleting build...'));
+
+      final partial = parser.feed('\nStill working...');
+
+      expect(partial.stdoutChunk, contains('Still working...'));
+      expect(partial.isCommandComplete, isFalse);
     });
   });
 }
