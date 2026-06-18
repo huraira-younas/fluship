@@ -15,12 +15,9 @@ enum AndroidBuildType {
 
 class GooglePlayConsoleConfig extends Equatable {
   final String? packageName;
-  final String saJsonPath;
+  final String? saJsonPath;
 
-  const GooglePlayConsoleConfig({
-    required this.packageName,
-    required this.saJsonPath,
-  });
+  const GooglePlayConsoleConfig({this.saJsonPath, this.packageName});
 
   GooglePlayConsoleConfig copyWith({String? packageName, String? saJsonPath}) =>
       GooglePlayConsoleConfig(
@@ -32,7 +29,7 @@ class GooglePlayConsoleConfig extends Equatable {
     final data = json.at<GooglePlayConsoleConfig>();
     return GooglePlayConsoleConfig(
       packageName: data.parse<String?>('packageName'),
-      saJsonPath: data.parse<String>('saJsonPath'),
+      saJsonPath: data.parse<String?>('saJsonPath'),
     );
   }
 

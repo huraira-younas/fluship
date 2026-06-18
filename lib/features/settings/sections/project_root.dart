@@ -10,15 +10,10 @@ import '../../config/bloc/config_bloc.dart';
 import '../widgets/field_button.dart';
 
 class ProjectRoot extends StatelessWidget {
-  const ProjectRoot({
-    super.key,
-    this.filePickerService = const FilePickerService(),
-  });
-
-  final FilePickerService filePickerService;
+  const ProjectRoot({super.key});
 
   Future<void> _pickProjectRoot(BuildContext context) async {
-    final path = await filePickerService.pickDirectory(
+    final path = await getIt<FilePickerService>().pickDirectory(
       dialogTitle: 'Select Flutter project folder',
     );
 
