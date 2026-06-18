@@ -1,5 +1,7 @@
 import 'package:fluship/core/responsive/responsive.dart';
+import 'package:toastification/toastification.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluship/core/navigator.dart';
 import 'package:flutter/material.dart';
 
 import 'shared/app_layout/app_layout.dart';
@@ -15,19 +17,22 @@ class App extends StatelessWidget {
       providers: AppBlocProviders.providers,
       child: BlocBuilder<ThemeCubit, ThemeState>(
         builder: (context, state) {
-          return OrientationLockScope(
-            lock: .portrait,
-            child: MaterialApp(
-              builder: (context, child) => GestureDetector(
-                onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-                child: child,
+          return ToastificationWrapper(
+            child: OrientationLockScope(
+              lock: .portrait,
+              child: MaterialApp(
+                navigatorKey: appNavigatorKey,
+                builder: (context, child) => GestureDetector(
+                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                  child: child,
+                ),
+                debugShowCheckedModeBanner: false,
+                darkTheme: state.darkThemeData,
+                theme: state.lightThemeData,
+                home: const LayoutScreen(),
+                themeMode: state.mode,
+                title: 'Fluship',
               ),
-              debugShowCheckedModeBanner: false,
-              darkTheme: state.darkThemeData,
-              theme: state.lightThemeData,
-              home: const LayoutScreen(),
-              themeMode: state.mode,
-              title: 'Fluship',
             ),
           );
         },

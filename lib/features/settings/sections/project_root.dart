@@ -1,4 +1,5 @@
 import 'package:fluship/services/file_picker_service.dart';
+import 'package:fluship/shared/widgets/app_toast.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:fluship/shared/models/app_info.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,9 +25,9 @@ class ProjectRoot extends StatelessWidget {
     if (path == null || !context.mounted) return;
     getIt<ConfigBloc>().add(
       SyncProjectAppInfo(
+        onSuccess: (_) => AppToast.success('Project root synced successfully'),
+        onError: (error) => AppToast.error(error.message),
         flutterProjectPath: path,
-        onSuccess: (data) {},
-        onError: (error) {},
       ),
     );
   }
