@@ -20,7 +20,8 @@ class LayoutScreen extends StatefulWidget {
   State<LayoutScreen> createState() => _LayoutScreenState();
 }
 
-class _LayoutScreenState extends State<LayoutScreen> with WidgetsBindingObserver {
+class _LayoutScreenState extends State<LayoutScreen>
+    with WidgetsBindingObserver {
   LayoutTabs _selectedTab = LayoutTabs.config;
 
   final List<Widget> _tabs = [

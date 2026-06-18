@@ -31,6 +31,20 @@ void main() {
       expect(result.stdoutChunk, contains('output line'));
     });
 
+    test('normalizes Windows cmd prompt duplication in cwd', () {
+      const input =
+          '__FLUSHIP_BEGIN__\n'
+          '__FLUSHIP_END__:0\n'
+          '__FLUSHIP_CWD__\n'
+          'C:\\Users\\app>cd\r\n'
+          'C:\\Users\\app\r\n'
+          '__FLUSHIP_CWD_END__\n';
+
+      final result = parser.feed(input);
+
+      expect(result.cwd, r'C:\Users\app');
+    });
+
     test('handles partial chunks across feeds', () {
       parser.feed('__FLUSHIP_BEGIN__\nhel');
       final mid = parser.feed('lo\n__FLUSHIP_END__:1\n__FLUSHIP_CWD__\npwd\n');

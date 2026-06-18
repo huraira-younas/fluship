@@ -49,12 +49,12 @@ class ConsoleToolbar extends StatelessWidget {
               if (isRunning)
                 AppButton.danger(
                   onPressed: () => bloc.add(const CancelCommand()),
-                  label: 'Stop',
+                  label: 'Stop Command',
                   size: .sm,
                 ),
               AppButton.outline(
                 onPressed: () => bloc.add(const ClearConsole()),
-                label: 'Clear',
+                label: 'Clear Output',
                 size: .sm,
               ),
             ],

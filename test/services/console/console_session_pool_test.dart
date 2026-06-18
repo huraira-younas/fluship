@@ -62,9 +62,7 @@ void main() {
 
     setUp(() {
       runner = FakeShellRunner();
-      pool = ConsoleSessionPool(
-        factory: FakeShellRunnerFactory(runner),
-      );
+      pool = ConsoleSessionPool(factory: FakeShellRunnerFactory(runner));
     });
 
     test('creates and disposes session', () async {

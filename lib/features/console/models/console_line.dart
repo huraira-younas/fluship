@@ -8,10 +8,8 @@ class ConsoleLine extends Equatable {
   final ConsoleStream stream;
   final String text;
 
-  ConsoleLine copyWith({ConsoleStream? stream, String? text}) => ConsoleLine(
-    stream: stream ?? this.stream,
-    text: text ?? this.text,
-  );
+  ConsoleLine copyWith({ConsoleStream? stream, String? text}) =>
+      ConsoleLine(stream: stream ?? this.stream, text: text ?? this.text);
 
   @override
   List<Object?> get props => [stream, text];

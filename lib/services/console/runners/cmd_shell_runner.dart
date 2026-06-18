@@ -15,10 +15,11 @@ final class CmdShellRunner extends BaseShellRunner {
 
   @override
   String wrapCommand(String command) =>
+      '@echo off\r\n'
       'echo __FLUSHIP_BEGIN__\r\n'
       '$command\r\n'
       'echo __FLUSHIP_END__:%ERRORLEVEL%\r\n'
       'echo __FLUSHIP_CWD__\r\n'
-      'cd\r\n'
+      'echo %CD%\r\n'
       'echo __FLUSHIP_CWD_END__';
 }

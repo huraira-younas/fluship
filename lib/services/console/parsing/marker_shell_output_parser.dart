@@ -1,5 +1,6 @@
 import '../contracts/shell_output_parser.dart';
 import '../models/shell_parse_result.dart';
+import 'shell_cwd_normalizer.dart';
 
 class MarkerShellOutputParser implements IShellOutputParser {
   MarkerShellOutputParser({
@@ -98,7 +99,7 @@ class MarkerShellOutputParser implements IShellOutputParser {
         final endIdx = content.indexOf(cwdEndMarker);
         if (endIdx == -1) break;
 
-        cwd = content.substring(0, endIdx).trim();
+        cwd = normalizeShellCwd(content.substring(0, endIdx));
         var rest = content.substring(endIdx + cwdEndMarker.length);
         if (rest.startsWith('\r')) rest = rest.substring(1);
         if (rest.startsWith('\n')) rest = rest.substring(1);
