@@ -22,7 +22,7 @@ class LayoutScreen extends StatefulWidget {
 
 class _LayoutScreenState extends State<LayoutScreen>
     with WidgetsBindingObserver {
-  LayoutTabs _selectedTab = LayoutTabs.config;
+  LayoutTabs _selectedTab = .config;
 
   final List<Widget> _tabs = [
     const ConfigScreen(),
@@ -44,7 +44,7 @@ class _LayoutScreenState extends State<LayoutScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached) {
+    if (state == .detached) {
       context.read<ConsoleBloc>().add(const DisposeAllSessions());
     }
   }
