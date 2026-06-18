@@ -2,56 +2,62 @@ import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
-class ConsoleToolbar extends StatelessWidget {
-  const ConsoleToolbar({
-    required this.projectPath,
-    required this.isRunning,
-    required this.onClear,
-    required this.onStop,
-    super.key,
-  });
+import '../bloc/console_bloc.dart';
 
-  final VoidCallback onClear;
-  final VoidCallback onStop;
-  final String? projectPath;
-  final bool isRunning;
+class ConsoleToolbar extends StatelessWidget {
+  const ConsoleToolbar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final ft = context.flushipTheme;
-    final path = projectPath?.trim();
-    final cwd = (path == null || path.isEmpty)
-        ? 'No project path set — configure in Settings'
-        : path;
+    return BlocSelector<ConsoleBloc, ConsoleState, (String?, bool)>(
+      selector: (state) => (state.projectPath, state.isRunning),
+      builder: (context, data) {
+        final (projectPath, isRunning) = data;
+        final bloc = context.read<ConsoleBloc>();
+        final ft = context.flushipTheme;
+        final path = projectPath?.trim();
+        final cwd = (path == null || path.isEmpty)
+            ? 'No project path set — configure in Settings'
+            : path;
 
-    return Container(
-      decoration: BoxDecoration(
-        border: .all(color: ft.colors.consoleBorder),
-        borderRadius: .circular(ft.radius.btn),
-        color: ft.colors.consoleBg,
-      ),
-      padding: .symmetric(horizontal: ft.spacing.md, vertical: ft.spacing.md),
-      child: Row(
-        spacing: ft.spacing.md,
-        children: [
-          Icon(Icons.folder_outlined, size: 16, color: ft.colors.muted),
-          AppText.code(
-            overflow: .ellipsis,
-            size: .caption,
-            maxLines: 1,
-            cwd,
-          ).expanded(),
-          if (isRunning)
-            AppButton.danger(onPressed: onStop, label: 'Stop', size: .sm),
-          AppButton.outline(
-            label: 'Clear Console',
-            onPressed: onClear,
-            size: .sm,
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: ft.colors.consoleBorder),
+            borderRadius: BorderRadius.circular(ft.radius.btn),
+            color: ft.colors.consoleBg,
           ),
-        ],
-      ),
+          padding: EdgeInsets.symmetric(
+            horizontal: ft.spacing.md,
+            vertical: ft.spacing.md,
+          ),
+          child: Row(
+            spacing: ft.spacing.md,
+            children: [
+              Icon(Icons.folder_outlined, size: 20, color: ft.colors.muted),
+              AppText.code(
+                overflow: .ellipsis,
+                size: .caption,
+                maxLines: 1,
+                cwd,
+              ).expanded(),
+              if (isRunning)
+                AppButton.danger(
+                  onPressed: () => bloc.add(const CancelCommand()),
+                  label: 'Stop',
+                  size: .sm,
+                ),
+              AppButton.outline(
+                onPressed: () => bloc.add(const ClearConsole()),
+                label: 'Clear Console',
+                size: .sm,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

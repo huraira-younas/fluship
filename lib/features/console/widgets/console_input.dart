@@ -1,23 +1,43 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
+import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
-import 'package:fluship/shared/widgets/app_text.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
-class ConsoleInput extends StatefulWidget {
-  const ConsoleInput({
-    required this.onSubmit,
-    required this.disabled,
-    super.key,
-  });
+import '../bloc/console_bloc.dart';
+
+class ConsoleInput extends StatelessWidget {
+  const ConsoleInput({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<ConsoleBloc, ConsoleState, bool>(
+      selector: (state) => state.isRunning,
+      builder: (context, isRunning) {
+        return _ConsoleInputField(
+          disabled: isRunning,
+          onSubmit: (command) {
+            return context.read<ConsoleBloc>().add(
+              SubmitCommand(command: command),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _ConsoleInputField extends StatefulWidget {
+  const _ConsoleInputField({required this.onSubmit, required this.disabled});
 
   final ValueChanged<String> onSubmit;
   final bool disabled;
 
   @override
-  State<ConsoleInput> createState() => _ConsoleInputState();
+  State<_ConsoleInputField> createState() => _ConsoleInputFieldState();
 }
 
-class _ConsoleInputState extends State<ConsoleInput> {
+class _ConsoleInputFieldState extends State<_ConsoleInputField> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
 
@@ -40,48 +60,46 @@ class _ConsoleInputState extends State<ConsoleInput> {
     final ft = context.flushipTheme;
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: .center,
       spacing: ft.spacing.sm,
       children: [
-        const AppText.code('>'),
-        Expanded(
-          child: TextField(
-            enabled: !widget.disabled,
-            controller: _controller,
-            focusNode: _focusNode,
-            style: TextStyle(
-              fontFamily: 'monospace',
-              color: ft.colors.text,
-              fontSize: 14,
-            ),
-            decoration: InputDecoration(
-              hintText: widget.disabled
-                  ? 'Running...'
-                  : 'flutter pub get, git status, ...',
-              hintStyle: TextStyle(color: ft.colors.muted, fontSize: 14),
-              contentPadding: .symmetric(
-                horizontal: ft.spacing.md,
-                vertical: ft.spacing.md,
-              ),
-              isDense: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(ft.radius.btn),
-                borderSide: BorderSide(color: ft.colors.consoleBorder),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(ft.radius.btn),
-                borderSide: BorderSide(color: ft.colors.consoleBorder),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(ft.radius.btn),
-                borderSide: BorderSide(color: ft.colors.accent),
-              ),
-              filled: true,
-              fillColor: ft.colors.consoleInner,
-            ),
-            onSubmitted: (_) => _submit(),
+        TextField(
+          enabled: !widget.disabled,
+          controller: _controller,
+          focusNode: _focusNode,
+          style: TextStyle(
+            fontFamily: 'monospace',
+            color: ft.colors.text,
+            fontSize: 14,
           ),
-        ),
+          decoration: InputDecoration(
+            hintText: widget.disabled
+                ? 'Running...'
+                : 'flutter pub get, git status, ...',
+            hintStyle: TextStyle(color: ft.colors.muted, fontSize: 14),
+            contentPadding: .symmetric(
+              horizontal: ft.spacing.md,
+              vertical: ft.spacing.md,
+            ),
+            prefixIcon: Icon(Icons.code, size: 16, color: ft.colors.muted),
+            isDense: true,
+            border: OutlineInputBorder(
+              borderSide: BorderSide(color: ft.colors.consoleBorder),
+              borderRadius: .circular(ft.radius.btn),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: ft.colors.consoleBorder),
+              borderRadius: .circular(ft.radius.btn),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: ft.colors.accent),
+              borderRadius: .circular(ft.radius.btn),
+            ),
+            fillColor: ft.colors.consoleInner,
+            filled: true,
+          ),
+          onSubmitted: (_) => _submit(),
+        ).expanded(),
         AppButton.primary(
           onPressed: widget.disabled ? null : _submit,
           label: 'Run',

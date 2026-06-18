@@ -22,10 +22,13 @@ class AppCardState extends Equatable {
 
 class AppCard extends StatelessWidget {
   const AppCard({
+    this.expandedBody = false,
     required this.description,
     required this.children,
     required this.title,
     this.spacing = 0,
+    this.height,
+    this.width,
     this.state,
     super.key,
   });
@@ -33,7 +36,10 @@ class AppCard extends StatelessWidget {
   final List<Widget> children;
   final AppCardState? state;
   final String description;
+  final bool expandedBody;
+  final double? height;
   final double spacing;
+  final double? width;
   final String title;
 
   @override
@@ -41,7 +47,10 @@ class AppCard extends StatelessWidget {
     final ft = context.flushipTheme;
     final nn = state != null;
 
+    final body = Column(spacing: spacing, children: children);
     return Container(
+      height: height,
+      width: width,
       padding: .all(ft.spacing.lg),
       decoration: BoxDecoration(
         border: .all(color: ft.colors.cardBorder),
@@ -72,7 +81,7 @@ class AppCard extends StatelessWidget {
           if (!nn) const SizedBox(height: 6),
           AppText.label(description),
           const SizedBox(height: 16),
-          Column(spacing: spacing, children: children),
+          if (expandedBody) body.expanded() else body,
         ],
       ),
     );
