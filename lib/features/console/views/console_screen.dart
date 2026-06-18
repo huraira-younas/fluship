@@ -43,14 +43,21 @@ class _ConsoleScreenState extends State<ConsoleScreen> {
         child: AppCard(
           expandedBody: true,
           title: 'Console',
-          spacing: 16,
+          spacing: 0,
           description:
               'Run shell commands in your Flutter project directory. '
               'Open up to 3 terminal tabs — each keeps its own session and path.',
           children: [
-            const ConsoleSessionTabs(),
             const ConsoleToolbar(),
-            const ConsoleOutput().expanded(),
+            const SizedBox(height: 12),
+            Column(
+              crossAxisAlignment: .stretch,
+              children: [
+                const ConsoleSessionTabs(),
+                const ConsoleOutput().expanded(),
+              ],
+            ).expanded(),
+            const SizedBox(height: 12),
             const ConsoleInput(),
           ],
         ),

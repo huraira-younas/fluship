@@ -1,5 +1,6 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/features/console/models/console_line.dart';
+import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -54,8 +55,9 @@ class ConsoleOutput extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocSelector<ConsoleBloc, ConsoleState, ConsoleOutputSnapshot>(
       selector: ConsoleOutputSnapshot.fromState,
-      builder: (_, snapshot) {
+      builder: (context, snapshot) {
         return _ConsoleOutputView(
+          onClear: () => context.read<ConsoleBloc>().add(const ClearConsole()),
           sessionId: snapshot.sessionId,
           lines: snapshot.lines,
         );
@@ -65,9 +67,14 @@ class ConsoleOutput extends StatelessWidget {
 }
 
 class _ConsoleOutputView extends StatefulWidget {
-  const _ConsoleOutputView({required this.lines, required this.sessionId});
+  const _ConsoleOutputView({
+    required this.sessionId,
+    required this.onClear,
+    required this.lines,
+  });
 
   final List<ConsoleLine> lines;
+  final VoidCallback onClear;
   final String? sessionId;
 
   @override
@@ -147,42 +154,66 @@ class _ConsoleOutputViewState extends State<_ConsoleOutputView> {
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
     final lines = widget.lines;
+    final colors = ft.colors;
 
     return Container(
       clipBehavior: .hardEdge,
+      height: .infinity,
+      width: .infinity,
       decoration: BoxDecoration(
-        border: .all(color: ft.colors.consoleBorder),
+        border: .all(color: colors.consoleBorder),
         borderRadius: .circular(ft.radius.btn),
-        color: ft.colors.consoleInner,
+        color: colors.consoleInner,
       ),
       padding: .all(ft.spacing.md),
-      width: double.maxFinite,
-      child: NotificationListener<UserScrollNotification>(
-        onNotification: (_) {
-          _onUserScroll();
-          return false;
-        },
-        child: SelectionArea(
-          child: ListView.builder(
-            controller: _controller,
-            addAutomaticKeepAlives: false,
-            physics: const ClampingScrollPhysics(),
-            reverse: true,
-            itemCount: lines.length,
-            itemBuilder: (context, index) {
-              final dataIndex = lines.length - 1 - index;
-              final line = lines[dataIndex];
-              final isTail = index == 0;
-              return _ConsoleLineRow(
-                key: isTail
-                    ? const ValueKey('console-tail')
-                    : ValueKey(dataIndex),
-                color: _lineColor(line.stream, ft),
-                line: line,
-              );
-            },
+      child: Column(
+        crossAxisAlignment: .stretch,
+        children: [
+          Row(
+            children: <Widget>[
+              AppText(
+                color: colors.text,
+                variant: .custom,
+                weight: .w600,
+                'Output',
+              ),
+              const Spacer(),
+              GestureDetector(
+                behavior: .opaque,
+                onTap: widget.onClear,
+                child: AppText('Clear', color: colors.muted, variant: .custom),
+              ),
+            ],
           ),
-        ),
+          SizedBox(height: ft.spacing.sm),
+          NotificationListener<UserScrollNotification>(
+            onNotification: (_) {
+              _onUserScroll();
+              return false;
+            },
+            child: SelectionArea(
+              child: ListView.builder(
+                controller: _controller,
+                addAutomaticKeepAlives: false,
+                physics: const ClampingScrollPhysics(),
+                reverse: true,
+                itemCount: lines.length,
+                itemBuilder: (context, index) {
+                  final dataIndex = lines.length - 1 - index;
+                  final line = lines[dataIndex];
+                  final isTail = index == 0;
+                  return _ConsoleLineRow(
+                    key: isTail
+                        ? const ValueKey('console-tail')
+                        : ValueKey(dataIndex),
+                    color: _lineColor(line.stream, ft),
+                    line: line,
+                  );
+                },
+              ),
+            ),
+          ).expanded(),
+        ],
       ),
     );
   }

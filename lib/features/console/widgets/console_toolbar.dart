@@ -52,11 +52,6 @@ class ConsoleToolbar extends StatelessWidget {
                   label: 'Stop Command',
                   size: .sm,
                 ),
-              AppButton.outline(
-                onPressed: () => bloc.add(const ClearConsole()),
-                label: 'Clear Output',
-                size: .sm,
-              ),
             ],
           ),
         );
