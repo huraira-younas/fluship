@@ -6,6 +6,9 @@ import 'package:fluship/shared/models/post_build_config.dart';
 import 'package:fluship/shared/models/post_git.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:fluship/shared/pipeline/config_pipeline_resolver.dart';
+import 'package:fluship/shared/pipeline/command_step.dart';
+
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:fluship/shared/models/android_config.dart';
 import 'package:fluship/shared/models/base_config.dart';
@@ -23,53 +26,82 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
 
   ConfigBloc() : super(ConfigState.empty()) {
     on<SyncProjectAppInfo>(handler(_syncProjectAppInfo));
+    on<UpdateConfigs>(handler(_updateConfigs));
     on<UpdateConfig>(handler(_updateConfig));
     on<LoadConfig>(handler(_loadConfig));
     on<SaveConfig>(handler(_saveConfig));
+  }
+
+  ConfigState _applyConfig(ConfigState current, BaseConfig config) {
+    return switch (config) {
+      PostBuildConfigModel postBuild => current.copyWith(postBuild: postBuild),
+      CommonCmdModel commonCmd => current.copyWith(commonCmd: commonCmd),
+      AndroidConfigModel android => current.copyWith(android: android),
+      AppInfoModel appInfo => current.copyWith(appInfo: appInfo),
+      PostGitModel postGit => current.copyWith(postGit: postGit),
+      PreGitModel preGit => current.copyWith(preGit: preGit),
+      IosConfigModel ios => current.copyWith(ios: ios),
+      DistributionConfigModel distribution => current.copyWith(
+        distribution: distribution,
+      ),
+
+      _ => throw UnsupportedError('Invalid config type: ${config.runtimeType}'),
+    };
+  }
+
+  Future<void> _persistConfig(BaseConfig config) async {
+    switch (config) {
+      case AppInfoModel appInfo:
+        await _sharedPrefs.setObject(.appInfo, appInfo.toJson());
+
+      case PreGitModel preGit:
+        await _sharedPrefs.setObject(.preGit, preGit.toJson());
+
+      case CommonCmdModel commonCmd:
+        await _sharedPrefs.setObject(.commonCmd, commonCmd.toJson());
+
+      case AndroidConfigModel android:
+        await _sharedPrefs.setObject(.android, android.toJson());
+
+      case IosConfigModel ios:
+        await _sharedPrefs.setObject(.ios, ios.toJson());
+
+      case PostGitModel postGit:
+        await _sharedPrefs.setObject(.postGit, postGit.toJson());
+
+      case DistributionConfigModel distribution:
+        await _sharedPrefs.setObject(.distribution, distribution.toJson());
+
+      case PostBuildConfigModel postBuild:
+        await _sharedPrefs.setObject(.postBuild, postBuild.toJson());
+
+      default:
+        throw UnsupportedError('Invalid config type: ${config.runtimeType}');
+    }
   }
 
   Future<void> _updateConfig(
     Emitter<ConfigState> emit,
     UpdateConfig event,
   ) async {
-    switch (event.config) {
-      case AppInfoModel appInfo:
-        emit(state.copyWith(appInfo: appInfo));
-        await _sharedPrefs.setObject(.appInfo, appInfo.toJson());
+    final updated = _applyConfig(state, event.config);
+    emit(updated);
+    await _persistConfig(event.config);
+  }
 
-      case PreGitModel preGit:
-        emit(state.copyWith(preGit: preGit));
-        await _sharedPrefs.setObject(.preGit, preGit.toJson());
-
-      case CommonCmdModel commonCmd:
-        emit(state.copyWith(commonCmd: commonCmd));
-        await _sharedPrefs.setObject(.commonCmd, commonCmd.toJson());
-
-      case AndroidConfigModel android:
-        emit(state.copyWith(android: android));
-        await _sharedPrefs.setObject(.android, android.toJson());
-
-      case IosConfigModel ios:
-        emit(state.copyWith(ios: ios));
-        await _sharedPrefs.setObject(.ios, ios.toJson());
-
-      case PostGitModel postGit:
-        emit(state.copyWith(postGit: postGit));
-        await _sharedPrefs.setObject(.postGit, postGit.toJson());
-
-      case DistributionConfigModel distribution:
-        emit(state.copyWith(distribution: distribution));
-        await _sharedPrefs.setObject(.distribution, distribution.toJson());
-
-      case PostBuildConfigModel postBuild:
-        emit(state.copyWith(postBuild: postBuild));
-        await _sharedPrefs.setObject(.postBuild, postBuild.toJson());
-
-      default:
-        throw UnsupportedError(
-          'Invalid config type: ${event.config.runtimeType}',
-        );
+  Future<void> _updateConfigs(
+    Emitter<ConfigState> emit,
+    UpdateConfigs event,
+  ) async {
+    var updated = state;
+    for (final config in event.configs) {
+      updated = _applyConfig(updated, config);
     }
+
+    emit(updated);
+    await Future.wait([
+      for (final config in event.configs) _persistConfig(config),
+    ]);
   }
 
   Future<void> _loadConfig(Emitter<ConfigState> emit, LoadConfig event) async {

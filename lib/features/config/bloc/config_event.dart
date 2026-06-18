@@ -44,3 +44,15 @@ class UpdateConfig extends ConfigEvent {
     ...config.toJson(),
   };
 }
+
+class UpdateConfigs extends ConfigEvent {
+  const UpdateConfigs({required this.configs, super.onSuccess, super.onError})
+    : super(name: 'Update_Configs');
+
+  final List<BaseConfig> configs;
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'types': configs.map((config) => config.runtimeType.toString()).toList(),
+  };
+}

@@ -66,7 +66,4 @@ final class AppInfoModel extends BaseConfig {
 
   @override
   bool? get stringify => true;
-
-  @override
-  List<CommandStep> get steps => [];
 }

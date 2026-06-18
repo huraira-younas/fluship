@@ -56,15 +56,4 @@ final class CommonCmdModel extends BaseConfig {
 
   @override
   bool? get stringify => true;
-
-  @override
-  List<CommandStep> get steps => enabled
-      ? [
-          if (clean) const CommandStep(name: 'Clean', command: 'flutter clean'),
-          if (type == .get)
-            const CommandStep(name: 'Get', command: 'flutter pub get'),
-          if (type == .upgrade)
-            const CommandStep(name: 'Upgrade', command: 'flutter pub upgrade'),
-        ]
-      : [];
 }

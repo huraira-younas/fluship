@@ -64,21 +64,4 @@ final class PreGitModel extends GitBaseConfig {
 
   @override
   bool? get stringify => true;
-
-  @override
-  List<CommandStep> get steps => enabled
-      ? [
-          if (preCommit)
-            CommandStep(
-              name: 'Pre-Commit',
-              command:
-                  'git add . && git commit -m "${commitMessage ?? '{version} cleanup'}"',
-            ),
-          if (prePull)
-            CommandStep(
-              command: 'git pull origin ${targetBranch ?? 'master'}',
-              name: 'Pre-Pull',
-            ),
-        ]
-      : [];
 }

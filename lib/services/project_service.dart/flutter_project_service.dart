@@ -61,6 +61,38 @@ class FlutterProjectService {
     );
   }
 
+  Future<void> bumpVersion({
+    required String projectPath,
+    required String buildNumber,
+    required String version,
+  }) async {
+    final directory = Directory(projectPath);
+    if (!await directory.exists()) {
+      throw FlutterProjectException(
+        'Flutter project path does not exist: $projectPath',
+      );
+    }
+
+    final pubspecFile = File(p.join(projectPath, 'pubspec.yaml'));
+    if (!await pubspecFile.exists()) {
+      throw FlutterProjectException('pubspec.yaml not found in: $projectPath');
+    }
+
+    final content = await pubspecFile.readAsString();
+    final updated = content.replaceFirst(
+      RegExp(r'^version:\s*.+$', multiLine: true),
+      'version: $version+$buildNumber',
+    );
+
+    if (updated == content) {
+      throw const FlutterProjectException(
+        'pubspec.yaml is missing a valid version field.',
+      );
+    }
+
+    await pubspecFile.writeAsString(updated);
+  }
+
   // 1. iOS → 2. Android → 3. pubspec name (formatted)
   Future<String> _extractAppName(
     String projectPath,

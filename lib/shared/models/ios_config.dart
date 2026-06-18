@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:fluship/core/json_parser/exports.dart';
 import 'base_config.dart';
 
@@ -46,17 +44,4 @@ final class IosConfigModel extends BaseConfig {
 
   @override
   bool? get stringify => true;
-
-  @override
-  List<CommandStep> get steps => Platform.isIOS && enabled
-      ? [
-          if (podClean)
-            const CommandStep(
-              command: 'pod deintegrate && pod update && pod install',
-              name: 'Pod Clean',
-            ),
-          if (buildIpa)
-            const CommandStep(name: 'Build IPA', command: 'flutter build ipa'),
-        ]
-      : [];
 }

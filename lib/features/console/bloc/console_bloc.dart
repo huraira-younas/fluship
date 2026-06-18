@@ -253,10 +253,7 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
       final pending = _pendingLines[sessionId];
       if (pending == null) return;
       _updateSession(
-        transform: (s) => s.copyWith(
-          lines: List<ConsoleLine>.from(pending),
-          isRunning: true,
-        ),
+        transform: (s) => s.copyWith(lines: .from(pending), isRunning: true),
         sessionId: sessionId,
         emit: emit,
       );
@@ -393,7 +390,9 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
     required String sessionId,
   }) {
     if (isClosed) return;
-    final index = state.sessions.indexWhere((session) => session.id == sessionId);
+    final index = state.sessions.indexWhere(
+      (session) => session.id == sessionId,
+    );
     if (index == -1) return;
     final updated = List<ConsoleSession>.of(state.sessions);
     updated[index] = transform(state.sessions[index]);

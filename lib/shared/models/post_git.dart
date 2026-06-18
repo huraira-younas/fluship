@@ -64,21 +64,4 @@ final class PostGitModel extends GitBaseConfig {
 
   @override
   bool? get stringify => true;
-
-  @override
-  List<CommandStep> get steps => enabled
-      ? [
-          if (postCommit)
-            CommandStep(
-              name: 'Post-Commit',
-              command:
-                  'git add . && git commit -m "${commitMessage ?? '{version} release'}"',
-            ),
-          if (postPush)
-            CommandStep(
-              command: 'git push origin ${targetBranch ?? 'master'}',
-              name: 'Post-Push',
-            ),
-        ]
-      : [];
 }

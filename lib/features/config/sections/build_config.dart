@@ -36,24 +36,24 @@ class _BuildConfigState extends State<BuildConfig> {
     final buildNumber = _controllers[1].text.trim();
     final gitBranch = _controllers[2].text.trim();
     final version = _controllers[0].text.trim();
-
     final bloc = getIt<ConfigBloc>();
-    final appInfo = bloc.state.appInfo.copyWith(
-      buildNumber: buildNumber.isEmpty ? null : buildNumber,
-      version: version.isEmpty ? null : version,
-    );
 
-    final preGit = bloc.state.preGit.copyWith(
-      targetBranch: gitBranch.isEmpty ? null : gitBranch,
+    bloc.add(
+      UpdateConfigs(
+        configs: [
+          bloc.state.appInfo.copyWith(
+            buildNumber: buildNumber.isEmpty ? null : buildNumber,
+            version: version.isEmpty ? null : version,
+          ),
+          bloc.state.preGit.copyWith(
+            targetBranch: gitBranch.isEmpty ? null : gitBranch,
+          ),
+          bloc.state.postGit.copyWith(
+            targetBranch: gitBranch.isEmpty ? null : gitBranch,
+          ),
+        ],
+      ),
     );
-
-    final postGit = bloc.state.postGit.copyWith(
-      targetBranch: gitBranch.isEmpty ? null : gitBranch,
-    );
-
-    bloc.add(UpdateConfig(config: appInfo));
-    bloc.add(UpdateConfig(config: postGit));
-    bloc.add(UpdateConfig(config: preGit));
   }
 
   @override

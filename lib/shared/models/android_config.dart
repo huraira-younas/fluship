@@ -103,30 +103,4 @@ final class AndroidConfigModel extends BaseConfig {
 
   @override
   bool? get stringify => true;
-
-  @override
-  List<CommandStep> get steps => enabled
-      ? [
-          if (buildAab)
-            const CommandStep(
-              command: 'flutter build aab --release',
-              name: 'Build App Bundle',
-            ),
-          if (buildType != null)
-            switch (buildType) {
-              .apk => const CommandStep(
-                command: 'flutter build apk --release',
-                name: 'Build APK',
-              ),
-              .arbs => const CommandStep(
-                command: 'flutter build aar --release',
-                name: 'Build AAR',
-              ),
-              _ => const CommandStep(
-                command: 'flutter build apk --release',
-                name: 'Build APK',
-              ),
-            },
-        ]
-      : [];
 }
