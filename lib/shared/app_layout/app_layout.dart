@@ -66,6 +66,14 @@ class _LayoutScreenState extends State<LayoutScreen> {
   Widget _buildContent(BuildContext context, ThemeSpacing spacing) {
     final isMobile = context.isMobile;
     final hPad = isMobile ? spacing.md : spacing.lg;
+
+    final tab = _tabs[_selectedTab.value];
+    final key = ValueKey(_selectedTab);
+
+    final body = _selectedTab == .console
+        ? Padding(padding: .all(hPad), child: tab)
+        : SingleChildScrollView(padding: .all(hPad), child: tab);
+
     return Column(
       spacing: spacing.sm,
       children: [
@@ -74,12 +82,9 @@ class _LayoutScreenState extends State<LayoutScreen> {
           selectedTab: _selectedTab,
           spacing: spacing,
         ).padOnly(l: hPad, r: hPad),
-        SingleChildScrollView(
-          padding: .all(hPad),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: _tabs[_selectedTab.value],
-          ),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: KeyedSubtree(key: key, child: body),
         ).expanded(),
         const AppText.accent("Made with ❤️ by Senpai").center(),
       ],
