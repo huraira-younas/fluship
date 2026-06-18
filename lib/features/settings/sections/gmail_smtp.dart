@@ -2,29 +2,35 @@ import 'package:fluship/shared/widgets/app_text_field.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:flutter/material.dart';
 
+import '../widgets/field_button.dart';
+
 class GmailSmtp extends StatelessWidget {
   const GmailSmtp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      title: 'Gmail SMTP',
+      title: 'Gmail Drive',
       description:
-          'Fluship sends build reports and distribution emails through your Gmail account. '
-          'Use an App Password from Google Account → Security → 2-Step Verification — not your regular login password.',
+          '• Add your OAuth client JSON from Google Cloud Console to enable Drive uploads.\n'
+          '• Optionally provide a saved token JSON to skip re-authorization on the next run.\n'
+          '• Set a parent folder ID to control where build artifacts are stored in Drive.',
       spacing: 15,
       children: [
-        AppTextField.label(
-          keyboardType: TextInputType.emailAddress,
-          label: 'Gmail address',
-          onChanged: (value) {},
-          hint: 'you@gmail.com',
+        FieldButton(
+          hint: 'C:/Users/Username/Documents/oauth_client.json',
+          label: 'OAuth client JSON',
+          onBrowse: () {},
+        ),
+        FieldButton(
+          hint: 'C:/Users/Username/Documents/gdrive_token.json',
+          label: 'Token JSON (optional)',
+          onBrowse: () {},
         ),
         AppTextField.label(
-          hint: '••••••••••••••••',
-          label: 'App password',
+          hint: '1k21HPdFxA8Xa8R9qh7CBcB6A6TtE0kQF',
+          label: 'Parent folder ID (optional)',
           onChanged: (value) {},
-          obscureText: true,
         ),
       ],
     );

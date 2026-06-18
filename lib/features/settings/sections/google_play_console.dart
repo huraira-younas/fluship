@@ -49,8 +49,7 @@ class GooglePlayConsole extends StatelessWidget {
         return AppCard(
           title: 'Google Play Console',
           description:
-              'Authorize Play Store uploads with a service account JSON key from Google Cloud Console. '
-              'Leave the package name blank to use the value from your Flutter project automatically.',
+              'Browse to your Google Cloud service account JSON key so Fluship can authenticate Play Store uploads when you build an AAB. Leave package name blank to auto-detect it from your Flutter project.',
           spacing: 15,
           children: [
             AppTextField.label(

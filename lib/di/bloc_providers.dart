@@ -7,10 +7,7 @@ import 'locator.dart';
 class AppBlocProviders {
   static List<BlocProvider> get providers {
     return [
-      BlocProvider<ThemeCubit>(
-        create: (_) => ThemeCubit(),
-        lazy: false,
-      ),
+      BlocProvider<ThemeCubit>(create: (_) => ThemeCubit(), lazy: false),
       BlocProvider<ConfigBloc>(
         create: (_) => getIt<ConfigBloc>()..add(const LoadConfig()),
         lazy: false,

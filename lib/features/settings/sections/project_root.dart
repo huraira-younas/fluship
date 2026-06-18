@@ -35,8 +35,7 @@ class ProjectRoot extends StatelessWidget {
         return AppCard(
           title: 'Project Root',
           description:
-              'Point Fluship at your Flutter app folder — the directory that contains pubspec.yaml. '
-              'Build commands, config files, and artifact paths are all resolved from here.',
+              'Select the Flutter project folder containing pubspec.yaml. Fluship reads the app name, version, and build number from this path, and all build commands and artifact output paths are resolved relative to it.',
           children: [
             FieldButton(
               hint: 'C:/Users/Username/Desktop/flutter_project',

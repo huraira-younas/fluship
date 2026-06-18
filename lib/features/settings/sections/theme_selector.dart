@@ -17,7 +17,8 @@ class ThemeSelector extends StatelessWidget {
 
     return AppCard(
       title: 'Theme',
-      description: 'Choose your color palette',
+      description:
+          'Switch between light, dark, or system appearance and pick a color palette to match your preferred coding environment. Changes apply immediately across the entire app.',
       children: [
         BlocBuilder<ThemeCubit, ThemeState>(
           builder: (context, state) {

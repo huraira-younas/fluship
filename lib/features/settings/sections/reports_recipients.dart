@@ -2,8 +2,6 @@ import 'package:fluship/shared/widgets/app_text_field.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:flutter/material.dart';
 
-import '../widgets/field_button.dart';
-
 class ReportsRecipients extends StatelessWidget {
   const ReportsRecipients({super.key});
 
@@ -12,24 +10,22 @@ class ReportsRecipients extends StatelessWidget {
     return AppCard(
       title: 'Reports & Recipients',
       description:
-          'Choose who receives build summaries after each run and which addresses are included in automated distribution. '
-          'Separate multiple emails with commas.',
+          '• Enter your Gmail address and an App Password from Google Account → Security → 2-Step Verification.\n'
+          '• Set the report recipient who receives the build summary after each run.\n'
+          '• Add a comma-separated distribution list for who gets each build.',
       spacing: 15,
       children: [
-        FieldButton(
-          hint: 'C:/Users/Username/Documents/oauth_client.json',
-          label: 'OAuth client JSON',
-          onBrowse: () {},
-        ),
-        FieldButton(
-          hint: 'C:/Users/Username/Documents/gdrive_token.json',
-          label: 'Token JSON (optional)',
-          onBrowse: () {},
+        AppTextField.label(
+          keyboardType: TextInputType.emailAddress,
+          label: 'Gmail address',
+          onChanged: (value) {},
+          hint: 'you@gmail.com',
         ),
         AppTextField.label(
-          hint: '1k21HPdFxA8Xa8R9qh7CBcB6A6TtE0kQF',
-          label: 'Parent folder ID (optional)',
+          hint: '••••••••••••••••',
+          label: 'App password',
           onChanged: (value) {},
+          obscureText: true,
         ),
         AppTextField.label(
           keyboardType: TextInputType.emailAddress,
