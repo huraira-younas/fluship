@@ -14,7 +14,6 @@ class SettingsScreen extends StatelessWidget {
       spacing: spacing.md,
       children: [
         const ProjectRoot(),
-        const GoogleDrive(),
         const GooglePlayConsole(),
         const GmailSmtp(),
         const ReportsRecipients(),
