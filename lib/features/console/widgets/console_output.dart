@@ -12,7 +12,7 @@ class ConsoleOutput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ConsoleBloc, ConsoleState, List<ConsoleLine>>(
-      selector: (state) => state.lines,
+      selector: (state) => state.activeSession?.lines ?? const [],
       builder: (context, lines) => _ConsoleOutputView(lines: lines),
     );
   }
@@ -20,7 +20,6 @@ class ConsoleOutput extends StatelessWidget {
 
 class _ConsoleOutputView extends StatefulWidget {
   const _ConsoleOutputView({required this.lines});
-
   final List<ConsoleLine> lines;
 
   @override
@@ -78,16 +77,16 @@ class _ConsoleOutputViewState extends State<_ConsoleOutputView> {
         color: ft.colors.consoleInner,
       ),
       padding: .all(ft.spacing.md),
-      width: .maxFinite,
+      width: double.maxFinite,
       child: widget.lines.isEmpty
           ? const AppText.label(
               'Output will appear here. Type a command below and press Enter.',
             )
           : ListView.builder(
               controller: _controller,
-              itemCount: widget.lines.length,
-              addAutomaticKeepAlives: false,
               addRepaintBoundaries: true,
+              addAutomaticKeepAlives: false,
+              itemCount: widget.lines.length,
               itemBuilder: (context, index) {
                 final line = widget.lines[index];
                 return RepaintBoundary(

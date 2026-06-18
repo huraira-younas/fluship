@@ -13,14 +13,17 @@ class ConsoleToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ConsoleBloc, ConsoleState, (String?, bool)>(
-      selector: (state) => (state.projectPath, state.isRunning),
+      selector: (state) {
+        final session = state.activeSession;
+        return (session?.workingDirectory, session?.isRunning ?? false);
+      },
       builder: (context, data) {
-        final (projectPath, isRunning) = data;
+        final (workingDirectory, isRunning) = data;
         final bloc = context.read<ConsoleBloc>();
         final ft = context.flushipTheme;
-        final path = projectPath?.trim();
+        final path = workingDirectory?.trim();
         final cwd = (path == null || path.isEmpty)
-            ? 'No project path set - configure in Settings'
+            ? 'No project path set — configure in Settings'
             : path;
 
         return Container(
@@ -51,7 +54,7 @@ class ConsoleToolbar extends StatelessWidget {
                 ),
               AppButton.outline(
                 onPressed: () => bloc.add(const ClearConsole()),
-                label: 'Clear Console',
+                label: 'Clear',
                 size: .sm,
               ),
             ],

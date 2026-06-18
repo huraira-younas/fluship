@@ -2,54 +2,66 @@ part of 'console_bloc.dart';
 
 class ConsoleState extends BaseBlocState {
   const ConsoleState({
-    required this.commandHistory,
-    required this.projectPath,
-    required this.isRunning,
-    required this.lines,
-
+    required this.activeSessionId,
+    required this.nextTerminalIndex,
+    required this.projectRoot,
+    required this.sessions,
     super.loading = false,
     super.error,
   });
 
-  final List<String> commandHistory;
-  final List<ConsoleLine> lines;
-  final String? projectPath;
-  final bool isRunning;
+  final List<ConsoleSession> sessions;
+  final String? activeSessionId;
+  final String? projectRoot;
+  final int nextTerminalIndex;
 
   factory ConsoleState.empty() => const ConsoleState(
-    commandHistory: [],
-    projectPath: null,
-    isRunning: false,
-    lines: [],
+    activeSessionId: null,
+    nextTerminalIndex: 1,
+    projectRoot: null,
+    sessions: [],
   );
+
+  bool get canAddSession => sessions.length < ConsoleLimits.maxSessions;
+
+  ConsoleSession? get activeSession {
+    final id = activeSessionId;
+    if (id == null) return null;
+    return sessionById(id);
+  }
+
+  ConsoleSession? sessionById(String id) {
+    for (final session in sessions) {
+      if (session.id == id) return session;
+    }
+    return null;
+  }
 
   @override
   List<Object?> get props => [
-    commandHistory,
-    projectPath,
-    isRunning,
-    lines,
-
+    activeSessionId,
+    nextTerminalIndex,
+    projectRoot,
+    sessions,
     loading,
     error,
   ];
 
   @override
   ConsoleState copyWith({
-    List<String>? commandHistory,
-    List<ConsoleLine>? lines,
-    String? projectPath,
-    bool? isRunning,
-
+    List<ConsoleSession>? sessions,
+    String? activeSessionId,
+    String? projectRoot,
+    int? nextTerminalIndex,
     CustomState? error,
     bool? loading,
   }) {
     return ConsoleState(
-      commandHistory: commandHistory ?? this.commandHistory,
-      projectPath: projectPath ?? this.projectPath,
-      isRunning: isRunning ?? this.isRunning,
+      activeSessionId: activeSessionId ?? this.activeSessionId,
+      nextTerminalIndex: nextTerminalIndex ?? this.nextTerminalIndex,
+      projectRoot: projectRoot ?? this.projectRoot,
+      sessions: sessions ?? this.sessions,
       loading: loading ?? this.loading,
-      lines: lines ?? this.lines,
       error: error,
     );
   }

@@ -12,15 +12,12 @@ class ConsoleInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ConsoleBloc, ConsoleState, bool>(
-      selector: (state) => state.isRunning,
+      selector: (state) => state.activeSession?.isRunning ?? false,
       builder: (context, isRunning) {
         return _ConsoleInputField(
           disabled: isRunning,
-          onSubmit: (command) {
-            return context.read<ConsoleBloc>().add(
-              SubmitCommand(command: command),
-            );
-          },
+          onSubmit: (command) =>
+              context.read<ConsoleBloc>().add(SubmitCommand(command: command)),
         );
       },
     );

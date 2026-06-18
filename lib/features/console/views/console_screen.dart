@@ -4,6 +4,7 @@ import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
+import '../widgets/console_session_tabs.dart';
 import '../widgets/console_toolbar.dart';
 import '../widgets/console_output.dart';
 import '../widgets/console_input.dart';
@@ -23,7 +24,7 @@ class _ConsoleScreenState extends State<ConsoleScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final path = context.read<ConfigBloc>().state.appInfo.flutterProjectPath;
-      context.read<ConsoleBloc>().add(SyncProjectPath(path: path));
+      context.read<ConsoleBloc>().add(SyncProjectRoot(path: path));
     });
   }
 
@@ -35,7 +36,7 @@ class _ConsoleScreenState extends State<ConsoleScreen> {
           current.appInfo.flutterProjectPath,
       listener: (context, state) {
         context.read<ConsoleBloc>().add(
-          SyncProjectPath(path: state.appInfo.flutterProjectPath),
+          SyncProjectRoot(path: state.appInfo.flutterProjectPath),
         );
       },
       child: AppCard(
@@ -44,13 +45,14 @@ class _ConsoleScreenState extends State<ConsoleScreen> {
         spacing: 16,
         description:
             'Run shell commands in your Flutter project directory. '
-            'Output streams live — use Stop to cancel a running command.',
+            'Open up to 3 terminal tabs — each keeps its own session and path.',
         children: [
+          const ConsoleSessionTabs(),
           const ConsoleToolbar(),
           const ConsoleOutput().expanded(),
           const ConsoleInput(),
         ],
-      ),
+      ).expanded(),
     );
   }
 }
