@@ -170,9 +170,7 @@ class _TabButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: .opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
+      child: Container(
         padding:
             contentPadding ?? const .symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(

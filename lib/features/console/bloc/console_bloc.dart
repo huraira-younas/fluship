@@ -123,7 +123,7 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
     String projectRoot,
   ) async {
     final id = _newSessionId();
-    final title = 'Terminal ${state.nextTerminalIndex}';
+    final title = 'Fluship T${state.nextTerminalIndex}';
 
     await _pool.create(sessionId: id, projectRoot: projectRoot);
 
