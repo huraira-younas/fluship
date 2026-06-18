@@ -8,10 +8,12 @@ class FieldButton extends StatelessWidget {
     required this.onBrowse,
     required this.label,
     required this.hint,
+    this.value,
     super.key,
   });
 
   final VoidCallback onBrowse;
+  final String? value;
   final String label;
   final String hint;
 
@@ -21,7 +23,13 @@ class FieldButton extends StatelessWidget {
       spacing: 10,
       crossAxisAlignment: .end,
       children: <Widget>[
-        AppTextField.label(hint: hint, label: label, enabled: false).expanded(),
+        AppTextField.label(
+          key: value != null ? ValueKey(value) : null,
+          initialValue: value,
+          enabled: false,
+          label: label,
+          hint: hint,
+        ).expanded(),
         AppButton.primary(label: "Browse", onPressed: onBrowse).padOnly(b: 3),
       ],
     );
