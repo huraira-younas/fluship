@@ -40,10 +40,31 @@ version: 1.0.0+1
   });
 
   test(
-    'bumpVersion throws when pubspec.yaml is missing version field',
+    'bumpVersion inserts version when pubspec has name but no version line',
     () async {
       await File('${tempDir.path}/pubspec.yaml').writeAsString('''
 name: test_app
+description: Test
+''');
+
+      await service.bumpVersion(
+        projectPath: tempDir.path,
+        buildNumber: '1',
+        version: '1.0.0',
+      );
+
+      final parsed = parser.parse(
+        await File('${tempDir.path}/pubspec.yaml').readAsString(),
+      );
+      expect(parsed.version, '1.0.0');
+      expect(parsed.buildNumber, '1');
+    },
+  );
+
+  test(
+    'bumpVersion throws when pubspec.yaml has no name field',
+    () async {
+      await File('${tempDir.path}/pubspec.yaml').writeAsString('''
 description: Test
 ''');
 
@@ -57,6 +78,47 @@ description: Test
       );
     },
   );
+
+  test('bumpVersion replaces indented version line', () async {
+    await File('${tempDir.path}/pubspec.yaml').writeAsString('''
+name: test_app
+description: Test
+  version: 1.0.0+1
+''');
+
+    await service.bumpVersion(
+      projectPath: tempDir.path,
+      buildNumber: '42',
+      version: '3.0.0',
+    );
+
+    final parsed = parser.parse(
+      await File('${tempDir.path}/pubspec.yaml').readAsString(),
+    );
+    expect(parsed.version, '3.0.0');
+    expect(parsed.buildNumber, '42');
+  });
+
+  test('bumpVersion inserts version after name when line is missing', () async {
+    await File('${tempDir.path}/pubspec.yaml').writeAsString('''
+name: test_app
+description: Test
+environment:
+  sdk: ^3.0.0
+''');
+
+    await service.bumpVersion(
+      projectPath: tempDir.path,
+      buildNumber: '5705',
+      version: '1.5.7',
+    );
+
+    final parsed = parser.parse(
+      await File('${tempDir.path}/pubspec.yaml').readAsString(),
+    );
+    expect(parsed.version, '1.5.7');
+    expect(parsed.buildNumber, '5705');
+  });
 
   test('bumpVersion throws when project path does not exist', () async {
     expect(

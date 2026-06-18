@@ -79,15 +79,16 @@ class FlutterProjectService {
     }
 
     final content = await pubspecFile.readAsString();
-    final updated = content.replaceFirst(
-      RegExp(r'^version:\s*.+$', multiLine: true),
-      'version: $version+$buildNumber',
-    );
 
-    if (updated == content) {
-      throw const FlutterProjectException(
-        'pubspec.yaml is missing a valid version field.',
+    late final String updated;
+    try {
+      updated = _parser.bumpVersionLine(
+        buildNumber: buildNumber,
+        version: version,
+        content,
       );
+    } on FormatException catch (error) {
+      throw FlutterProjectException(error.message);
     }
 
     await pubspecFile.writeAsString(updated);

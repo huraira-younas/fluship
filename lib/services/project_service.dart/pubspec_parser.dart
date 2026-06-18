@@ -43,6 +43,46 @@ class PubspecParser {
     );
   }
 
+  /// Replaces an existing `version:` line or inserts one after `name:`.
+  /// Uses the same line rules as [parse] so bump and read stay in sync.
+  String bumpVersionLine(
+    String content, {
+    required String buildNumber,
+    required String version,
+  }) {
+    final newLine = 'version: $version+$buildNumber';
+    final lines = content.split('\n');
+    var replaced = false;
+
+    for (var i = 0; i < lines.length; i++) {
+      final stripped = _stripInlineComment(lines[i]).trim();
+      if (!stripped.startsWith('version:')) continue;
+
+      final indent = lines[i].length - lines[i].trimLeft().length;
+      lines[i] = '${' ' * indent}$newLine';
+      replaced = true;
+      break;
+    }
+
+    if (!replaced) {
+      for (var i = 0; i < lines.length; i++) {
+        final stripped = _stripInlineComment(lines[i]).trim();
+        if (!stripped.startsWith('name:')) continue;
+        lines.insert(i + 1, newLine);
+        replaced = true;
+        break;
+      }
+    }
+
+    if (!replaced) {
+      throw const FormatException(
+        'pubspec.yaml is missing a valid version field.',
+      );
+    }
+
+    return lines.join('\n');
+  }
+
   static String _stripInlineComment(String line) {
     final index = line.indexOf('#');
     return index == -1 ? line : line.substring(0, index);
