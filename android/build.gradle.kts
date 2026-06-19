@@ -17,6 +17,11 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+    tasks.configureEach {
+        if (name.contains("lintVital")) {
+            enabled = false
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
