@@ -141,6 +141,18 @@ void main() {
         bloc.state.steps.map((step) => step.status),
         everyElement(PipelineStepStatus.completed),
       );
+      expect(
+        bloc.state.steps.every((step) => step.elapsed != null),
+        isTrue,
+      );
+      expect(
+        console.logLines.any((line) => line.contains('completed in')),
+        isTrue,
+      );
+      expect(
+        console.logLines.any((line) => line.contains('[pipeline completed in')),
+        isTrue,
+      );
 
       await bloc.close();
     });
@@ -281,6 +293,12 @@ void main() {
       expect(console.commands, isEmpty);
       expect(
         console.logLines.any((line) => line.contains('Bump Version')),
+        isTrue,
+      );
+      expect(
+        console.logLines.any(
+          (line) => line.contains('Bump Version completed in'),
+        ),
         isTrue,
       );
       expect(bloc.state.runStatus, PipelineRunStatus.completed);

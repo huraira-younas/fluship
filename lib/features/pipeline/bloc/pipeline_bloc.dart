@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../contracts/pipeline_config_source.dart';
 import '../contracts/pipeline_console_port.dart';
+import '../utils/pipeline_duration_format.dart';
 import '../contracts/pipeline_executor.dart';
 import '../models/pipeline_step_view.dart';
 
@@ -130,9 +131,15 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
           : await _runShellStep(step);
 
       if (_cancelRequested || result.wasCancelled) {
-        stepViews[index] = stepViews[index].copyWith(
+        stepViews[index] = _finalizeStepTiming(stepViews[index]).copyWith(
           status: PipelineStepStatus.failed,
           errorMessage: 'Cancelled',
+        );
+        await _logStepTiming(
+          errorMessage: 'Cancelled',
+          view: stepViews[index],
+          stepName: step.name,
+          success: false,
         );
         runStatus = PipelineRunStatus.cancelled;
         summaryMessage = 'Pipeline cancelled.';
@@ -143,10 +150,16 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       }
 
       if (!result.success) {
-        stepViews[index] = stepViews[index].copyWith(
+        stepViews[index] = _finalizeStepTiming(stepViews[index]).copyWith(
           status: PipelineStepStatus.failed,
           errorMessage: result.errorMessage,
           exitCode: result.exitCode,
+        );
+        await _logStepTiming(
+          errorMessage: result.errorMessage,
+          view: stepViews[index],
+          stepName: step.name,
+          success: false,
         );
         summaryMessage = '${step.name} failed.';
         runStatus = PipelineRunStatus.failed;
@@ -157,18 +170,27 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         break;
       }
 
-      stepViews[index] = stepViews[index].copyWith(
+      stepViews[index] = _finalizeStepTiming(stepViews[index]).copyWith(
         status: PipelineStepStatus.completed,
         exitCode: result.exitCode,
+      );
+      await _logStepTiming(
+        view: stepViews[index],
+        stepName: step.name,
+        success: true,
       );
 
       _emitSteps(emit, steps: stepViews, activeStepIndex: null);
     }
 
+    final finishedAt = DateTime.now();
+    final totalElapsed = finishedAt.difference(startedAt);
+    final totalFormatted = formatPipelineDuration(totalElapsed);
+
     final sessionId = _sessionId;
     if (sessionId != null) {
       await _consolePort.logLine(
-        text: '[pipeline ${runStatus.name}]',
+        text: '[pipeline ${runStatus.name} in $totalFormatted]',
         sessionId: sessionId,
         stream: .system,
       );
@@ -176,17 +198,68 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
     if (isClosed) return;
 
+    summaryMessage = _summaryWithTotal(
+      totalFormatted: totalFormatted,
+      fallback: summaryMessage,
+      runStatus: runStatus,
+    );
+
     emit(
       state.copyWith(
         summaryMessage: summaryMessage,
         clearActiveStepIndex: true,
-        finishedAt: DateTime.now(),
+        finishedAt: finishedAt,
         runStatus: runStatus,
         steps: stepViews,
         error: failureMessage == null
             ? null
             : CustomState(message: failureMessage, title: 'Pipeline'),
       ),
+    );
+  }
+
+  String _summaryWithTotal({
+    required PipelineRunStatus runStatus,
+    required String totalFormatted,
+    required String fallback,
+  }) {
+    return switch (runStatus) {
+      .completed => 'Pipeline completed successfully in $totalFormatted.',
+      .cancelled => 'Pipeline cancelled after $totalFormatted.',
+      .running => fallback,
+      .failed => fallback,
+      .idle => fallback,
+    };
+  }
+
+  PipelineStepView _finalizeStepTiming(PipelineStepView view) {
+    final started = view.startedAt;
+    if (started == null) return view;
+    return view.copyWith(
+      elapsed: DateTime.now().difference(started),
+      clearStartedAt: true,
+    );
+  }
+
+  Future<void> _logStepTiming({
+    required PipelineStepView view,
+    required String stepName,
+    required bool success,
+    String? errorMessage,
+  }) async {
+    final sessionId = _sessionId;
+    final elapsed = view.elapsed;
+    if (sessionId == null || elapsed == null) return;
+
+    final formatted = formatPipelineDuration(elapsed);
+    final text = success
+        ? '[$stepName completed in $formatted]'
+        : '[$stepName failed in $formatted${errorMessage != null ? ' — $errorMessage' : ''}]';
+
+    await _consolePort.logLine(
+      sessionId: sessionId,
+      stream: .system,
+      text: text,
     );
   }
 
@@ -217,19 +290,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       );
     }
 
-    final result = await _executor.executeInternal(step);
-
-    if (sessionId != null) {
-      await _consolePort.logLine(
-        sessionId: sessionId,
-        stream: .system,
-        text: result.success
-            ? '[${step.name} completed]'
-            : '[${step.name} failed] ${result.errorMessage}',
-      );
-    }
-
-    return result;
+    return _executor.executeInternal(step);
   }
 
   PipelineStepResult _mapShellResult(ShellRunResult result) {
@@ -288,7 +349,11 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     required List<PipelineStepView> steps,
     required int index,
   }) {
-    steps[index] = steps[index].copyWith(status: PipelineStepStatus.running);
+    steps[index] = steps[index].copyWith(
+      status: PipelineStepStatus.running,
+      startedAt: DateTime.now(),
+      clearElapsed: true,
+    );
     _emitSteps(emit, steps: steps, activeStepIndex: index);
   }
 
