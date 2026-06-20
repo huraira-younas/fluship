@@ -1,74 +1,112 @@
-import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/features/file_manager/models/file_entry.dart';
+import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
+import 'package:fluship/shared/extensions/widget_extensions.dart';
+import 'package:fluship/shared/widgets/app_text.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'package:fluship/shared/widgets/app_text.dart';
-
 class FileManagerEntryTile extends StatelessWidget {
   const FileManagerEntryTile({
+    required this.onToggleSelection,
     required this.onOpenDirectory,
+    required this.hasSelection,
     required this.canOpenFile,
     required this.onOpenFile,
+    required this.isSelected,
     required this.entry,
     super.key,
   });
 
+  static const _trailingSlotWidth = 18.0;
+  static const _leadingSlotWidth = 24.0;
+  static const _tileHeight = 52.0;
+
+  final VoidCallback onToggleSelection;
   final VoidCallback onOpenDirectory;
   final VoidCallback onOpenFile;
+  final bool hasSelection;
   final bool canOpenFile;
+  final bool isSelected;
   final FileEntry entry;
+
+  void _handleTap() {
+    if (hasSelection) return onToggleSelection();
+    if (entry.isDirectory) return onOpenDirectory();
+    onOpenFile();
+  }
+
+  void _handleLongPress() {
+    HapticFeedback.mediumImpact();
+    onToggleSelection();
+  }
 
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
-    final modified = entry.modified;
     final subtitle = entry.isDirectory
-        ? 'Folder'
-        : _buildFileSubtitle(entry.sizeBytes, modified);
+        ? null
+        : _buildFileSubtitle(entry.sizeBytes, entry.modified);
 
     return Material(
-      color: Colors.transparent,
+      color: isSelected
+          ? ft.colors.hover.withValues(alpha: 0.25)
+          : Colors.transparent,
       child: InkWell(
-        onTap: entry.isDirectory ? onOpenDirectory : onOpenFile,
-        child: Padding(
-          padding: .symmetric(
-            horizontal: ft.spacing.lg,
-            vertical: ft.spacing.md,
-          ),
+        onLongPress: _handleLongPress,
+        onTap: _handleTap,
+        child: SizedBox(
+          height: _tileHeight,
           child: Row(
+            crossAxisAlignment: .center,
             spacing: ft.spacing.md,
             children: [
+              if (hasSelection)
+                SizedBox(
+                  height: _leadingSlotWidth,
+                  width: _leadingSlotWidth,
+                  child: Checkbox(
+                    side: BorderSide(color: ft.colors.cardBorder),
+                    onChanged: (_) => onToggleSelection(),
+                    materialTapTargetSize: .shrinkWrap,
+                    activeColor: ft.colors.accent,
+                    checkColor: ft.colors.bg,
+                    visualDensity: .compact,
+                    value: isSelected,
+                  ),
+                ),
               Icon(
                 entry.isDirectory
                     ? Icons.folder_outlined
-                    : (canOpenFile ? Icons.description_outlined : Icons.insert_drive_file_outlined),
+                    : (canOpenFile
+                          ? Icons.description_outlined
+                          : Icons.insert_drive_file_outlined),
                 color: entry.isDirectory ? ft.colors.accent : ft.colors.textDim,
                 size: 22,
               ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: .start,
-                  spacing: 2,
-                  children: [
-                    AppText.body(
-                      entry.name,
-                      overflow: .ellipsis,
-                      maxLines: 1,
-                    ),
-                    AppText.caption(subtitle),
-                  ],
-                ),
+              Column(
+                mainAxisAlignment: .center,
+                crossAxisAlignment: .start,
+                spacing: 2,
+                children: [
+                  AppText.body(entry.name, overflow: .ellipsis, maxLines: 1),
+                  if (subtitle != null) AppText.caption(subtitle),
+                ],
+              ).expanded(),
+              SizedBox(
+                height: _trailingSlotWidth,
+                width: _trailingSlotWidth,
+                child: !hasSelection && !entry.isDirectory
+                    ? Icon(
+                        canOpenFile ? Icons.open_in_new : Icons.block,
+                        color: ft.colors.textDim,
+                        size: _trailingSlotWidth,
+                      )
+                    : null,
               ),
-              if (!entry.isDirectory)
-                Icon(
-                  canOpenFile ? Icons.open_in_new : Icons.block,
-                  color: ft.colors.textDim,
-                  size: 18,
-                ),
             ],
           ),
-        ),
+        ).padSym(h: ft.spacing.lg),
       ),
     );
   }

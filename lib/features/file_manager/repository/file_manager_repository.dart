@@ -1,6 +1,5 @@
-import 'dart:io' show Directory, File, FileSystemEntity;
-
 import 'package:fluship/services/pipeline/paths/fluship_workspace_paths.dart';
+import 'dart:io' show Directory, File, FileSystemEntity;
 import 'package:path/path.dart' as p;
 
 import '../models/file_entry.dart';
@@ -56,7 +55,7 @@ class FileManagerRepository {
   }
 
   Future<List<FileEntry>> listDirectory(String path) async {
-    final directory = Directory(path);
+    final directory = Directory(p.normalize(path));
     if (!await directory.exists()) {
       return const [];
     }
@@ -79,16 +78,48 @@ class FileManagerRepository {
     return entries;
   }
 
+  Future<void> deletePaths({
+    required List<String> paths,
+    required String outputsRoot,
+  }) async {
+    final normalizedRoot = p.normalize(outputsRoot);
+
+    for (final rawPath in paths) {
+      final path = p.normalize(rawPath);
+      _assertDeletable(path: path, outputsRoot: normalizedRoot);
+
+      final entityType = FileSystemEntity.typeSync(path);
+      if (entityType == .notFound) continue;
+
+      if (entityType == .directory) {
+        await Directory(path).delete(recursive: true);
+        continue;
+      }
+
+      await File(path).delete();
+    }
+  }
+
+  void _assertDeletable({required String path, required String outputsRoot}) {
+    if (p.equals(path, outputsRoot)) {
+      throw Exception('The outputs root folder cannot be deleted.');
+    }
+
+    if (!p.isWithin(outputsRoot, path)) {
+      throw Exception('Cannot delete items outside the outputs folder.');
+    }
+  }
+
   Future<FileEntry> _toEntry(FileSystemEntity entity) async {
     final stat = await entity.stat();
     final isDirectory = entity is Directory;
 
     return FileEntry(
       sizeBytes: isDirectory ? null : stat.size,
+      path: p.normalize(entity.path),
       name: p.basename(entity.path),
       isDirectory: isDirectory,
       modified: stat.modified,
-      path: entity.path,
     );
   }
 }
