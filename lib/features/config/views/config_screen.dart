@@ -1,3 +1,4 @@
+import 'package:fluship/features/pipeline/widgets/pipeline_runner_panel.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/context_extensions.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
@@ -48,6 +49,7 @@ class ConfigScreen extends StatelessWidget {
         return Column(
           spacing: spacing.md,
           children: const <Widget>[
+            PipelineRunnerPanel(),
             BuildConfig(),
             PreGit(),
             CommonCmd(),

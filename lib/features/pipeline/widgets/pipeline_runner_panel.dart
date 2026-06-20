@@ -1,9 +1,10 @@
 import 'dart:async' show Timer;
 
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
-import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
+import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
+import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
@@ -20,14 +21,9 @@ class PipelineRunnerPanel extends StatelessWidget {
     return BlocSelector<PipelineBloc, PipelineState, PipelineState>(
       selector: (state) => state,
       builder: (context, state) {
-        return AnimatedSize(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOut,
-          alignment: .topCenter,
-          child: state.isPanelVisible
-              ? _PipelineRunnerPanelBody(state: state)
-              : const SizedBox.shrink(),
-        );
+        return state.isPanelVisible
+            ? _PipelineRunnerPanelBody(state: state)
+            : const SizedBox.shrink();
       },
     );
   }
@@ -39,85 +35,78 @@ class _PipelineRunnerPanelBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ft = context.flushipTheme;
-    final colors = ft.colors;
     final bloc = context.read<PipelineBloc>();
     final isRunning = state.isRunning;
+    final ft = context.flushipTheme;
+    final colors = ft.colors;
 
-    return Container(
-      padding: .symmetric(horizontal: ft.spacing.md, vertical: ft.spacing.md),
-      margin: .only(top: ft.spacing.sm),
-      decoration: BoxDecoration(
-        border: .all(color: colors.consoleBorder),
-        borderRadius: .circular(ft.radius.btn),
-        color: colors.consoleBg,
-      ),
-      child: Column(
-        crossAxisAlignment: .stretch,
-        spacing: ft.spacing.md,
-        children: [
-          Row(
-            crossAxisAlignment: .start,
+    return AppCard(
+      title: 'Pipeline',
+      description:
+          'Live progress for your configured build steps. '
+          'Each step shows its status and duration here; full command output is logged in the Console tab.',
+      children: [
+        Row(
+          crossAxisAlignment: .start,
+          spacing: ft.spacing.sm,
+          children: [
+            _PipelineStatusIcon(runStatus: state.runStatus),
+            Column(
+              crossAxisAlignment: .stretch,
+              spacing: 4,
+              children: [
+                AppText(
+                  state.summaryMessage.isEmpty
+                      ? _defaultSummary(state.runStatus)
+                      : state.summaryMessage,
+                  color: _summaryColor(state.runStatus, colors),
+                  variant: .custom,
+                  weight: .w600,
+                ),
+                if (state.steps.isNotEmpty)
+                  AppText(
+                    _stepProgressLabel(state),
+                    color: colors.textDim,
+                    variant: .custom,
+                    size: .caption,
+                  ),
+                if (state.startedAt != null)
+                  _PipelineTotalElapsed(
+                    finishedAt: state.finishedAt,
+                    startedAt: state.startedAt!,
+                    isRunning: isRunning,
+                  ),
+              ],
+            ).expanded(),
+            if (isRunning)
+              AppButton.danger(
+                onPressed: () => bloc.add(const CancelPipeline()),
+                label: 'Cancel',
+                size: .sm,
+              )
+            else
+              AppButton.ghost(
+                onPressed: () => bloc.add(const DismissPipelinePanel()),
+                label: 'Dismiss',
+                size: .sm,
+              ),
+          ],
+        ),
+        if (state.steps.isNotEmpty) ...[
+          Divider(height: 30, color: colors.consoleBorder),
+          Column(
             spacing: ft.spacing.sm,
             children: [
-              _PipelineStatusIcon(runStatus: state.runStatus),
-              Column(
-                crossAxisAlignment: .stretch,
-                spacing: 4,
-                children: [
-                  AppText(
-                    state.summaryMessage.isEmpty
-                        ? _defaultSummary(state.runStatus)
-                        : state.summaryMessage,
-                    color: _summaryColor(state.runStatus, colors),
-                    variant: .custom,
-                    weight: .w600,
-                  ),
-                  if (state.steps.isNotEmpty)
-                    AppText(
-                      _stepProgressLabel(state),
-                      color: colors.textDim,
-                      variant: .custom,
-                      size: .caption,
-                    ),
-                  if (state.startedAt != null)
-                    _PipelineTotalElapsed(
-                      finishedAt: state.finishedAt,
-                      startedAt: state.startedAt!,
-                      isRunning: isRunning,
-                    ),
-                ],
-              ).expanded(),
-              if (isRunning)
-                AppButton.danger(
-                  onPressed: () => bloc.add(const CancelPipeline()),
-                  label: 'Cancel',
-                  size: .sm,
-                )
-              else
-                AppButton.ghost(
-                  onPressed: () => bloc.add(const DismissPipelinePanel()),
-                  label: 'Dismiss',
-                  size: .sm,
+              for (var i = 0; i < state.steps.length; i++)
+                _PipelineStepRow(
+                  isActive: state.activeStepIndex == i,
+                  step: state.steps[i],
+                  index: i,
                 ),
             ],
           ),
-          if (state.steps.isNotEmpty) ...[
-            Divider(height: 1, color: colors.consoleBorder),
-            Column(
-              spacing: ft.spacing.sm,
-              children: [
-                for (var i = 0; i < state.steps.length; i++)
-                  _PipelineStepRow(
-                    isActive: state.activeStepIndex == i,
-                    step: state.steps[i],
-                    index: i,
-                  ),
-              ],
-            ),
-          ],
         ],
-      ),
+      ],
     );
   }
 
@@ -160,14 +149,13 @@ class _PipelineRunnerPanelBody extends StatelessWidget {
 
 class _PipelineStatusIcon extends StatelessWidget {
   const _PipelineStatusIcon({required this.runStatus});
-
   final PipelineRunStatus runStatus;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.flushipTheme.colors;
 
-    if (runStatus == PipelineRunStatus.running) {
+    if (runStatus == .running) {
       return SizedBox(
         width: 20,
         height: 20,

@@ -1,13 +1,12 @@
-import 'package:fluship/core/responsive/models/layout_constraints.dart';
 import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
-import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
-import 'package:fluship/features/pipeline/widgets/pipeline_runner_panel.dart';
+import 'package:fluship/core/responsive/models/layout_constraints.dart';
 import 'package:fluship/features/settings/views/settings_screen.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/features/console/views/console_screen.dart';
-import 'package:fluship/features/console/bloc/console_bloc.dart';
+import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
 import 'package:fluship/core/responsive/responsive_extension.dart';
 import 'package:fluship/features/config/views/config_screen.dart';
+import 'package:fluship/features/console/bloc/console_bloc.dart';
 import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
@@ -117,7 +116,6 @@ class _LayoutScreenState extends State<LayoutScreen>
                 selectedTab: _selectedTab,
                 spacing: spacing,
               ).padOnly(l: hPad, r: hPad),
-              const PipelineRunnerPanel().padOnly(l: hPad, r: hPad),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 child: KeyedSubtree(key: key, child: body),
