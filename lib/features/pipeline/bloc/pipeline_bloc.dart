@@ -7,10 +7,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../contracts/pipeline_config_source.dart';
 import '../contracts/pipeline_console_port.dart';
-import '../utils/pipeline_duration_format.dart';
 import '../services/pipeline_log_writer.dart';
 import '../contracts/pipeline_executor.dart';
 import '../models/pipeline_step_view.dart';
+import '../pipeline_utils.dart';
 
 part 'pipeline_event.dart';
 part 'pipeline_state.dart';
@@ -189,7 +189,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
     final finishedAt = DateTime.now();
     final totalElapsed = finishedAt.difference(startedAt);
-    final totalFormatted = formatPipelineDuration(totalElapsed);
+    final totalFormatted = PipelineUtils.formatPipelineDuration(totalElapsed);
 
     final sessionId = _sessionId;
     if (sessionId != null) {
@@ -289,7 +289,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     final elapsed = view.elapsed;
     if (sessionId == null || elapsed == null) return;
 
-    final formatted = formatPipelineDuration(elapsed);
+    final formatted = PipelineUtils.formatPipelineDuration(elapsed);
     final text = success
         ? '[$stepName completed in $formatted]'
         : '[$stepName failed in $formatted${errorMessage != null ? ' — $errorMessage' : ''}]';

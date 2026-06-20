@@ -9,9 +9,9 @@ import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
-import '../utils/pipeline_duration_format.dart';
 import '../models/pipeline_step_view.dart';
 import '../bloc/pipeline_bloc.dart';
+import '../pipeline_utils.dart';
 
 class PipelineRunnerPanel extends StatelessWidget {
   const PipelineRunnerPanel({super.key});
@@ -241,7 +241,7 @@ class _PipelineTotalElapsedState extends State<_PipelineTotalElapsed> {
     final elapsed = end.difference(widget.startedAt);
 
     return AppText(
-      '$label: ${formatPipelineDuration(elapsed)}',
+      '$label: ${PipelineUtils.formatPipelineDuration(elapsed)}',
       color: context.flushipTheme.colors.textDim,
       variant: .custom,
       size: .caption,
@@ -420,7 +420,9 @@ class _StepElapsedBadgeState extends State<_StepElapsedBadge> {
       );
     }
 
-    final text = elapsed == null ? '…' : formatPipelineDuration(elapsed);
+    final text = elapsed == null
+        ? '…'
+        : PipelineUtils.formatPipelineDuration(elapsed);
     final color = step.status == .running ? colors.accent : colors.textDim;
 
     return Container(

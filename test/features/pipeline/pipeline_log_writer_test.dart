@@ -1,33 +1,40 @@
 import 'dart:io' show Directory, File, Platform;
 
-import 'package:fluship/features/console/models/console_line.dart';
 import 'package:fluship/features/pipeline/services/pipeline_log_writer.dart';
-import 'package:fluship/features/pipeline/utils/fluship_workspace_paths.dart';
-import 'package:fluship/features/pipeline/utils/pipeline_log_file_name.dart';
-import 'package:fluship/features/pipeline/utils/pipeline_log_formatter.dart';
-import 'package:fluship/features/pipeline/utils/pipeline_project_folder_name.dart';
+import 'package:fluship/features/pipeline/fluship_workspace_paths.dart';
+import 'package:fluship/features/console/models/console_line.dart';
+import 'package:fluship/features/pipeline/pipeline_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
 void main() {
   group('sanitizeProjectFolderName', () {
     test('lowercases and slugifies app names', () {
-      expect(sanitizeProjectFolderName('ReelStay'), 'reelstay');
-      expect(sanitizeProjectFolderName('My Cool App'), 'my_cool_app');
+      expect(PipelineUtils.sanitizeProjectFolderName('ReelStay'), 'reelstay');
+      expect(
+        PipelineUtils.sanitizeProjectFolderName('My Cool App'),
+        'my_cool_app',
+      );
     });
   });
 
   group('buildPipelineLogFileName', () {
     test('builds versioned log file name', () {
       expect(
-        buildPipelineLogFileName(version: '1.5.7', buildNumber: '5705'),
+        PipelineUtils.buildPipelineLogFileName(
+          version: '1.5.7',
+          buildNumber: '5705',
+        ),
         'v1.5.7_5705_logs.txt',
       );
     });
 
     test('sanitizes unsafe characters', () {
       expect(
-        buildPipelineLogFileName(version: '1/0', buildNumber: '2*'),
+        PipelineUtils.buildPipelineLogFileName(
+          version: '1/0',
+          buildNumber: '2*',
+        ),
         'v1_0_2__logs.txt',
       );
     });
@@ -48,7 +55,7 @@ void main() {
 
   group('formatPipelineLogLines', () {
     test('writes each console line on its own row', () {
-      final text = formatPipelineLogLines(const [
+      final text = PipelineUtils.formatPipelineLogLines(const [
         ConsoleLine(stream: ConsoleStream.system, text: '[pipeline started]'),
         ConsoleLine(stream: ConsoleStream.input, text: '> flutter clean'),
         ConsoleLine(stream: ConsoleStream.system, text: '[exit 0]'),
