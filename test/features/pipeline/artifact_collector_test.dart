@@ -6,10 +6,10 @@ import 'package:path/path.dart' as p;
 
 void main() {
   group('FileArtifactCollector', () {
-    late Directory tempDir;
+    const collector = FileArtifactCollector();
     late Directory projectRoot;
     late Directory outputDir;
-    const collector = FileArtifactCollector();
+    late Directory tempDir;
 
     setUp(() async {
       tempDir = await Directory.systemTemp.createTemp('fluship_artifact_');
@@ -33,34 +33,48 @@ void main() {
       await file.writeAsString(content);
     }
 
-    test('collectApks copies all apk files flat into output directory', () async {
-      await writeArtifact(
-        relativePath: p.join('build', 'app', 'outputs', 'flutter-apk', 'app-release.apk'),
-        content: 'release',
-      );
-      await writeArtifact(
-        relativePath: p.join(
-          'build',
-          'app',
-          'outputs',
-          'flutter-apk',
-          'app-arm64-v8a-release.apk',
-        ),
-        content: 'arm64',
-      );
+    test(
+      'collectApks copies all apk files flat into output directory',
+      () async {
+        await writeArtifact(
+          relativePath: p.join(
+            'build',
+            'app',
+            'outputs',
+            'flutter-apk',
+            'app-release.apk',
+          ),
+          content: 'release',
+        );
+        await writeArtifact(
+          relativePath: p.join(
+            'build',
+            'app',
+            'outputs',
+            'flutter-apk',
+            'app-arm64-v8a-release.apk',
+          ),
+          content: 'arm64',
+        );
 
-      final copied = await collector.collectApks(
-        sourceRoot: projectRoot.path,
-        outputDir: outputDir.path,
-      );
+        final copied = await collector.collectApks(
+          sourceRoot: projectRoot.path,
+          outputDir: outputDir.path,
+        );
 
-      expect(copied, hasLength(2));
-      expect(await File(p.join(outputDir.path, 'app-release.apk')).readAsString(), 'release');
-      expect(
-        await File(p.join(outputDir.path, 'app-arm64-v8a-release.apk')).readAsString(),
-        'arm64',
-      );
-    });
+        expect(copied, hasLength(2));
+        expect(
+          await File(p.join(outputDir.path, 'app-release.apk')).readAsString(),
+          'release',
+        );
+        expect(
+          await File(
+            p.join(outputDir.path, 'app-arm64-v8a-release.apk'),
+          ).readAsString(),
+          'arm64',
+        );
+      },
+    );
 
     test('collectAab copies aab file into output directory', () async {
       await writeArtifact(
@@ -107,11 +121,21 @@ void main() {
 
     test('overwrites existing artifact with same filename', () async {
       await writeArtifact(
-        relativePath: p.join('build', 'app', 'outputs', 'flutter-apk', 'app-release.apk'),
+        relativePath: p.join(
+          'build',
+          'app',
+          'outputs',
+          'flutter-apk',
+          'app-release.apk',
+        ),
         content: 'new',
       );
-      await File(p.join(outputDir.path, 'app-release.apk')).create(recursive: true)
-        ..writeAsStringSync('old');
+
+      final d = await File(
+        p.join(outputDir.path, 'app-release.apk'),
+      ).create(recursive: true);
+
+      d.writeAsStringSync('old');
 
       await collector.collectApks(
         sourceRoot: projectRoot.path,
