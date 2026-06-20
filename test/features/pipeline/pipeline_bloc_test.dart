@@ -1,3 +1,4 @@
+import 'package:fluship/features/pipeline/services/pipeline_log_writer.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/features/console/models/console_line.dart';
 import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
@@ -42,6 +43,7 @@ class FakePipelineConsolePort implements PipelineConsolePort {
 
   final commands = <String>[];
   final logLines = <String>[];
+  final capturedLines = <ConsoleLine>[];
   var cancelCalls = 0;
   var disposeCalls = 0;
   var createCalls = 0;
@@ -62,6 +64,7 @@ class FakePipelineConsolePort implements PipelineConsolePort {
     required String command,
   }) async {
     commands.add(command);
+    capturedLines.add(ConsoleLine(stream: ConsoleStream.input, text: '> $command'));
 
     if (delayStep) {
       await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -73,9 +76,15 @@ class FakePipelineConsolePort implements PipelineConsolePort {
     }
 
     if (failCommand != null && command == failCommand) {
+      capturedLines.add(
+        ConsoleLine(stream: ConsoleStream.system, text: '[exit $exitCode]'),
+      );
       return ShellRunResult(exitCode: exitCode);
     }
 
+    capturedLines.add(
+      const ConsoleLine(stream: ConsoleStream.system, text: '[exit 0]'),
+    );
     return ShellRunResult(exitCode: exitCode);
   }
 
@@ -86,6 +95,12 @@ class FakePipelineConsolePort implements PipelineConsolePort {
     required String text,
   }) async {
     logLines.add(text);
+    capturedLines.add(ConsoleLine(stream: stream, text: text));
+  }
+
+  @override
+  List<ConsoleLine> sessionLines(String sessionId) {
+    return List<ConsoleLine>.from(capturedLines);
   }
 
   @override
@@ -100,6 +115,27 @@ class FakePipelineConsolePort implements PipelineConsolePort {
     if (activeSessionId == sessionId) {
       activeSessionId = null;
     }
+  }
+}
+
+class FakePipelineLogWriter implements PipelineLogWriter {
+  List<ConsoleLine>? lastLines;
+  String? lastProjectRoot;
+  String? lastVersion;
+  String? lastBuildNumber;
+
+  @override
+  Future<String> save({
+    required String projectRoot,
+    required String buildNumber,
+    required List<ConsoleLine> lines,
+    required String version,
+  }) async {
+    lastProjectRoot = projectRoot;
+    lastBuildNumber = buildNumber;
+    lastLines = List<ConsoleLine>.from(lines);
+    lastVersion = version;
+    return 'logs/v${version}_${buildNumber}_logs.txt';
   }
 }
 
@@ -303,6 +339,38 @@ void main() {
       );
       expect(bloc.state.runStatus, PipelineRunStatus.completed);
       expect(bloc.state.steps.single.name, 'Bump Version');
+
+      await bloc.close();
+    });
+
+    test('saves full pipeline console output to logs file', () async {
+      final config = FakePipelineConfigSource(_configWithSteps());
+      final console = FakePipelineConsolePort();
+      final logWriter = FakePipelineLogWriter();
+      final bloc = PipelineBloc(
+        configSource: config,
+        consolePort: console,
+        logWriter: logWriter,
+      );
+
+      bloc.add(const RunPipeline());
+      await _pumpBloc(bloc);
+
+      while (bloc.state.isRunning) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+
+      expect(logWriter.lastProjectRoot, '/project');
+      expect(logWriter.lastLines, isNotNull);
+      expect(logWriter.lastLines, isNotEmpty);
+      expect(
+        logWriter.lastLines!.any((line) => line.text.contains('flutter clean')),
+        isTrue,
+      );
+      expect(
+        console.logLines.any((line) => line.contains('[pipeline log saved to')),
+        isTrue,
+      );
 
       await bloc.close();
     });

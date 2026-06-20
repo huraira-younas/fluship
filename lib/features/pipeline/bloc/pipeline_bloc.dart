@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../contracts/pipeline_config_source.dart';
 import '../contracts/pipeline_console_port.dart';
 import '../utils/pipeline_duration_format.dart';
+import '../services/pipeline_log_writer.dart';
 import '../contracts/pipeline_executor.dart';
 import '../models/pipeline_step_view.dart';
 
@@ -16,10 +17,12 @@ part 'pipeline_state.dart';
 
 class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
   PipelineBloc({
+    PipelineLogWriter? logWriter,
     required this._configSource,
     required this._consolePort,
     PipelineExecutor? executor,
-  }) : _executor = executor ?? const PipelineExecutor(),
+  }) : _logWriter = logWriter ?? const FilePipelineLogWriter(),
+       _executor = executor ?? const PipelineExecutor(),
        super(PipelineState.idle()) {
     on<DismissPipelinePanel>(handler(_onDismissPipelinePanel));
     on<CancelPipeline>(handler(_onCancelPipeline));
@@ -28,6 +31,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
   final PipelineConfigSource _configSource;
   final PipelineConsolePort _consolePort;
+  final PipelineLogWriter _logWriter;
   final PipelineExecutor _executor;
 
   var _cancelRequested = false;
@@ -194,6 +198,10 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         sessionId: sessionId,
         stream: .system,
       );
+
+      try {
+        await _savePipelineLog(projectRoot: projectRoot, sessionId: sessionId);
+      } catch (_) {}
     }
 
     if (isClosed) return;
@@ -215,6 +223,33 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
             ? null
             : CustomState(message: failureMessage, title: 'Pipeline'),
       ),
+    );
+  }
+
+  Future<void> _savePipelineLog({
+    required String projectRoot,
+    required String sessionId,
+  }) async {
+    final lines = _consolePort.sessionLines(sessionId);
+    if (lines.isEmpty) return;
+
+    final info = _configSource.state.appInfo;
+    await _logWriter.save(
+      buildNumber: info.buildNumber ?? '0',
+      version: info.version ?? 'unknown',
+      projectRoot: projectRoot,
+      lines: lines,
+    );
+
+    final relativePath = pipelineLogRelativePath(
+      buildNumber: info.buildNumber ?? '0',
+      version: info.version ?? 'unknown',
+    );
+
+    await _consolePort.logLine(
+      text: '[pipeline log saved to $relativePath]',
+      sessionId: sessionId,
+      stream: .system,
     );
   }
 

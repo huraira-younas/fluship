@@ -17,6 +17,7 @@ abstract interface class PipelineConsolePort {
     required String text,
   });
 
+  List<ConsoleLine> sessionLines(String sessionId);
   Future<void> disposeSession(String sessionId);
   Future<void> cancelCommand(String sessionId);
 }
@@ -59,6 +60,13 @@ final class ConsoleBlocPipelinePort implements PipelineConsolePort {
   @override
   Future<void> disposeSession(String sessionId) {
     return _dispatch<void>(ClosePipelineSession(sessionId: sessionId));
+  }
+
+  @override
+  List<ConsoleLine> sessionLines(String sessionId) {
+    final session = _bloc.state.sessionById(sessionId);
+    if (session == null) return const [];
+    return List<ConsoleLine>.from(session.lines);
   }
 
   Future<T> _dispatch<T>(ConsoleEvent event) {
