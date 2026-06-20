@@ -11,8 +11,27 @@ import '../bloc/console_bloc.dart';
 const _animDuration = Duration(milliseconds: 200);
 const _tabRadius = 8.0;
 
+List<ConsoleSession> pipelineFirstSessions(List<ConsoleSession> sessions) {
+  final pipeline = <ConsoleSession>[];
+  final others = <ConsoleSession>[];
+  for (final session in sessions) {
+    if (isPipelineConsoleSession(session.id)) {
+      pipeline.add(session);
+    } else {
+      others.add(session);
+    }
+  }
+  return [...pipeline, ...others];
+}
+
+bool canCloseConsoleTab(int userSessionCount, ConsoleSession session) {
+  if (isPipelineConsoleSession(session.id)) return true;
+  return userSessionCount > 1;
+}
+
 class ConsoleSessionTabsData {
   const ConsoleSessionTabsData({
+    required this.userSessionCount,
     required this.activeSessionId,
     required this.canAddSession,
     required this.sessions,
@@ -20,6 +39,7 @@ class ConsoleSessionTabsData {
 
   final List<ConsoleSession> sessions;
   final String? activeSessionId;
+  final int userSessionCount;
   final bool canAddSession;
 }
 
@@ -29,11 +49,19 @@ class ConsoleSessionTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ConsoleBloc, ConsoleState, ConsoleSessionTabsData>(
-      selector: (state) => ConsoleSessionTabsData(
-        activeSessionId: state.activeSessionId,
-        canAddSession: state.canAddSession,
-        sessions: state.sessions,
-      ),
+      selector: (state) {
+        final sessions = pipelineFirstSessions(state.sessions);
+        final userSessionCount = state.sessions
+            .where((session) => !isPipelineConsoleSession(session.id))
+            .length;
+
+        return ConsoleSessionTabsData(
+          activeSessionId: state.activeSessionId,
+          canAddSession: state.canAddSession,
+          userSessionCount: userSessionCount,
+          sessions: sessions,
+        );
+      },
       builder: (context, data) {
         final bloc = context.read<ConsoleBloc>();
 
@@ -44,8 +72,8 @@ class ConsoleSessionTabs extends StatelessWidget {
           onSelectSession: (sessionId) =>
               bloc.add(SelectSession(sessionId: sessionId)),
           onCloseSession: (session) => _closeSession(session, context, bloc),
+          userSessionCount: data.userSessionCount,
           activeSessionId: data.activeSessionId,
-          canClose: data.sessions.length > 1,
           sessions: data.sessions,
         );
       },
@@ -60,7 +88,12 @@ Future<void> _closeSession(
 ) async {
   final confirmed = await confirmCloseSession(context, session);
   if (!confirmed || !context.mounted) return;
-  bloc.add(CloseSession(sessionId: session.id));
+
+  if (isPipelineConsoleSession(session.id)) {
+    bloc.add(ClosePipelineSession(sessionId: session.id));
+  } else {
+    bloc.add(CloseSession(sessionId: session.id));
+  }
 }
 
 class _TabEntry {
@@ -74,11 +107,11 @@ class _TabEntry {
 
 class _ConsoleSessionTabsBar extends StatefulWidget {
   const _ConsoleSessionTabsBar({
+    required this.userSessionCount,
     required this.onSelectSession,
     required this.activeSessionId,
     required this.onCloseSession,
     required this.onAddSession,
-    required this.canClose,
     required this.sessions,
   });
 
@@ -87,7 +120,7 @@ class _ConsoleSessionTabsBar extends StatefulWidget {
   final List<ConsoleSession> sessions;
   final VoidCallback? onAddSession;
   final String? activeSessionId;
-  final bool canClose;
+  final int userSessionCount;
 
   @override
   State<_ConsoleSessionTabsBar> createState() => _ConsoleSessionTabsBarState();
@@ -149,9 +182,20 @@ class _ConsoleSessionTabsBarState extends State<_ConsoleSessionTabsBar>
       }
     }
 
+    _reorderEntriesToMatchSessions();
+
     if (oldWidget.activeSessionId != widget.activeSessionId) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToActive());
     }
+  }
+
+  void _reorderEntriesToMatchSessions() {
+    final order = widget.sessions.map((session) => session.id).toList();
+    _entries.sort((a, b) {
+      final ai = order.indexOf(a.session.id);
+      final bi = order.indexOf(b.session.id);
+      return ai.compareTo(bi);
+    });
   }
 
   void _animateRemove(_TabEntry entry) {
@@ -221,10 +265,15 @@ class _ConsoleSessionTabsBarState extends State<_ConsoleSessionTabsBar>
                 children: [
                   ..._entries.map((entry) {
                     final session = entry.session;
+                    final showClose = canCloseConsoleTab(
+                      widget.userSessionCount,
+                      session,
+                    );
+
                     return _TabEnterExitTransition(
                       animation: entry.controller,
                       child: _SessionTab(
-                        onClose: widget.canClose
+                        onClose: showClose
                             ? () => widget.onCloseSession(session)
                             : null,
                         onTap: () => widget.onSelectSession(session.id),

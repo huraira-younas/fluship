@@ -15,6 +15,9 @@ part 'console_state.dart';
 
 const pipelineConsoleSessionId = '_pipeline_console';
 
+bool isPipelineConsoleSession(String sessionId) =>
+    sessionId.startsWith('_pipeline_');
+
 class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
   ConsoleBloc({required this._pool}) : super(ConsoleState.empty()) {
     on<DisposeAllSessions>(handler(_onDisposeAllSessions));
@@ -50,7 +53,7 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
       !isClosed && state.sessionById(sessionId) != null;
 
   bool _isPipelineSession(String sessionId) =>
-      sessionId.startsWith('_pipeline_');
+      isPipelineConsoleSession(sessionId);
 
   void _clearSessionBuffers(String sessionId) {
     _flushTimers.remove(sessionId)?.cancel();
@@ -165,8 +168,8 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
     Emitter<ConsoleState> emit,
     CreatePipelineSession event,
   ) async {
-    const id = pipelineConsoleSessionId;
     _activeSessionBeforePipeline ??= state.activeSessionId;
+    const id = pipelineConsoleSessionId;
 
     final existing = state.sessionById(id);
     if (existing != null) {
@@ -204,7 +207,7 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
 
     emit(
       state.copyWith(
-        sessions: [...state.sessions, session],
+        sessions: [session, ...state.sessions],
         activeSessionId: id,
       ),
     );

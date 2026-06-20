@@ -14,10 +14,12 @@ class ConsoleInput extends StatelessWidget {
     return BlocSelector<ConsoleBloc, ConsoleState, bool>(
       selector: (state) => state.activeSession?.isRunning ?? false,
       builder: (context, isRunning) {
+        final bloc = context.read<ConsoleBloc>();
+
         return _ConsoleInputField(
+          onSubmit: (cmd) => bloc.add(SubmitCommand(command: cmd)),
+          onCancel: () => bloc.add(const CancelCommand()),
           disabled: isRunning,
-          onSubmit: (command) =>
-              context.read<ConsoleBloc>().add(SubmitCommand(command: command)),
         );
       },
     );
@@ -25,9 +27,14 @@ class ConsoleInput extends StatelessWidget {
 }
 
 class _ConsoleInputField extends StatefulWidget {
-  const _ConsoleInputField({required this.onSubmit, required this.disabled});
+  const _ConsoleInputField({
+    required this.onSubmit,
+    required this.onCancel,
+    required this.disabled,
+  });
 
   final ValueChanged<String> onSubmit;
+  final VoidCallback onCancel;
   final bool disabled;
 
   @override
@@ -116,11 +123,10 @@ class _ConsoleInputFieldState extends State<_ConsoleInputField> {
           ),
           onSubmitted: (_) => _submit(),
         ).expanded(),
-        AppButton.primary(
-          onPressed: widget.disabled ? null : _submit,
-          label: 'Run',
-          size: .sm,
-        ),
+        if (widget.disabled)
+          AppButton.danger(onPressed: widget.onCancel, label: 'Stop', size: .sm)
+        else
+          AppButton.primary(onPressed: _submit, label: 'Run', size: .sm),
       ],
     );
   }

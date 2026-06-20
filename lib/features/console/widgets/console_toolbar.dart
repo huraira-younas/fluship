@@ -1,6 +1,5 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
-import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
@@ -12,14 +11,9 @@ class ConsoleToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<ConsoleBloc, ConsoleState, (String?, bool)>(
-      selector: (state) {
-        final session = state.activeSession;
-        return (session?.workingDirectory, session?.isRunning ?? false);
-      },
-      builder: (context, data) {
-        final (workingDirectory, isRunning) = data;
-        final bloc = context.read<ConsoleBloc>();
+    return BlocSelector<ConsoleBloc, ConsoleState, String?>(
+      selector: (state) => state.activeSession?.workingDirectory,
+      builder: (context, workingDirectory) {
         final ft = context.flushipTheme;
         final path = workingDirectory?.trim();
         final cwd = (path == null || path.isEmpty)
@@ -46,12 +40,6 @@ class ConsoleToolbar extends StatelessWidget {
                 maxLines: 1,
                 cwd,
               ).expanded(),
-              if (isRunning)
-                AppButton.danger(
-                  onPressed: () => bloc.add(const CancelCommand()),
-                  label: 'Stop Command',
-                  size: .sm,
-                ),
             ],
           ),
         );
