@@ -1,12 +1,14 @@
+import 'dart:io' show Platform;
+
 import 'package:fluship/core/json_parser/exports.dart';
 import 'base_config.dart';
 
 final class IosConfigModel extends BaseConfig {
-  const IosConfigModel({
+  IosConfigModel({
     this.podClean = false,
     this.buildIpa = false,
-    super.enabled = true,
-  });
+    bool enabled = true,
+  }) : super(enabled: Platform.isMacOS ? enabled : false);
 
   final bool podClean;
   final bool buildIpa;

@@ -23,14 +23,14 @@ class ConfigState extends BaseBlocState {
     super.error,
   });
 
-  factory ConfigState.empty() => const ConfigState(
-    distribution: DistributionConfigModel(),
-    postBuild: PostBuildConfigModel(),
-    android: AndroidConfigModel(),
-    commonCmd: CommonCmdModel(),
-    postGit: PostGitModel(),
-    appInfo: AppInfoModel(),
-    preGit: PreGitModel(),
+  factory ConfigState.empty() => ConfigState(
+    distribution: const DistributionConfigModel(),
+    postBuild: const PostBuildConfigModel(),
+    android: const AndroidConfigModel(),
+    commonCmd: const CommonCmdModel(),
+    postGit: const PostGitModel(),
+    appInfo: const AppInfoModel(),
+    preGit: const PreGitModel(),
     ios: IosConfigModel(),
   );
 

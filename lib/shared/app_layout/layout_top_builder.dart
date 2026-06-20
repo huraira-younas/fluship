@@ -1,5 +1,6 @@
 import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
+import 'package:fluship/features/file_manager/routes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluship/di/locator.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +37,25 @@ class LayoutTopBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pipeline = BlocSelector<PipelineBloc, PipelineState, bool>(
+      selector: (state) => state.isRunning,
+      builder: (context, isRunning) {
+        return AppButton.primary(
+          isLoading: isRunning,
+          onPressed: isRunning
+              ? null
+              : () => getIt<PipelineBloc>().add(const RunPipeline()),
+          label: isRunning ? 'Running…' : 'Run Pipeline',
+        );
+      },
+    );
+
+    final fileManager = AppButton.icon(
+      onPressed: () => FileManagerRoutes.openFileManager(),
+      leading: const Icon(Icons.folder),
+      variant: .outline,
+    );
+
     return Column(
       spacing: spacing.lg,
       children: <Widget>[
@@ -50,19 +70,12 @@ class LayoutTopBuilder extends StatelessWidget {
                     AppText.display(appInfo.appName ?? 'Fluship')
                   else
                     AppText.display(appInfo.appName ?? 'Fluship').expanded(),
-                  BlocSelector<PipelineBloc, PipelineState, bool>(
-                    selector: (state) => state.isRunning,
-                    builder: (context, isRunning) {
-                      return AppButton.primary(
-                        isLoading: isRunning,
-                        onPressed: isRunning
-                            ? null
-                            : () => getIt<PipelineBloc>().add(
-                                const RunPipeline(),
-                              ),
-                        label: isRunning ? 'Running…' : 'Run Pipeline',
-                      );
-                    },
+                  Row(
+                    spacing: spacing.md,
+                    children: [
+                      if (isMobile) pipeline.expanded() else pipeline,
+                      fileManager,
+                    ],
                   ),
                 ];
 

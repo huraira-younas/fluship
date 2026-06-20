@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:fluship/shared/models/ios_config.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 
@@ -13,6 +15,8 @@ class IosConfig extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!Platform.isMacOS) return const SizedBox.shrink();
+
     final bloc = getIt<ConfigBloc>();
     return BlocSelector<ConfigBloc, ConfigState, IosConfigModel>(
       selector: (state) => state.ios,
