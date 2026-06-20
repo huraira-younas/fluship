@@ -442,11 +442,13 @@ class _AppButtonBody extends StatelessWidget {
         ? null
         : Text(overflow: .ellipsis, textAlign: .center, maxLines: 1, label!);
 
+    final iconTheme = IconThemeData(
+      color: isEnabled ? palette.foreground : palette.disabledForeground,
+      size: metrics.iconSize,
+    );
+
     if (isIconOnly) {
-      return IconTheme(
-        data: IconThemeData(size: metrics.iconSize),
-        child: leading!,
-      );
+      return IconTheme(data: iconTheme, child: leading!);
     }
 
     return Row(
@@ -454,19 +456,13 @@ class _AppButtonBody extends StatelessWidget {
       mainAxisAlignment: .center,
       children: [
         if (leading != null) ...[
-          IconTheme(
-            data: IconThemeData(size: metrics.iconSize),
-            child: leading!,
-          ),
+          IconTheme(data: iconTheme, child: leading!),
           SizedBox(width: metrics.spacing),
         ],
         if (text != null) Flexible(child: text),
         if (trailing != null) ...[
           SizedBox(width: metrics.spacing),
-          IconTheme(
-            data: IconThemeData(size: metrics.iconSize),
-            child: trailing!,
-          ),
+          IconTheme(data: iconTheme, child: trailing!),
         ],
       ],
     );
