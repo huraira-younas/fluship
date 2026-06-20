@@ -1,5 +1,6 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
+import 'package:fluship/shared/widgets/app_cta_button.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_toast.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
@@ -162,7 +163,7 @@ class FileManagerScreen extends StatelessWidget {
             minHeight: 2,
           ),
         if (state.entries.isEmpty)
-          const AppText.label('This folder is empty.').center().expanded()
+          _buildEmptyFolder(ft, state, context).center().expanded()
         else
           ListView.separated(
             itemCount: state.entries.length,
@@ -207,6 +208,31 @@ class FileManagerScreen extends StatelessWidget {
             },
           ).expanded(),
       ],
+    );
+  }
+
+  Widget _buildEmptyFolder(
+    FlushipThemeExtension ft,
+    FileManagerState state,
+    BuildContext context,
+  ) {
+    final atOutputsRoot = state.segments.length <= 1;
+    final parentIndex = state.segments.length - 2;
+
+    return AppCtaButton(
+      icon: Icons.folder_open_outlined,
+      color: ft.colors.textDim,
+      iconSize: 72,
+      title: 'This folder is empty',
+      text: atOutputsRoot
+          ? 'Run a pipeline to generate output files here.'
+          : 'There are no files or folders in this directory.',
+      btnText: atOutputsRoot ? null : 'Go back',
+      onTap: atOutputsRoot
+          ? null
+          : () => context.read<FileManagerBloc>().add(
+              FileManagerNavigateToSegment(index: parentIndex),
+            ),
     );
   }
 
