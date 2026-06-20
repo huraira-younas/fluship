@@ -2,11 +2,21 @@ import 'dart:io' show Directory, File, Platform;
 
 import 'package:fluship/features/console/models/console_line.dart';
 import 'package:fluship/features/pipeline/services/pipeline_log_writer.dart';
+import 'package:fluship/features/pipeline/utils/fluship_workspace_paths.dart';
 import 'package:fluship/features/pipeline/utils/pipeline_log_file_name.dart';
 import 'package:fluship/features/pipeline/utils/pipeline_log_formatter.dart';
+import 'package:fluship/features/pipeline/utils/pipeline_project_folder_name.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 void main() {
+  group('sanitizeProjectFolderName', () {
+    test('lowercases and slugifies app names', () {
+      expect(sanitizeProjectFolderName('ReelStay'), 'reelstay');
+      expect(sanitizeProjectFolderName('My Cool App'), 'my_cool_app');
+    });
+  });
+
   group('buildPipelineLogFileName', () {
     test('builds versioned log file name', () {
       expect(
@@ -19,6 +29,19 @@ void main() {
       expect(
         buildPipelineLogFileName(version: '1/0', buildNumber: '2*'),
         'v1_0_2__logs.txt',
+      );
+    });
+  });
+
+  group('pipelineLogRelativePath', () {
+    test('builds fluship lib logs path', () {
+      expect(
+        pipelineLogRelativePath(
+          projectName: 'ReelStay',
+          version: '1.5.4',
+          buildNumber: '5700',
+        ),
+        'lib/logs/reelstay/v1.5.4_5700_logs.txt',
       );
     });
   });
@@ -48,12 +71,14 @@ void main() {
       }
     });
 
-    test('writes logs under project logs folder', () async {
-      const writer = FilePipelineLogWriter();
+    test('writes logs under fluship lib/logs/project folder', () async {
+      final writer = FilePipelineLogWriter(
+        workspacePaths: FlushipWorkspacePaths(overrideRoot: tempDir.path),
+      );
       final savedPath = await writer.save(
-        projectRoot: tempDir.path,
-        buildNumber: '42',
-        version: '2.0.0',
+        projectName: 'ReelStay',
+        buildNumber: '5700',
+        version: '1.5.4',
         lines: const [
           ConsoleLine(stream: ConsoleStream.system, text: '[pipeline started]'),
           ConsoleLine(stream: ConsoleStream.system, text: '[exit 0]'),
@@ -62,7 +87,16 @@ void main() {
 
       final file = File(savedPath);
       expect(await file.exists(), isTrue);
-      expect(savedPath, contains('logs${Platform.pathSeparator}v2.0.0_42_logs.txt'));
+      expect(
+        savedPath,
+        contains(
+          'lib${Platform.pathSeparator}logs${Platform.pathSeparator}reelstay${Platform.pathSeparator}v1.5.4_5700_logs.txt',
+        ),
+      );
+      expect(
+        savedPath,
+        p.join(tempDir.path, 'lib', 'logs', 'reelstay', 'v1.5.4_5700_logs.txt'),
+      );
 
       final content = await file.readAsString();
       expect(content, contains('[pipeline started]'));

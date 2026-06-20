@@ -200,7 +200,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       );
 
       try {
-        await _savePipelineLog(projectRoot: projectRoot, sessionId: sessionId);
+        await _savePipelineLog(sessionId: sessionId);
       } catch (_) {}
     }
 
@@ -226,24 +226,27 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     );
   }
 
-  Future<void> _savePipelineLog({
-    required String projectRoot,
-    required String sessionId,
-  }) async {
+  Future<void> _savePipelineLog({required String sessionId}) async {
     final lines = _consolePort.sessionLines(sessionId);
     if (lines.isEmpty) return;
 
     final info = _configSource.state.appInfo;
+
+    final projectName = info.appName ?? 'unknown';
+    final buildNumber = info.buildNumber ?? '0';
+    final version = info.version ?? 'unknown';
+
     await _logWriter.save(
-      buildNumber: info.buildNumber ?? '0',
-      version: info.version ?? 'unknown',
-      projectRoot: projectRoot,
+      buildNumber: buildNumber,
+      projectName: projectName,
+      version: version,
       lines: lines,
     );
 
     final relativePath = pipelineLogRelativePath(
-      buildNumber: info.buildNumber ?? '0',
-      version: info.version ?? 'unknown',
+      buildNumber: buildNumber,
+      projectName: projectName,
+      version: version,
     );
 
     await _consolePort.logLine(

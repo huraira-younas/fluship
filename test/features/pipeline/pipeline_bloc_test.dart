@@ -120,22 +120,22 @@ class FakePipelineConsolePort implements PipelineConsolePort {
 
 class FakePipelineLogWriter implements PipelineLogWriter {
   List<ConsoleLine>? lastLines;
-  String? lastProjectRoot;
+  String? lastProjectName;
   String? lastVersion;
   String? lastBuildNumber;
 
   @override
   Future<String> save({
-    required String projectRoot,
+    required String projectName,
     required String buildNumber,
     required List<ConsoleLine> lines,
     required String version,
   }) async {
-    lastProjectRoot = projectRoot;
+    lastProjectName = projectName;
     lastBuildNumber = buildNumber;
     lastLines = List<ConsoleLine>.from(lines);
     lastVersion = version;
-    return 'logs/v${version}_${buildNumber}_logs.txt';
+    return 'lib/logs/$projectName/v${version}_${buildNumber}_logs.txt';
   }
 }
 
@@ -144,6 +144,17 @@ ConfigState _configWithSteps() {
     appInfo: const AppInfoModel(flutterProjectPath: '/project'),
     commonCmd: const CommonCmdModel(enabled: true, clean: true),
     android: const AndroidConfigModel(enabled: true, buildAab: true),
+  );
+}
+
+ConfigState _configWithStepsAndAppInfo() {
+  return _configWithSteps().copyWith(
+    appInfo: const AppInfoModel(
+      flutterProjectPath: '/project',
+      appName: 'ReelStay',
+      buildNumber: '5700',
+      version: '1.5.4',
+    ),
   );
 }
 
@@ -344,10 +355,11 @@ void main() {
     });
 
     test('saves full pipeline console output to logs file', () async {
-      final config = FakePipelineConfigSource(_configWithSteps());
+      final config = FakePipelineConfigSource(_configWithStepsAndAppInfo());
       final console = FakePipelineConsolePort();
       final logWriter = FakePipelineLogWriter();
       final bloc = PipelineBloc(
+        executor: const _StubPipelineExecutor(),
         configSource: config,
         consolePort: console,
         logWriter: logWriter,
@@ -360,7 +372,7 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 10));
       }
 
-      expect(logWriter.lastProjectRoot, '/project');
+      expect(logWriter.lastProjectName, 'ReelStay');
       expect(logWriter.lastLines, isNotNull);
       expect(logWriter.lastLines, isNotEmpty);
       expect(
@@ -368,7 +380,9 @@ void main() {
         isTrue,
       );
       expect(
-        console.logLines.any((line) => line.contains('[pipeline log saved to')),
+        console.logLines.any(
+          (line) => line.contains('[pipeline log saved to lib/logs/reelstay/'),
+        ),
         isTrue,
       );
 
