@@ -38,17 +38,7 @@ class PipelineUtils {
         .replaceAll(RegExp(r'^_|_$'), '');
   }
 
-  static String buildPipelineLogFileName({
-    required String buildNumber,
-    required String version,
-  }) {
-    final safeBuild = _sanitizeFileSegment(buildNumber);
-    final safeVersion = _sanitizeFileSegment(version);
-
-    return 'v${safeVersion}_${safeBuild}_logs.txt';
-  }
-
-  static String _sanitizeFileSegment(String value) {
+  static String sanitizePathSegment(String value) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return 'unknown';
 

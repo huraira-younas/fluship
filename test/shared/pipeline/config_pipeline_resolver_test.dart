@@ -95,7 +95,14 @@ void main() {
         state,
       ).map((step) => step.name).toList();
 
-      expect(names, ['Clean', 'Get', 'Build App Bundle', 'Build APK']);
+      expect(names, [
+        'Clean',
+        'Get',
+        'Build App Bundle',
+        'Collect App Bundle',
+        'Build APK',
+        'Collect APK',
+      ]);
     });
 
     test('resolves post-git with version placeholder in commit message', () {

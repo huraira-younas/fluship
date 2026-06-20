@@ -135,7 +135,7 @@ class FakePipelineLogWriter implements PipelineLogWriter {
     lastBuildNumber = buildNumber;
     lastLines = List<ConsoleLine>.from(lines);
     lastVersion = version;
-    return 'lib/logs/$projectName/v${version}_${buildNumber}_logs.txt';
+    return 'outputs/reelstay/v1.5.4/5700/logs.txt';
   }
 }
 
@@ -167,7 +167,11 @@ void main() {
     test('persists config and runs shell steps in order', () async {
       final config = FakePipelineConfigSource(_configWithSteps());
       final console = FakePipelineConsolePort();
-      final bloc = PipelineBloc(configSource: config, consolePort: console);
+      final bloc = PipelineBloc(
+        executor: const _StubPipelineExecutor(),
+        configSource: config,
+        consolePort: console,
+      );
 
       bloc.add(const RunPipeline());
       await _pumpBloc(bloc);
@@ -381,7 +385,7 @@ void main() {
       );
       expect(
         console.logLines.any(
-          (line) => line.contains('[pipeline log saved to lib/logs/reelstay/'),
+          (line) => line.contains('[pipeline log saved to outputs/reelstay/'),
         ),
         isTrue,
       );

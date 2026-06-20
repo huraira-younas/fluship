@@ -18,37 +18,22 @@ void main() {
     });
   });
 
-  group('buildPipelineLogFileName', () {
-    test('builds versioned log file name', () {
-      expect(
-        PipelineUtils.buildPipelineLogFileName(
-          version: '1.5.7',
-          buildNumber: '5705',
-        ),
-        'v1.5.7_5705_logs.txt',
-      );
-    });
-
+  group('sanitizePathSegment', () {
     test('sanitizes unsafe characters', () {
-      expect(
-        PipelineUtils.buildPipelineLogFileName(
-          version: '1/0',
-          buildNumber: '2*',
-        ),
-        'v1_0_2__logs.txt',
-      );
+      expect(PipelineUtils.sanitizePathSegment('1/0'), '1_0');
+      expect(PipelineUtils.sanitizePathSegment('2*'), '2_');
     });
   });
 
   group('pipelineLogRelativePath', () {
-    test('builds fluship lib logs path', () {
+    test('builds fluship outputs path', () {
       expect(
         pipelineLogRelativePath(
           projectName: 'ReelStay',
           version: '1.5.4',
           buildNumber: '5700',
         ),
-        'lib/logs/reelstay/v1.5.4_5700_logs.txt',
+        'outputs/reelstay/v1.5.4/5700/logs.txt',
       );
     });
   });
@@ -78,7 +63,7 @@ void main() {
       }
     });
 
-    test('writes logs under fluship lib/logs/project folder', () async {
+    test('writes logs under fluship outputs/project/version/build folder', () async {
       final writer = FilePipelineLogWriter(
         workspacePaths: FlushipWorkspacePaths(overrideRoot: tempDir.path),
       );
@@ -97,12 +82,12 @@ void main() {
       expect(
         savedPath,
         contains(
-          'lib${Platform.pathSeparator}logs${Platform.pathSeparator}reelstay${Platform.pathSeparator}v1.5.4_5700_logs.txt',
+          'outputs${Platform.pathSeparator}reelstay${Platform.pathSeparator}v1.5.4${Platform.pathSeparator}5700${Platform.pathSeparator}logs.txt',
         ),
       );
       expect(
         savedPath,
-        p.join(tempDir.path, 'lib', 'logs', 'reelstay', 'v1.5.4_5700_logs.txt'),
+        p.join(tempDir.path, 'outputs', 'reelstay', 'v1.5.4', '5700', 'logs.txt'),
       );
 
       final content = await file.readAsString();

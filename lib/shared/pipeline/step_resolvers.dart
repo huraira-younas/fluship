@@ -1,12 +1,16 @@
 import 'dart:io' show Platform;
 
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
+import 'package:fluship/features/pipeline/services/artifact_collector.dart';
+import 'package:fluship/features/pipeline/fluship_workspace_paths.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 
 import 'config_state_context.dart';
 import 'git_step_builder.dart';
 import 'command_step.dart';
 
+const _artifactCollector = FileArtifactCollector();
+const _workspacePaths = FlushipWorkspacePaths();
 const _projectService = FlutterProjectService();
 
 List<CommandStep> resolveAppInfo(ConfigState state) {
@@ -65,25 +69,36 @@ List<CommandStep> resolveAndroid(ConfigState state) {
 
   final android = state.android;
   return [
-    if (android.buildAab)
+    if (android.buildAab) ...[
       const CommandStep(
         command: 'flutter build aab --release',
         name: 'Build App Bundle',
       ),
+      _collectAabStep(state),
+    ],
     if (android.buildType != null)
-      switch (android.buildType) {
-        .apk => const CommandStep(
-          command: 'flutter build apk --release',
-          name: 'Build APK',
-        ),
-        .arbs => const CommandStep(
-          command: 'flutter build apk --split-per-abi',
-          name: 'Build AAR',
-        ),
-        _ => const CommandStep(
-          command: 'flutter build apk --release',
-          name: 'Build APK',
-        ),
+      ...switch (android.buildType) {
+        .apk => [
+          const CommandStep(
+            command: 'flutter build apk --release',
+            name: 'Build APK',
+          ),
+          _collectApksStep(state, name: 'Collect APK'),
+        ],
+        .arbs => [
+          const CommandStep(
+            command: 'flutter build apk --split-per-abi',
+            name: 'Build AAR',
+          ),
+          _collectApksStep(state, name: 'Collect Split APKs'),
+        ],
+        _ => [
+          const CommandStep(
+            command: 'flutter build apk --release',
+            name: 'Build APK',
+          ),
+          _collectApksStep(state, name: 'Collect APK'),
+        ],
       },
   ];
 }
@@ -98,8 +113,10 @@ List<CommandStep> resolveIos(ConfigState state) {
         command: 'pod deintegrate && pod update && pod install',
         name: 'Pod Clean',
       ),
-    if (ios.buildIpa)
+    if (ios.buildIpa) ...[
       const CommandStep(name: 'Build IPA', command: 'flutter build ipa'),
+      _collectIpaStep(state),
+    ],
   ];
 }
 
@@ -135,4 +152,57 @@ List<CommandStep> resolvePostBuild(ConfigState state) {
         name: 'Power',
       ),
   ];
+}
+
+Future<String> _resolveOutputDirectory(ConfigState state) async {
+  final flushipRoot = await _workspacePaths.resolveRoot();
+
+  return pipelineOutputDirectory(
+    projectName: state.appInfo.appName ?? 'unknown',
+    buildNumber: state.buildNumber,
+    flushipRoot: flushipRoot,
+    version: state.version,
+  );
+}
+
+CommandStep _collectApksStep(ConfigState state, {required String name}) {
+  return CommandStep(
+    command: 'collect: apk',
+    name: name,
+    onExecute: () async {
+      final outputDir = await _resolveOutputDirectory(state);
+      await _artifactCollector.collectApks(
+        sourceRoot: state.projectRoot,
+        outputDir: outputDir,
+      );
+    },
+  );
+}
+
+CommandStep _collectAabStep(ConfigState state) {
+  return CommandStep(
+    name: 'Collect App Bundle',
+    command: 'collect: aab',
+    onExecute: () async {
+      final outputDir = await _resolveOutputDirectory(state);
+      await _artifactCollector.collectAab(
+        sourceRoot: state.projectRoot,
+        outputDir: outputDir,
+      );
+    },
+  );
+}
+
+CommandStep _collectIpaStep(ConfigState state) {
+  return CommandStep(
+    command: 'collect: ipa',
+    name: 'Collect IPA',
+    onExecute: () async {
+      final outputDir = await _resolveOutputDirectory(state);
+      await _artifactCollector.collectIpa(
+        sourceRoot: state.projectRoot,
+        outputDir: outputDir,
+      );
+    },
+  );
 }

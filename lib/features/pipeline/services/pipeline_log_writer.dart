@@ -19,6 +19,7 @@ class FilePipelineLogWriter implements PipelineLogWriter {
   const FilePipelineLogWriter({FlushipWorkspacePaths? workspacePaths})
     : _workspacePaths = workspacePaths ?? const FlushipWorkspacePaths();
 
+  static const _pipelineLogFileName = 'logs.txt';
   final FlushipWorkspacePaths _workspacePaths;
 
   @override
@@ -28,20 +29,18 @@ class FilePipelineLogWriter implements PipelineLogWriter {
     required String buildNumber,
     required String version,
   }) async {
-    final fileName = PipelineUtils.buildPipelineLogFileName(
-      buildNumber: buildNumber,
-      version: version,
-    );
     final flushipRoot = await _workspacePaths.resolveRoot();
-    final logsDir = Directory(
-      flushipPipelineLogsDirectory(
+    final outputDir = Directory(
+      pipelineOutputDirectory(
         flushipRoot: flushipRoot,
         projectName: projectName,
+        buildNumber: buildNumber,
+        version: version,
       ),
     );
-    await logsDir.create(recursive: true);
+    await outputDir.create(recursive: true);
 
-    final file = File(p.join(logsDir.path, fileName));
+    final file = File(p.join(outputDir.path, _pipelineLogFileName));
     await file.writeAsString(PipelineUtils.formatPipelineLogLines(lines));
 
     return file.path;
@@ -54,12 +53,10 @@ String pipelineLogRelativePath({
   required String version,
 }) {
   return p.posix.join(
-    'lib',
-    'logs',
+    'outputs',
     PipelineUtils.sanitizeProjectFolderName(projectName),
-    PipelineUtils.buildPipelineLogFileName(
-      buildNumber: buildNumber,
-      version: version,
-    ),
+    'v${PipelineUtils.sanitizePathSegment(version)}',
+    PipelineUtils.sanitizePathSegment(buildNumber),
+    'logs.txt',
   );
 }

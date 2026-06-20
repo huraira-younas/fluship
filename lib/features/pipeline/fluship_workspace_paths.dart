@@ -57,14 +57,17 @@ class FlushipWorkspacePaths {
   }
 }
 
-String flushipPipelineLogsDirectory({
+String pipelineOutputDirectory({
   required String flushipRoot,
   required String projectName,
+  required String buildNumber,
+  required String version,
 }) {
   return p.join(
     flushipRoot,
-    'lib',
-    'logs',
+    'outputs',
     PipelineUtils.sanitizeProjectFolderName(projectName),
+    'v${PipelineUtils.sanitizePathSegment(version)}',
+    PipelineUtils.sanitizePathSegment(buildNumber),
   );
 }
