@@ -1,4 +1,4 @@
-import 'package:fluship/shared/pipeline/command_step.dart';
+import 'package:fluship/services/pipeline/pipeline.dart' show CommandStep;
 
 class PipelineStepResult {
   const PipelineStepResult({

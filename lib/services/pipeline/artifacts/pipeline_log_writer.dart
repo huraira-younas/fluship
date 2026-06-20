@@ -3,8 +3,8 @@ import 'dart:io' show Directory, File;
 import 'package:fluship/features/console/models/console_line.dart';
 import 'package:path/path.dart' as p;
 
-import '../fluship_workspace_paths.dart';
-import '../pipeline_utils.dart';
+import '../paths/fluship_workspace_paths.dart';
+import '../utils/pipeline_utils.dart';
 
 abstract interface class PipelineLogWriter {
   Future<String> save({
@@ -19,7 +19,8 @@ class FilePipelineLogWriter implements PipelineLogWriter {
   const FilePipelineLogWriter({FlushipWorkspacePaths? workspacePaths})
     : _workspacePaths = workspacePaths ?? const FlushipWorkspacePaths();
 
-  static const _pipelineLogFileName = 'logs.txt';
+  static const pipelineLogFileName = 'logs.txt';
+
   final FlushipWorkspacePaths _workspacePaths;
 
   @override
@@ -40,7 +41,7 @@ class FilePipelineLogWriter implements PipelineLogWriter {
     );
     await outputDir.create(recursive: true);
 
-    final file = File(p.join(outputDir.path, _pipelineLogFileName));
+    final file = File(p.join(outputDir.path, pipelineLogFileName));
     await file.writeAsString(PipelineUtils.formatPipelineLogLines(lines));
 
     return file.path;
@@ -57,6 +58,6 @@ String pipelineLogRelativePath({
     PipelineUtils.sanitizeProjectFolderName(projectName),
     'v${PipelineUtils.sanitizePathSegment(version)}',
     PipelineUtils.sanitizePathSegment(buildNumber),
-    'logs.txt',
+    FilePipelineLogWriter.pipelineLogFileName,
   );
 }

@@ -1,16 +1,12 @@
 import 'package:fluship/services/console/models/shell_run_result.dart';
-import 'package:fluship/shared/pipeline/config_pipeline_resolver.dart';
-import 'package:fluship/shared/pipeline/config_state_context.dart';
-import 'package:fluship/shared/pipeline/command_step.dart';
+import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../contracts/pipeline_config_source.dart';
 import '../contracts/pipeline_console_port.dart';
-import '../services/pipeline_log_writer.dart';
 import '../contracts/pipeline_executor.dart';
 import '../models/pipeline_step_view.dart';
-import '../pipeline_utils.dart';
 
 part 'pipeline_event.dart';
 part 'pipeline_state.dart';

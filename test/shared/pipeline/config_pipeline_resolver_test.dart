@@ -5,8 +5,7 @@ import 'package:fluship/shared/models/common_cmd.dart';
 import 'package:fluship/shared/models/post_build_config.dart';
 import 'package:fluship/shared/models/post_git.dart';
 import 'package:fluship/shared/models/pre_git.dart';
-import 'package:fluship/shared/pipeline/config_pipeline_resolver.dart';
-import 'package:fluship/shared/pipeline/config_state_context.dart';
+import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 ConfigState _state({

@@ -1,5 +1,4 @@
 import 'dart:io' show Directory, File;
-
 import 'package:path/path.dart' as p;
 
 abstract interface class ArtifactCollector {

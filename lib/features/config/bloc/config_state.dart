@@ -34,8 +34,6 @@ class ConfigState extends BaseBlocState {
     ios: IosConfigModel(),
   );
 
-  List<CommandStep> get pipelineSteps => ConfigPipelineResolver.resolve(this);
-
   @override
   List<Object> get props => [
     distribution,

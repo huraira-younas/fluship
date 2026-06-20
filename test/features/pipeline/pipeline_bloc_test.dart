@@ -1,4 +1,4 @@
-import 'package:fluship/features/pipeline/services/pipeline_log_writer.dart';
+import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/features/console/models/console_line.dart';
 import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
@@ -10,7 +10,6 @@ import 'package:fluship/services/console/models/shell_run_result.dart';
 import 'package:fluship/shared/models/android_config.dart';
 import 'package:fluship/shared/models/app_info.dart';
 import 'package:fluship/shared/models/common_cmd.dart';
-import 'package:fluship/shared/pipeline/command_step.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakePipelineConfigSource implements PipelineConfigSource {

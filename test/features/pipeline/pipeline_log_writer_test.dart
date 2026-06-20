@@ -1,9 +1,7 @@
 import 'dart:io' show Directory, File, Platform;
 
-import 'package:fluship/features/pipeline/services/pipeline_log_writer.dart';
-import 'package:fluship/features/pipeline/fluship_workspace_paths.dart';
+import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:fluship/features/console/models/console_line.dart';
-import 'package:fluship/features/pipeline/pipeline_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 

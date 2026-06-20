@@ -1,6 +1,7 @@
 import 'dart:io' show Directory, File, Platform;
 import 'package:path/path.dart' as p;
-import 'pipeline_utils.dart';
+
+import '../utils/pipeline_utils.dart';
 
 class FlushipWorkspacePaths {
   const FlushipWorkspacePaths({this.overrideRoot});

@@ -1,10 +1,10 @@
 import 'dart:io' show Platform;
 
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
-import 'package:fluship/features/pipeline/services/artifact_collector.dart';
-import 'package:fluship/features/pipeline/fluship_workspace_paths.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 
+import '../artifacts/artifact_collector.dart';
+import '../paths/fluship_workspace_paths.dart';
 import 'config_state_context.dart';
 import 'git_step_builder.dart';
 import 'command_step.dart';

@@ -1,6 +1,6 @@
 import 'dart:io' show Directory, File;
 
-import 'package:fluship/features/pipeline/services/artifact_collector.dart';
+import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 

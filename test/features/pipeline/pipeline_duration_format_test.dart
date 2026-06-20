@@ -1,4 +1,4 @@
-import 'package:fluship/features/pipeline/pipeline_utils.dart';
+import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

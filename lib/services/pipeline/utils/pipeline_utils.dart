@@ -1,4 +1,4 @@
-import '../console/models/console_line.dart';
+import 'package:fluship/features/console/models/console_line.dart';
 
 class PipelineUtils {
   static String formatPipelineDuration(Duration duration) {
