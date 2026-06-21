@@ -23,15 +23,12 @@ final class DistributionConfigModel extends BaseConfig {
   final GoogleDriveConfig? driveConfig;
   final bool appstore;
 
+  bool get canSendBuildReport => reportRecipient?.canSendBuildReport ?? false;
   bool get canSendToDrive => _hasCredential(driveConfig?.oauthJson);
+  bool get canSendToAppStore => Platform.isMacOS;
+  bool get canSendToPlayStore => false;
 
-  static bool canSendToPlayStore(String? saJsonPath) =>
-      _hasCredential(saJsonPath);
-
-  static bool canSendToAppStore() => Platform.isMacOS;
-
-  static bool _hasCredential(String? path) =>
-      path != null && path.isNotEmpty;
+  static bool _hasCredential(String? path) => path != null && path.isNotEmpty;
 
   factory DistributionConfigModel.fromJson(Map<String, dynamic>? json) {
     if (json == null) return const DistributionConfigModel();

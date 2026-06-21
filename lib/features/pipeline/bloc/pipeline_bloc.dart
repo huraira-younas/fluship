@@ -1,6 +1,5 @@
 import 'package:fluship/services/console/models/shell_run_result.dart';
 import 'package:fluship/services/distribution/distribution.dart';
-import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,12 +14,12 @@ part 'pipeline_state.dart';
 
 class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
   PipelineBloc({
-    DistributionService? distribution,
+    Map<DistributionStepKind, DistributionHandler>? distributions,
     PipelineLogWriter? logWriter,
     required this._configSource,
     required this._consolePort,
     PipelineExecutor? executor,
-  }) : _distribution = distribution ?? DistributionModule.createService(),
+  }) : _distributions = distributions ?? DistributionModule.createHandlerMap(),
        _logWriter = logWriter ?? const FilePipelineLogWriter(),
        _executor = executor ?? const PipelineExecutor(),
        super(PipelineState.idle()) {
@@ -29,8 +28,8 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     on<RunPipeline>(handler(_onRunPipeline));
   }
 
+  final Map<DistributionStepKind, DistributionHandler> _distributions;
   final PipelineConfigSource _configSource;
-  final DistributionService _distribution;
   final PipelineConsolePort _consolePort;
   final PipelineLogWriter _logWriter;
   final PipelineExecutor _executor;
@@ -57,6 +56,11 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
     final configState = _configSource.state;
     final projectRoot = configState.projectRoot.trim();
+    final info = configState.appInfo;
+
+    final projectName = info.appName ?? 'unknown';
+    final buildNumber = info.buildNumber ?? '0';
+    final version = info.version ?? 'unknown';
 
     if (projectRoot.isEmpty) {
       emit(
@@ -72,7 +76,69 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       return;
     }
 
-    final commandSteps = ConfigPipelineResolver.resolve(configState);
+    var summaryMessage = 'Pipeline completed successfully.';
+    var runStatus = PipelineRunStatus.completed;
+    late List<PipelineStepView> stepViews;
+    final startedAt = DateTime.now();
+    DistributionContext? cachedDC;
+    String? failureMessage;
+    String? savedLogPath;
+
+    Future<DistributionContext> distributionContextProvider() async {
+      if (cachedDC != null) return cachedDC!;
+
+      final sessionId = _sessionId;
+      if (sessionId != null && savedLogPath == null) {
+        try {
+          savedLogPath = await _savePipelineLog(
+            projectName: projectName,
+            buildNumber: buildNumber,
+            sessionId: sessionId,
+            version: version,
+          );
+        } catch (_) {}
+      }
+
+      final flushipRoot = await const FlushipWorkspacePaths().resolveRoot();
+      final artifactsDir = pipelineOutputDirectory(
+        projectName: projectName,
+        buildNumber: buildNumber,
+        flushipRoot: flushipRoot,
+        version: version,
+      );
+      final distributionFinishedAt = DateTime.now();
+
+      cachedDC = DistributionContext(
+        emailTheme: ReportHtmlTheme.fromCurrentTheme(),
+        config: configState.distribution,
+        snapshot: PipelineRunSnapshot(
+          totalElapsed: distributionFinishedAt.difference(startedAt),
+          platforms: DistributionPlatforms.fromConfig(configState),
+          steps: List<PipelineStepView>.of(stepViews),
+          finishedAt: distributionFinishedAt,
+          logFilePath: savedLogPath ?? '',
+          artifactsDir: artifactsDir,
+          buildNumber: buildNumber,
+          appName: projectName,
+          runStatus: runStatus,
+          startedAt: startedAt,
+          version: version,
+        ),
+        logger: PipelineDistributionLogger(
+          consolePort: _consolePort,
+          sessionId: sessionId!,
+        ),
+      );
+
+      return cachedDC!;
+    }
+
+    final commandSteps = ConfigPipelineResolver.resolve(
+      contextProvider: distributionContextProvider,
+      handlers: _distributions,
+      configState,
+    );
+
     if (commandSteps.isEmpty) {
       emit(
         PipelineState(
@@ -88,8 +154,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       return;
     }
 
-    final startedAt = DateTime.now();
-    final stepViews = commandSteps
+    stepViews = commandSteps
         .map(
           (step) => PipelineStepView(
             command: step.command,
@@ -116,10 +181,6 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       stream: .system,
     );
 
-    var runStatus = PipelineRunStatus.completed;
-    var summaryMessage = 'Pipeline completed successfully.';
-    String? failureMessage;
-
     for (var index = 0; index < commandSteps.length; index++) {
       if (_cancelRequested || isClosed) {
         runStatus = PipelineRunStatus.cancelled;
@@ -136,16 +197,16 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
           : await _runShellStep(step);
 
       if (_cancelRequested || result.wasCancelled) {
-        stepViews[index] = _finalizeStepTiming(stepViews[index]).copyWith(
-          errorMessage: 'Cancelled',
-          status: .failed,
-        );
+        stepViews[index] = _finalizeStepTiming(
+          stepViews[index],
+        ).copyWith(errorMessage: 'Cancelled', status: .failed);
         await _logStepTiming(
           errorMessage: 'Cancelled',
           view: stepViews[index],
           stepName: step.name,
           success: false,
         );
+
         summaryMessage = 'Pipeline cancelled.';
         runStatus = .cancelled;
 
@@ -166,6 +227,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
           stepName: step.name,
           success: false,
         );
+
         summaryMessage = '${step.name} failed.';
         runStatus = PipelineRunStatus.failed;
         failureMessage = result.errorMessage;
@@ -179,6 +241,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         status: PipelineStepStatus.completed,
         exitCode: result.exitCode,
       );
+
       await _logStepTiming(
         view: stepViews[index],
         stepName: step.name,
@@ -193,7 +256,6 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     final totalFormatted = PipelineUtils.formatPipelineDuration(totalElapsed);
 
     final sessionId = _sessionId;
-    String? logFilePath;
     if (sessionId != null) {
       await _consolePort.logLine(
         text: '[pipeline ${runStatus.name} in $totalFormatted]',
@@ -201,20 +263,13 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         stream: .system,
       );
 
-      try {
-        logFilePath = await _savePipelineLog(sessionId: sessionId);
-      } catch (_) {}
-
-      if (logFilePath != null) {
+      if (savedLogPath == null) {
         try {
-          await _runDistribution(
-            configState: configState,
-            logFilePath: logFilePath,
-            finishedAt: finishedAt,
-            runStatus: runStatus,
+          await _savePipelineLog(
+            projectName: projectName,
+            buildNumber: buildNumber,
             sessionId: sessionId,
-            startedAt: startedAt,
-            stepViews: stepViews,
+            version: version,
           );
         } catch (_) {}
       }
@@ -230,81 +285,37 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
     emit(
       state.copyWith(
+        error: failureMessage != null
+            ? CustomState(message: failureMessage, title: 'Pipeline')
+            : null,
         summaryMessage: summaryMessage,
         clearActiveStepIndex: true,
         finishedAt: finishedAt,
         runStatus: runStatus,
         steps: stepViews,
-        error: failureMessage == null
-            ? null
-            : CustomState(message: failureMessage, title: 'Pipeline'),
       ),
     );
   }
 
-  Future<void> _runDistribution({
-    required List<PipelineStepView> stepViews,
-    required PipelineRunStatus runStatus,
-    required ConfigState configState,
-    required DateTime finishedAt,
-    required DateTime startedAt,
-    required String logFilePath,
+  Future<String?> _savePipelineLog({
+    required String projectName,
+    required String buildNumber,
     required String sessionId,
+    required String version,
   }) async {
-    final info = configState.appInfo;
-    final flushipRoot = await const FlushipWorkspacePaths().resolveRoot();
-    final artifactsDir = pipelineOutputDirectory(
-      projectName: info.appName ?? 'unknown',
-      buildNumber: info.buildNumber ?? '0',
-      version: info.version ?? 'unknown',
-      flushipRoot: flushipRoot,
-    );
-
-    final snapshot = PipelineRunSnapshot(
-      platforms: DistributionPlatforms.fromConfig(configState),
-      totalElapsed: finishedAt.difference(startedAt),
-      steps: List<PipelineStepView>.of(stepViews),
-      buildNumber: info.buildNumber ?? '0',
-      appName: info.appName ?? 'unknown',
-      version: info.version ?? 'unknown',
-      artifactsDir: artifactsDir,
-      logFilePath: logFilePath,
-      finishedAt: finishedAt,
-      runStatus: runStatus,
-      startedAt: startedAt,
-    );
-
-    await _distribution.run(
-      emailTheme: ReportHtmlTheme.fromCurrentTheme(),
-      config: configState.distribution,
-      snapshot: snapshot,
-      logger: PipelineDistributionLogger(
-        consolePort: _consolePort,
-        sessionId: sessionId,
-      ),
-    );
-  }
-
-  Future<String?> _savePipelineLog({required String sessionId}) async {
     final lines = _consolePort.sessionLines(sessionId);
     if (lines.isEmpty) return null;
 
-    final info = _configSource.state.appInfo;
-
-    final projectName = info.appName ?? 'unknown';
-    final buildNumber = info.buildNumber ?? '0';
-    final version = info.version ?? 'unknown';
-
     final logPath = await _logWriter.save(
-      buildNumber: buildNumber,
       projectName: projectName,
+      buildNumber: buildNumber,
       version: version,
       lines: lines,
     );
 
     final relativePath = pipelineLogRelativePath(
-      buildNumber: buildNumber,
       projectName: projectName,
+      buildNumber: buildNumber,
       version: version,
     );
 
@@ -334,6 +345,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
   PipelineStepView _finalizeStepTiming(PipelineStepView view) {
     final started = view.startedAt;
     if (started == null) return view;
+    
     return view.copyWith(
       elapsed: DateTime.now().difference(started),
       clearStartedAt: true,

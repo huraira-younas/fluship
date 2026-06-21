@@ -1,10 +1,14 @@
 import 'dart:io' show Platform;
 
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
+import 'package:fluship/services/distribution/contracts/distribution_handler.dart';
+import 'package:fluship/services/distribution/contracts/distribution_context.dart';
+import 'package:fluship/services/distribution/distribution_service.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 
-import '../artifacts/artifact_collector.dart';
 import '../paths/fluship_workspace_paths.dart';
+import '../artifacts/artifact_collector.dart';
+import 'distribution_step_kind.dart';
 import 'config_state_context.dart';
 import 'git_step_builder.dart';
 import 'command_step.dart';
@@ -74,7 +78,12 @@ List<CommandStep> resolveAndroid(ConfigState state) {
         command: 'flutter build aab --release',
         name: 'Build App Bundle',
       ),
-      _collectAabStep(state),
+      _collectArtifactStep(
+        state,
+        collector: _artifactCollector.collectAab,
+        name: 'Collect App Bundle',
+        command: 'collect: aab',
+      ),
     ],
     if (android.buildType != null)
       ...switch (android.buildType) {
@@ -83,21 +92,36 @@ List<CommandStep> resolveAndroid(ConfigState state) {
             command: 'flutter build apk --release',
             name: 'Build APK',
           ),
-          _collectApksStep(state, name: 'Collect APK'),
+          _collectArtifactStep(
+            state,
+            collector: _artifactCollector.collectApks,
+            command: 'collect: apk',
+            name: 'Collect APK',
+          ),
         ],
         .arbs => [
           const CommandStep(
             command: 'flutter build apk --split-per-abi',
             name: 'Build AAR',
           ),
-          _collectApksStep(state, name: 'Collect Split APKs'),
+          _collectArtifactStep(
+            state,
+            collector: _artifactCollector.collectApks,
+            name: 'Collect Split APKs',
+            command: 'collect: apk',
+          ),
         ],
         _ => [
           const CommandStep(
             command: 'flutter build apk --release',
             name: 'Build APK',
           ),
-          _collectApksStep(state, name: 'Collect APK'),
+          _collectArtifactStep(
+            state,
+            collector: _artifactCollector.collectApks,
+            command: 'collect: apk',
+            name: 'Collect APK',
+          ),
         ],
       },
   ];
@@ -115,7 +139,12 @@ List<CommandStep> resolveIos(ConfigState state) {
       ),
     if (ios.buildIpa) ...[
       const CommandStep(name: 'Build IPA', command: 'flutter build ipa'),
-      _collectIpaStep(state),
+      _collectArtifactStep(
+        state,
+        collector: _artifactCollector.collectIpa,
+        command: 'collect: ipa',
+        name: 'Collect IPA',
+      ),
     ],
   ];
 }
@@ -137,10 +166,43 @@ List<CommandStep> resolvePostGit(ConfigState state) {
   ];
 }
 
-List<CommandStep> resolveDistribution(ConfigState state) {
-  // Phase 2+: Google Drive + drive link email via DistributionService handlers
-  // wired as CommandStep.onExecute once upload steps need mid-pipeline execution.
-  return const [];
+List<CommandStep> resolveDistribution(
+  ConfigState state, {
+  required Map<DistributionStepKind, DistributionHandler> handlers,
+  required Future<DistributionContext> Function() contextProvider,
+}) {
+  final distribution = state.distribution;
+  if (!distribution.enabled) return const [];
+
+  CommandStep distributionStep(DistributionStepKind kind) {
+    final handler = handlers[kind]!;
+    return CommandStep(
+      command: kind.command,
+      name: kind.label,
+      onExecute: () async {
+        final context = await contextProvider();
+        final result = await handler.run(context);
+        await logDistributionHandlerResult(
+          result,
+          context.logger,
+          handler.name,
+        );
+        if (result.isFailed) {
+          throw Exception(result.message);
+        }
+      },
+    );
+  }
+
+  return [
+    for (final kind in <DistributionStepKind>[
+      if (distribution.canSendToDrive) .drive,
+      if (distribution.canSendToAppStore) .appStore,
+      if (distribution.canSendToPlayStore) .playStore,
+      if (distribution.canSendBuildReport) .report,
+    ])
+      if (handlers.containsKey(kind)) distributionStep(kind),
+  ];
 }
 
 List<CommandStep> resolvePostBuild(ConfigState state) {
@@ -158,55 +220,29 @@ List<CommandStep> resolvePostBuild(ConfigState state) {
   ];
 }
 
-Future<String> _resolveOutputDirectory(ConfigState state) async {
-  final flushipRoot = await _workspacePaths.resolveRoot();
+CommandStep _collectArtifactStep(
+  ConfigState state, {
+  required Future<List<String>> Function({
+    required String sourceRoot,
+    required String outputDir,
+  })
+  collector,
 
-  return pipelineOutputDirectory(
-    projectName: state.appInfo.appName ?? 'unknown',
-    buildNumber: state.buildNumber,
-    flushipRoot: flushipRoot,
-    version: state.version,
-  );
-}
-
-CommandStep _collectApksStep(ConfigState state, {required String name}) {
+  required String command,
+  required String name,
+}) {
   return CommandStep(
-    command: 'collect: apk',
+    command: command,
     name: name,
     onExecute: () async {
-      final outputDir = await _resolveOutputDirectory(state);
-      await _artifactCollector.collectApks(
-        sourceRoot: state.projectRoot,
-        outputDir: outputDir,
+      final flushipRoot = await _workspacePaths.resolveRoot();
+      final outputDir = pipelineOutputDirectory(
+        projectName: state.appInfo.appName ?? 'unknown',
+        buildNumber: state.buildNumber,
+        flushipRoot: flushipRoot,
+        version: state.version,
       );
-    },
-  );
-}
-
-CommandStep _collectAabStep(ConfigState state) {
-  return CommandStep(
-    name: 'Collect App Bundle',
-    command: 'collect: aab',
-    onExecute: () async {
-      final outputDir = await _resolveOutputDirectory(state);
-      await _artifactCollector.collectAab(
-        sourceRoot: state.projectRoot,
-        outputDir: outputDir,
-      );
-    },
-  );
-}
-
-CommandStep _collectIpaStep(ConfigState state) {
-  return CommandStep(
-    command: 'collect: ipa',
-    name: 'Collect IPA',
-    onExecute: () async {
-      final outputDir = await _resolveOutputDirectory(state);
-      await _artifactCollector.collectIpa(
-        sourceRoot: state.projectRoot,
-        outputDir: outputDir,
-      );
+      await collector(sourceRoot: state.projectRoot, outputDir: outputDir);
     },
   );
 }

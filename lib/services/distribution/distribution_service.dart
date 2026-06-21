@@ -7,6 +7,21 @@ import 'models/pipeline_run_snapshot.dart';
 import 'models/distribution_result.dart';
 import 'email/report_html_theme.dart';
 
+Future<void> logDistributionHandlerResult(
+  DistributionResult result,
+  DistributionLogger logger,
+  String handlerName,
+) {
+  final prefix = switch (result.status) {
+    .skipped => '[distribution] $handlerName skipped:',
+    .failed => '[distribution] $handlerName failed:',
+    .success => '[distribution] $handlerName:',
+  };
+
+  final suffix = result.message.isEmpty ? '\n' : ' ${result.message}\n';
+  return logger.logLine(result.copyWith(message: '$prefix$suffix'));
+}
+
 class DistributionService {
   DistributionService({required List<DistributionHandler> handlers})
     : _handlers = List<DistributionHandler>.unmodifiable(handlers);
@@ -37,26 +52,11 @@ class DistributionService {
         DistributionResult.success('[${handler.name} started]\n'),
       );
       final result = await handler.run(context);
-      await _logResult(result, logger, handler.name);
+      await logDistributionHandlerResult(result, logger, handler.name);
     }
 
     await logger.logLine(
       DistributionResult.success('[distribution finished]\n'),
     );
-  }
-
-  Future<void> _logResult(
-    DistributionResult result,
-    DistributionLogger logger,
-    String handlerName,
-  ) {
-    final prefix = switch (result.status) {
-      .skipped => '[distribution] $handlerName skipped:',
-      .failed => '[distribution] $handlerName failed:',
-      .success => '[distribution] $handlerName:',
-    };
-
-    final suffix = result.message.isEmpty ? '\n' : ' ${result.message}\n';
-    return logger.logLine(result.copyWith(message: '$prefix$suffix'));
   }
 }

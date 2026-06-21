@@ -36,15 +36,11 @@ class AppLocator {
 
     getIt.registerSingleton(ConsoleBloc(pool: getIt<IConsoleSessionPool>()));
 
-    getIt.registerSingleton<DistributionService>(
-      DistributionModule.createService(),
-    );
-
     getIt.registerSingleton(
       PipelineBloc(
         configSource: ConfigBlocPipelineSource(getIt<ConfigBloc>()),
         consolePort: ConsoleBlocPipelinePort(getIt<ConsoleBloc>()),
-        distribution: getIt<DistributionService>(),
+        distributions: DistributionModule.createHandlerMap(),
       ),
     );
   }

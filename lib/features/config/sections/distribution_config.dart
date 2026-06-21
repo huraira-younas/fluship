@@ -50,13 +50,10 @@ class DistributionConfig extends StatelessWidget {
         final report = dist.reportRecipient ?? const ReportRecipientConfig();
         final drive = dist.driveConfig ?? const GoogleDriveConfig();
 
-        final canPlay = DistributionConfigModel.canSendToPlayStore(
-          view.playStoreSaJson,
-        );
-
-        final canBuildReport = report.canSendBuildReport;
-        final sectionEnabled = dist.enabled;
+        final canBuildReport = dist.canSendBuildReport;
+        final canPlay = dist.canSendToPlayStore;
         final canDrive = dist.canSendToDrive;
+        final sectionEnabled = dist.enabled;
 
         return AppCard(
           state: AppCardState(

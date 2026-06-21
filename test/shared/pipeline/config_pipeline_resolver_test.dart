@@ -1,11 +1,15 @@
+import 'package:fluship/services/distribution/contracts/distribution_context.dart';
+import 'package:fluship/services/distribution/contracts/distribution_handler.dart';
+import 'package:fluship/services/distribution/models/distribution_result.dart';
+import 'package:fluship/shared/models/distribution/distribution_config.dart';
+import 'package:fluship/shared/models/post_build_config.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/shared/models/android_config.dart';
-import 'package:fluship/shared/models/app_info.dart';
-import 'package:fluship/shared/models/common_cmd.dart';
-import 'package:fluship/shared/models/post_build_config.dart';
-import 'package:fluship/shared/models/post_git.dart';
-import 'package:fluship/shared/models/pre_git.dart';
 import 'package:fluship/services/pipeline/pipeline.dart';
+import 'package:fluship/shared/models/common_cmd.dart';
+import 'package:fluship/shared/models/post_git.dart';
+import 'package:fluship/shared/models/app_info.dart';
+import 'package:fluship/shared/models/pre_git.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 ConfigState _state({
@@ -15,22 +19,45 @@ ConfigState _state({
   AndroidConfigModel? android,
   PostGitModel? postGit,
   PostBuildConfigModel? postBuild,
+  DistributionConfigModel? distribution,
 }) {
   final base = ConfigState.empty();
   return base.copyWith(
-    appInfo: appInfo ?? base.appInfo,
-    preGit: preGit ?? base.preGit,
+    distribution: distribution ?? base.distribution,
+    postBuild: postBuild ?? base.postBuild,
     commonCmd: commonCmd ?? base.commonCmd,
+    appInfo: appInfo ?? base.appInfo,
     android: android ?? base.android,
     postGit: postGit ?? base.postGit,
-    postBuild: postBuild ?? base.postBuild,
+    preGit: preGit ?? base.preGit,
   );
 }
+
+class _FakeDistributionHandler implements DistributionHandler {
+  const _FakeDistributionHandler(this.stepKind);
+
+  final DistributionStepKind stepKind;
+
+  @override
+  String get name => stepKind.label;
+
+  @override
+  Future<DistributionResult> run(DistributionContext context) async {
+    return DistributionResult.success('ok');
+  }
+}
+
+List<CommandStep> _resolve(ConfigState state) =>
+    ConfigPipelineResolver.resolve(
+      state,
+      contextProvider: () => throw UnimplementedError(),
+      handlers: const {},
+    );
 
 void main() {
   group('ConfigPipelineResolver', () {
     test('returns empty list for default empty state', () {
-      expect(ConfigPipelineResolver.resolve(ConfigState.empty()), isEmpty);
+      expect(_resolve(ConfigState.empty()), isEmpty);
     });
 
     test('resolves app info bump step when version and build number set', () {
@@ -42,7 +69,7 @@ void main() {
         ),
       );
 
-      final steps = ConfigPipelineResolver.resolve(state);
+      final steps = _resolve(state);
 
       expect(steps, hasLength(1));
       expect(steps.first.name, 'Bump Version');
@@ -64,7 +91,7 @@ void main() {
         ),
       );
 
-      final steps = ConfigPipelineResolver.resolve(state);
+      final steps = _resolve(state);
       final names = steps.map((step) => step.name).toList();
 
       expect(names, ['Bump Version', 'Pre-Commit', 'Pre-Pull']);
@@ -78,7 +105,7 @@ void main() {
         android: const AndroidConfigModel(enabled: false, buildAab: true),
       );
 
-      expect(ConfigPipelineResolver.resolve(state), isEmpty);
+      expect(_resolve(state), isEmpty);
     });
 
     test('resolves common and android steps', () {
@@ -90,9 +117,7 @@ void main() {
         ),
       );
 
-      final names = ConfigPipelineResolver.resolve(
-        state,
-      ).map((step) => step.name).toList();
+      final names = _resolve(state).map((step) => step.name).toList();
 
       expect(names, [
         'Clean',
@@ -110,7 +135,7 @@ void main() {
         postGit: const PostGitModel(postCommit: true, targetBranch: 'main'),
       );
 
-      final steps = ConfigPipelineResolver.resolve(state);
+      final steps = _resolve(state);
       final commitStep = steps.firstWhere((step) => step.name == 'Post-Commit');
 
       expect(commitStep.command, contains('3.1.4 release'));
@@ -124,19 +149,55 @@ void main() {
         ),
       );
 
-      final names = ConfigPipelineResolver.resolve(
-        state,
-      ).map((step) => step.name).toList();
+      final names = _resolve(state).map((step) => step.name).toList();
 
       expect(names, ['Open Outputs', 'Power']);
     });
 
-    test('pipelineSteps getter matches resolver', () {
+    test('includes distribution steps when handlers are provided', () {
       final state = _state(
-        appInfo: const AppInfoModel(buildNumber: '5', version: '1.0.0'),
+        distribution: const DistributionConfigModel(
+          reportRecipient: ReportRecipientConfig(
+            reportRecipient: 'dev@example.com',
+            gmailAddress: 'sender@gmail.com',
+            appPassword: 'secret',
+          ),
+        ),
       );
 
-      expect(state.pipelineSteps, ConfigPipelineResolver.resolve(state));
+      final steps = ConfigPipelineResolver.resolve(
+        state,
+        handlers: {
+          DistributionStepKind.report: const _FakeDistributionHandler(
+            DistributionStepKind.report,
+          ),
+        },
+        contextProvider: () => throw UnimplementedError(),
+      );
+
+      final names = steps.map((step) => step.name).toList();
+
+      expect(names, contains('Send Build Report'));
+      expect(
+        steps.firstWhere((step) => step.name == 'Send Build Report').isInternal,
+        isTrue,
+      );
+    });
+
+    test('skips distribution steps when no handlers match', () {
+      final state = _state(
+        distribution: const DistributionConfigModel(
+          reportRecipient: ReportRecipientConfig(
+            reportRecipient: 'dev@example.com',
+            gmailAddress: 'sender@gmail.com',
+            appPassword: 'secret',
+          ),
+        ),
+      );
+
+      final names = _resolve(state).map((step) => step.name).toList();
+
+      expect(names, isNot(contains('Send Build Report')));
     });
   });
 
