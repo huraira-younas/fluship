@@ -18,12 +18,14 @@ import 'navigator_cubit.dart';
 class LayoutTopBuilder extends StatelessWidget {
   const LayoutTopBuilder({
     required this.selectedTab,
+    this.sidePanel = false,
     required this.spacing,
     super.key,
   });
 
   final LayoutTabs selectedTab;
   final ThemeSpacing spacing;
+  final bool sidePanel;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +33,7 @@ class LayoutTopBuilder extends StatelessWidget {
       selector: (state) => state.isRunning,
       builder: (context, isRunning) {
         return AppButton.primary(
+          isExpanded: sidePanel,
           isLoading: isRunning,
           onPressed: isRunning
               ? null
@@ -43,58 +46,91 @@ class LayoutTopBuilder extends StatelessWidget {
       },
     );
 
-    final fileManager = AppButton.icon(
-      onPressed: () => FileManagerRoutes.openFileManager(),
-      leading: const Icon(Icons.folder),
-      variant: .outline,
+    final fileManager = sidePanel
+        ? SizedBox(
+            width: double.infinity,
+            child: AppButton.icon(
+              onPressed: () => FileManagerRoutes.openFileManager(),
+              leading: const Icon(Icons.folder),
+              variant: .outline,
+            ),
+          )
+        : AppButton.icon(
+            onPressed: () => FileManagerRoutes.openFileManager(),
+            leading: const Icon(Icons.folder),
+            variant: .outline,
+          );
+
+    final tabPadding = EdgeInsets.symmetric(
+      horizontal: spacing.lg + 10,
+      vertical: spacing.sm,
     );
 
-    return Column(
-      spacing: spacing.lg,
-      children: <Widget>[
-        BlocSelector<ConfigBloc, ConfigState, AppInfoModel>(
-          selector: (state) => state.appInfo,
-          builder: (context, appInfo) {
-            return ResponsiveBuilder(
-              builder: (context, info) {
-                final isMobile = info.isMobile;
-                final header = <Widget>[
-                  if (isMobile)
-                    AppText.display(appInfo.appName ?? 'Fluship')
-                  else
-                    AppText.display(appInfo.appName ?? 'Fluship').expanded(),
-                  Row(
-                    spacing: spacing.md,
-                    children: [
-                      if (isMobile) pipeline.expanded() else pipeline,
-                      fileManager,
-                    ],
-                  ),
-                ];
+    final tabs = sidePanel
+        ? AppTabTiles(
+            onChange: (tab) => context.read<NavigatorCubit>().navigate(tab),
+            contentPadding: tabPadding,
+            labels: LayoutTabs.values,
+            label: selectedTab,
+          )
+        : AppTabs(
+            onChange: (tab) => context.read<NavigatorCubit>().navigate(tab),
+            contentPadding: tabPadding,
+            labels: LayoutTabs.values,
+            label: selectedTab,
+          );
 
-                if (isMobile) {
-                  return Column(
+    return BlocSelector<ConfigBloc, ConfigState, AppInfoModel>(
+      selector: (state) => state.appInfo,
+      builder: (context, appInfo) {
+        if (sidePanel) {
+          return Column(
+            crossAxisAlignment: .stretch,
+            spacing: spacing.lg,
+            children: [
+              AppText.display(appInfo.appName ?? 'Fluship'),
+              pipeline,
+              fileManager,
+              tabs,
+            ],
+          );
+        }
+
+        return ResponsiveBuilder(
+          builder: (context, info) {
+            final isTablet = info.isTabletOrMobile;
+            final header = <Widget>[
+              if (isTablet)
+                AppText.display(appInfo.appName ?? 'Fluship')
+              else
+                AppText.display(appInfo.appName ?? 'Fluship').expanded(),
+              Row(
+                spacing: spacing.md,
+                children: [
+                  if (isTablet) pipeline.expanded() else pipeline,
+                  fileManager,
+                ],
+              ),
+            ];
+
+            return Column(
+              crossAxisAlignment: .stretch,
+              spacing: spacing.lg,
+              children: [
+                if (isTablet)
+                  Column(
                     crossAxisAlignment: .stretch,
                     spacing: spacing.md,
                     children: header,
-                  );
-                }
-
-                return Row(spacing: spacing.md, children: header);
-              },
+                  )
+                else
+                  Row(spacing: spacing.md, children: header),
+                tabs,
+              ],
             );
           },
-        ),
-        AppTabs(
-          contentPadding: .symmetric(
-            horizontal: spacing.lg + 10,
-            vertical: spacing.sm,
-          ),
-          onChange: (tab) => context.read<NavigatorCubit>().navigate(tab),
-          labels: LayoutTabs.values,
-          label: selectedTab,
-        ),
-      ],
+        );
+      },
     );
   }
 }

@@ -64,14 +64,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
     );
   }
 
-  Widget _buildContent(
-    BuildContext context,
-    ThemeSpacing spacing,
-    LayoutTabs state,
-  ) {
-    final isMobile = context.isMobile;
-    final hPad = isMobile ? spacing.md : spacing.lg;
-
+  Widget _buildTabBody({required LayoutTabs state, required double hPad}) {
     final key = ValueKey(state.value);
     final tab = _tabs[state.value];
 
@@ -79,22 +72,72 @@ class _LayoutScreenState extends State<LayoutScreen> {
         ? Padding(padding: .all(hPad), child: tab)
         : SingleChildScrollView(padding: .all(hPad), child: tab);
 
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: KeyedSubtree(key: key, child: body),
+    );
+  }
+
+  Widget _buildContent(
+    BuildContext context,
+    ThemeSpacing spacing,
+    LayoutTabs state,
+  ) {
+    final isTablet = context.isTabletOrMobile;
+    final hPad = isTablet ? spacing.md : spacing.lg;
+    final topPad = isTablet ? MediaQuery.paddingOf(context).top : spacing.lg;
+
+    if (isTablet) {
+      return Column(
+        spacing: spacing.sm,
+        children: [
+          LayoutTopBuilder(
+            selectedTab: state,
+            spacing: spacing,
+          ).padOnly(l: hPad, r: hPad),
+          _buildTabBody(state: state, hPad: hPad).expanded(),
+          const AppText.accent("Made with ❤️ by Senpai").center(),
+        ],
+      ).padOnly(t: topPad, b: spacing.lg);
+    }
+
+    final ft = context.flushipTheme;
+
     return Column(
       spacing: spacing.sm,
       children: [
-        LayoutTopBuilder(
-          selectedTab: state,
-          spacing: spacing,
-        ).padOnly(l: hPad, r: hPad),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: KeyedSubtree(key: key, child: body),
+        Row(
+          crossAxisAlignment: .stretch,
+          children: [
+            Container(
+              height: double.infinity,
+              decoration: BoxDecoration(
+                border: Border(right: BorderSide(color: ft.colors.cardBorder)),
+                color: ft.colors.consoleBg.withValues(alpha: 0.35),
+              ),
+              child: Column(
+                children: <Widget>[
+                  SingleChildScrollView(
+                    padding: .all(hPad),
+                    child: LayoutTopBuilder(
+                      selectedTab: state,
+                      spacing: spacing,
+                      sidePanel: true,
+                    ),
+                  ).expanded(),
+                  const AppText.accent(
+                    "Made with ❤️ by Senpai",
+                  ).padOnly(b: spacing.sm).center(),
+                ],
+              ),
+            ).expanded(flex: LayoutConstraints.sidePanelFlex),
+            _buildTabBody(
+              state: state,
+              hPad: hPad,
+            ).expanded(flex: LayoutConstraints.bodyFlex),
+          ],
         ).expanded(),
-        const AppText.accent("Made with ❤️ by Senpai").center(),
       ],
-    ).padOnly(
-      t: isMobile ? MediaQuery.paddingOf(context).top : spacing.lg,
-      b: spacing.lg,
     );
   }
 }

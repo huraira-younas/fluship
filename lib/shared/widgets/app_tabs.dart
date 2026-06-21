@@ -1,6 +1,8 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/string_extensions.dart';
+import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
+import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
@@ -231,7 +233,7 @@ class _AppTabsState<T> extends State<AppTabs<T>> {
           },
         ),
       ),
-    );
+    ).center();
   }
 }
 
@@ -272,6 +274,99 @@ class _TabButton extends StatelessWidget {
               : colors.textDim,
           weight: isSelected && !_disabled ? .w700 : .w500,
           title,
+        ),
+      ),
+    );
+  }
+}
+
+class AppTabTiles<T> extends StatelessWidget {
+  const AppTabTiles({
+    required this.onChange,
+    required this.labels,
+    required this.label,
+    this.contentPadding,
+    super.key,
+  });
+
+  final void Function(T label) onChange;
+  final EdgeInsets? contentPadding;
+  final List<T> labels;
+  final T label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.flushipTheme;
+    final colors = theme.colors;
+    final radius = theme.radius;
+
+    return Column(
+      crossAxisAlignment: .stretch,
+      spacing: theme.spacing.sm,
+      children: List.generate(labels.length, (idx) {
+        final value = labels[idx];
+        final active = label == value;
+
+        final text = value is Enum
+            ? value.name
+            : value is String
+            ? value
+            : value.toString();
+
+        return _TabTileButton(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onChange(value);
+          },
+          contentPadding: contentPadding,
+          title: text.capitalize,
+          isSelected: active,
+          radius: radius.btn,
+          colors: colors,
+        );
+      }),
+    );
+  }
+}
+
+class _TabTileButton extends StatelessWidget {
+  const _TabTileButton({
+    required this.contentPadding,
+    required this.isSelected,
+    required this.title,
+    required this.colors,
+    required this.radius,
+    required this.onTap,
+  });
+
+  final EdgeInsets? contentPadding;
+  final ThemePalette colors;
+  final VoidCallback onTap;
+  final bool isSelected;
+  final String title;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: isSelected ? colors.text : colors.consoleBg,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: colors.cardBorder),
+        borderRadius: .circular(radius),
+      ),
+      clipBehavior: .antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          width: .infinity,
+          padding:
+              contentPadding ?? const .symmetric(horizontal: 20, vertical: 14),
+          child: AppText(
+            color: isSelected ? colors.bg : colors.textDim,
+            weight: isSelected ? .w700 : .w500,
+            variant: .custom,
+            title,
+          ),
         ),
       ),
     );

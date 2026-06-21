@@ -31,7 +31,9 @@ class ResponsiveInfo extends Equatable {
   final double height;
   final double width;
 
+  bool get isTabletOrMobile => isMobile || isTablet;
   bool get isMobile => breakpoint == .compact;
+  bool get isTablet => breakpoint == .medium;
 
   bool get isDesktop =>
       breakpoint == .extraLarge ||

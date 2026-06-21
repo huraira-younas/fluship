@@ -9,8 +9,9 @@ extension ResponsiveContext on BuildContext {
   ResponsiveInfo get responsive => .fromContext(this);
 
   AppBreakpoint get breakpoint => responsive.breakpoint;
+
+  bool get isTabletOrMobile => responsive.isTablet || responsive.isMobile;
   bool get isDesktop => responsive.isDesktop;
-  bool get isMobile => responsive.isMobile;
 
   T responsiveValue<T>({
     BreakpointConfig? config,
