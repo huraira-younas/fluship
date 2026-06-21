@@ -4,7 +4,6 @@ import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/features/console/views/console_screen.dart';
 import 'package:fluship/core/responsive/responsive_extension.dart';
 import 'package:fluship/features/config/views/config_screen.dart';
-import 'package:fluship/features/console/bloc/console_bloc.dart';
 import 'package:fluship/shared/app_layout/navigator_cubit.dart';
 import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,32 +20,12 @@ class LayoutScreen extends StatefulWidget {
   State<LayoutScreen> createState() => _LayoutScreenState();
 }
 
-class _LayoutScreenState extends State<LayoutScreen>
-    with WidgetsBindingObserver {
+class _LayoutScreenState extends State<LayoutScreen> {
   final List<Widget> _tabs = [
     const ConfigScreen(),
     const ConsoleScreen(),
     const SettingsScreen(),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == .detached) {
-      context.read<ConsoleBloc>().add(const DisposeAllSessions());
-    }
-  }
 
   @override
   Widget build(BuildContext ctx) {
