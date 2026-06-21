@@ -33,6 +33,9 @@ class DistributionService {
     );
 
     for (final handler in _handlers) {
+      await logger.logLine(
+        DistributionResult.success('[${handler.name} started]\n'),
+      );
       final result = await handler.run(context);
       await _logResult(result, logger, handler.name);
     }
