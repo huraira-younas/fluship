@@ -9,10 +9,12 @@ class SwitchLabel extends StatelessWidget {
     this.disabled = false,
     required this.label,
     required this.value,
+    this.error,
     super.key,
   });
 
   final ValueChanged<bool> onChange;
+  final String? error;
   final bool disabled;
   final String label;
   final bool value;
@@ -32,6 +34,9 @@ class SwitchLabel extends StatelessWidget {
           color: disabled || !value ? ft.colors.textDim : ft.colors.section,
           label,
         ),
+        subtitle: error != null
+            ? AppText.custom(color: ft.colors.danger, error!)
+            : null,
         leading: Switch(
           onChanged: disabled
               ? null

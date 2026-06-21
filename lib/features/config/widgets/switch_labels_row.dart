@@ -14,6 +14,7 @@ class SwitchLabelsRow<T> extends StatelessWidget {
     required this.labels,
     required this.value,
     this.spacing = 10,
+    this.error,
     super.key,
   });
 
@@ -24,6 +25,7 @@ class SwitchLabelsRow<T> extends StatelessWidget {
   final double spacing;
   final T defaultValue;
   final bool disabled;
+  final String? error;
   final T? value;
 
   @override
@@ -33,6 +35,7 @@ class SwitchLabelsRow<T> extends StatelessWidget {
       value: value != null,
       disabled: disabled,
       label: switchLabel,
+      error: error,
     );
 
     final tabs = AppTabs<T>(

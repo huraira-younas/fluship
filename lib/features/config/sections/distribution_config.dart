@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
@@ -13,30 +15,51 @@ import '../widgets/checkbox_label.dart';
 import '../widgets/switch_label.dart';
 import '../bloc/config_bloc.dart';
 
+typedef _DistributionView = ({
+  DistributionConfigModel distribution,
+  String? playStoreSaJson,
+});
+
 class DistributionConfig extends StatelessWidget {
   const DistributionConfig({super.key});
 
-  GoogleDriveConfig _drive(GoogleDriveConfig? config) =>
-      config ?? const GoogleDriveConfig();
+  static const _playStoreCredError =
+      'No service account JSON found. Configure Google Play Console in Settings.';
+  static const _driveCredError =
+      'No OAuth JSON found. Please configure Google Drive in the Settings tab.';
 
-  ReportRecipientConfig _report(ReportRecipientConfig? config) =>
-      config ?? const ReportRecipientConfig();
+  void _updateDistribution(
+    DistributionConfigModel distribution,
+    ConfigBloc bloc,
+  ) {
+    bloc.add(UpdateConfig(config: distribution));
+  }
 
   @override
   Widget build(BuildContext context) {
     final bloc = getIt<ConfigBloc>();
-    return BlocSelector<ConfigBloc, ConfigState, DistributionConfigModel>(
-      selector: (state) => state.distribution,
-      builder: (context, distribution) {
-        final report = _report(distribution.reportRecipient);
-        final drive = _drive(distribution.driveConfig);
+    return BlocSelector<ConfigBloc, ConfigState, _DistributionView>(
+      selector: (state) => (
+        distribution: state.distribution,
+        playStoreSaJson: state.android.gpConfig?.saJsonPath,
+      ),
+      builder: (context, view) {
+        final dist = view.distribution;
+        final report = dist.reportRecipient ?? const ReportRecipientConfig();
+        final drive = dist.driveConfig ?? const GoogleDriveConfig();
+
+        final canPlay = DistributionConfigModel.canSendToPlayStore(
+          view.playStoreSaJson,
+        );
+
+        final canDrive = dist.canSendToDrive;
+        final sectionEnabled = dist.enabled;
 
         return AppCard(
           state: AppCardState(
-            onEnable: (value) => bloc.add(
-              UpdateConfig(config: distribution.copyWith(enabled: value)),
-            ),
-            enable: distribution.enabled,
+            onEnable: (value) =>
+                _updateDistribution(dist.copyWith(enabled: value), bloc),
+            enable: dist.enabled,
             forceDisabled: false,
           ),
           title: "Distribution Config",
@@ -47,55 +70,51 @@ class DistributionConfig extends StatelessWidget {
           children: [
             SwitchLabelsRow<PlayStoreDistribution>(
               labels: PlayStoreDistribution.values,
-              disabled: !distribution.enabled,
-              value: distribution.playstore,
+              error: canPlay ? null : _playStoreCredError,
+              disabled: !sectionEnabled || !canPlay,
+              value: canPlay ? dist.playstore : null,
               switchLabel: 'Play Store',
               defaultValue: .production,
-              onChange: (value) => bloc.add(
-                UpdateConfig(
-                  config: distribution.copyWith(
-                    clearPlaystore: value == null,
-                    playstore: value,
-                  ),
-                ),
+              onChange: (value) => _updateDistribution(
+                dist.copyWith(clearPlaystore: value == null, playstore: value),
+                bloc,
               ),
             ),
-            SwitchLabel(
-              disabled: !distribution.enabled,
-              value: distribution.appstore,
-              label: "App Store → TestFlight",
-              onChange: (value) => bloc.add(
-                UpdateConfig(config: distribution.copyWith(appstore: value)),
+            if (Platform.isMacOS)
+              SwitchLabel(
+                disabled: !sectionEnabled,
+                value: dist.appstore,
+                label: "App Store → TestFlight",
+                onChange: (value) =>
+                    _updateDistribution(dist.copyWith(appstore: value), bloc),
               ),
-            ),
             SwitchLabel(
-              disabled: !distribution.enabled,
-              value: drive.enabled,
               label: "Google Drive",
-              onChange: (value) => bloc.add(
-                UpdateConfig(
-                  config: distribution.copyWith(
-                    driveConfig: drive.copyWith(enabled: value),
-                  ),
-                ),
+              value: canDrive && drive.enabled,
+              disabled: !sectionEnabled || !canDrive,
+              error: canDrive ? null : _driveCredError,
+              onChange: (value) => _updateDistribution(
+                dist.copyWith(driveConfig: drive.copyWith(enabled: value)),
+                bloc,
               ),
             ),
-            if (drive.enabled && report.emails.isNotEmpty)
+            if (canDrive && drive.enabled && report.emails.isNotEmpty)
               _DriveRecipientsPanel(
-                disabled: !distribution.enabled,
+                disabled: !sectionEnabled,
                 emails: report.emails,
-                onToggle: (email, enabled) => bloc.add(
-                  UpdateConfig(
-                    config: distribution.copyWith(
-                      reportRecipient: report.copyWith(
-                        emails: report.emails.map((e) {
-                          return e.email == email.email
-                              ? e.copyWith(enabled: enabled)
-                              : e;
-                        }).toList(),
-                      ),
+                onToggle: (email, enabled) => _updateDistribution(
+                  dist.copyWith(
+                    reportRecipient: report.copyWith(
+                      emails: [
+                        for (final e in report.emails)
+                          if (e.email == email.email)
+                            e.copyWith(enabled: enabled)
+                          else
+                            e,
+                      ],
                     ),
                   ),
+                  bloc,
                 ),
               ),
           ],
@@ -125,8 +144,8 @@ class _DriveRecipientsPanelState extends State<_DriveRecipientsPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final total = widget.emails.length;
     final ft = context.flushipTheme;
+    final total = widget.emails.length;
 
     return Container(
       decoration: BoxDecoration(
@@ -143,9 +162,9 @@ class _DriveRecipientsPanelState extends State<_DriveRecipientsPanel> {
           key: const ValueKey('collapsed'),
           actionLabel: 'Show',
           total: total,
-          onAction: !widget.disabled
-              ? () => setState(() => _expanded = true)
-              : null,
+          onAction: widget.disabled
+              ? null
+              : () => setState(() => _expanded = true),
         ),
         secondChild: Column(
           key: const ValueKey('expanded'),
@@ -157,22 +176,23 @@ class _DriveRecipientsPanelState extends State<_DriveRecipientsPanel> {
               total: total,
             ),
             const SizedBox(height: 8),
-            ...List.generate(widget.emails.length, (index) {
-              final email = widget.emails[index];
-              return Column(
-                children: [
-                  if (index > 0)
-                    Divider(height: 1, color: ft.colors.cardBorder),
-                  CheckboxLabel(
-                    onChange: (value) => widget.onToggle(email, value),
-                    disabled: widget.disabled,
-                    subtitle: email.email,
-                    value: email.enabled,
-                    label: email.name,
-                  ),
-                ],
-              );
-            }),
+            ListView.separated(
+              physics: const NeverScrollableScrollPhysics(),
+              separatorBuilder: (context, index) =>
+                  Divider(height: 1, color: ft.colors.cardBorder),
+              itemCount: widget.emails.length,
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                final email = widget.emails[index];
+                return CheckboxLabel(
+                  onChange: (value) => widget.onToggle(email, value),
+                  disabled: widget.disabled,
+                  subtitle: email.email,
+                  value: email.enabled,
+                  label: email.name,
+                );
+              },
+            ),
           ],
         ),
       ),
