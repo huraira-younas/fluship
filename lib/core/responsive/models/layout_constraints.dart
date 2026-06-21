@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 class LayoutConstraints extends Equatable {
-  const LayoutConstraints({this.maxWidth = 1080, this.minWidth = 360});
+  const LayoutConstraints({this.maxWidth = 1440, this.minWidth = 360});
 
   final double maxWidth;
   final double minWidth;
