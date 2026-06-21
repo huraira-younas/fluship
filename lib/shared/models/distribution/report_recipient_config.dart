@@ -15,6 +15,14 @@ class ReportRecipientConfig extends Equatable {
     this.appPassword,
   });
 
+  bool get canSendBuildReport =>
+      _hasCredential(reportRecipient) &&
+      _hasCredential(gmailAddress) &&
+      _hasCredential(appPassword);
+
+  static bool _hasCredential(String? value) =>
+      value != null && value.trim().isNotEmpty;
+
   ReportRecipientConfig copyWith({
     List<DistributionEmail>? emails,
     String? reportRecipient,

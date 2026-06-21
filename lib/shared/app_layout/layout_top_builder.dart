@@ -34,7 +34,10 @@ class LayoutTopBuilder extends StatelessWidget {
           isLoading: isRunning,
           onPressed: isRunning
               ? null
-              : () => getIt<PipelineBloc>().add(const RunPipeline()),
+              : () {
+                  getIt<PipelineBloc>().add(const RunPipeline());
+                  context.read<NavigatorCubit>().navigate(.console);
+                },
           label: isRunning ? 'Running…' : 'Run Pipeline',
         );
       },

@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 class PipelineRunSnapshot extends Equatable {
   const PipelineRunSnapshot({
     required this.totalElapsed,
+    required this.artifactsDir,
     required this.buildNumber,
     required this.logFilePath,
     required this.finishedAt,
@@ -18,6 +19,7 @@ class PipelineRunSnapshot extends Equatable {
   final List<PipelineStepView> steps;
   final PipelineRunStatus runStatus;
   final Duration totalElapsed;
+  final String artifactsDir;
   final DateTime finishedAt;
   final DateTime startedAt;
   final String buildNumber;
@@ -31,6 +33,7 @@ class PipelineRunSnapshot extends Equatable {
   @override
   List<Object?> get props => [
     totalElapsed,
+    artifactsDir,
     logFilePath,
     buildNumber,
     finishedAt,

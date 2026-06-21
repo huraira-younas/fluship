@@ -27,6 +27,8 @@ class DistributionConfig extends StatelessWidget {
       'No service account JSON found. Configure Google Play Console in Settings.';
   static const _driveCredError =
       'No OAuth JSON found. Please configure Google Drive in the Settings tab.';
+  static const _buildReportCredError =
+      'Configure Gmail and report recipient in Settings.';
 
   void _updateDistribution(
     DistributionConfigModel distribution,
@@ -52,8 +54,9 @@ class DistributionConfig extends StatelessWidget {
           view.playStoreSaJson,
         );
 
-        final canDrive = dist.canSendToDrive;
+        final canBuildReport = report.canSendBuildReport;
         final sectionEnabled = dist.enabled;
+        final canDrive = dist.canSendToDrive;
 
         return AppCard(
           state: AppCardState(
@@ -69,12 +72,11 @@ class DistributionConfig extends StatelessWidget {
               "Enable Google Drive to share the artifact with your team - expand recipients below to pick who receives it.",
           children: [
             SwitchLabel(
-              error: (dist.reportRecipient?.buildReport ?? false)
-                  ? "Build report is disabled."
-                  : null,
-              value: dist.reportRecipient?.buildReport ?? false,
-              disabled: !sectionEnabled,
-              label: "Build Report",
+              label:
+                  "Build Report → ${report.reportRecipient ?? 'Set Recipient'}",
+              error: canBuildReport ? null : _buildReportCredError,
+              disabled: !sectionEnabled || !canBuildReport,
+              value: canBuildReport && report.buildReport,
               onChange: (value) => _updateDistribution(
                 dist.copyWith(
                   reportRecipient: report.copyWith(buildReport: value),

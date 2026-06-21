@@ -56,6 +56,7 @@ PipelineRunSnapshot _snapshot({String logFilePath = 'logs.txt'}) {
     finishedAt: DateTime(2026, 6, 20, 14, 30),
     startedAt: DateTime(2026, 6, 20, 14, 29, 57),
     logFilePath: logFilePath,
+    artifactsDir: '/tmp/artifacts',
     buildNumber: '42',
     platforms: 'Android',
     appName: 'Demo',
@@ -75,6 +76,7 @@ DistributionContext _context({
         const DistributionConfigModel(
           enabled: true,
           reportRecipient: ReportRecipientConfig(
+            buildReport: true,
             reportRecipient: 'dev@example.com',
             gmailAddress: 'sender@gmail.com',
             appPassword: 'secret',
@@ -94,6 +96,26 @@ void main() {
       htmlBuilder: const ReportHtmlBuilder(),
       emailClient: emailClient,
     );
+  });
+
+  test('skips when build report is disabled', () async {
+    final result = await handler.run(
+      _context(
+        snapshot: _snapshot(),
+        config: const DistributionConfigModel(
+          enabled: true,
+          reportRecipient: ReportRecipientConfig(
+            buildReport: false,
+            reportRecipient: 'dev@example.com',
+            gmailAddress: 'sender@gmail.com',
+            appPassword: 'secret',
+          ),
+        ),
+      ),
+    );
+
+    expect(result.isSkipped, isTrue);
+    expect(emailClient.sendCalls, 0);
   });
 
   test('skips when report recipient is missing', () async {

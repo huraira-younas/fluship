@@ -252,6 +252,14 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     required String sessionId,
   }) async {
     final info = configState.appInfo;
+    final flushipRoot = await const FlushipWorkspacePaths().resolveRoot();
+    final artifactsDir = pipelineOutputDirectory(
+      projectName: info.appName ?? 'unknown',
+      buildNumber: info.buildNumber ?? '0',
+      version: info.version ?? 'unknown',
+      flushipRoot: flushipRoot,
+    );
+
     final snapshot = PipelineRunSnapshot(
       platforms: DistributionPlatforms.fromConfig(configState),
       totalElapsed: finishedAt.difference(startedAt),
@@ -259,6 +267,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       buildNumber: info.buildNumber ?? '0',
       appName: info.appName ?? 'unknown',
       version: info.version ?? 'unknown',
+      artifactsDir: artifactsDir,
       logFilePath: logFilePath,
       finishedAt: finishedAt,
       runStatus: runStatus,

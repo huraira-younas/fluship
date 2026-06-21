@@ -98,5 +98,28 @@ void main() {
       expect(steps.first.name, 'Clean');
       expect(steps.first.success, isTrue);
     });
+
+    test('buildDriveLink includes files and escaped link', () {
+      final html = builder.buildDriveLink(
+        fileNames: const ['MyApp-v1.0+1.apk', 'evil<script>.aab'],
+        buildNumber: '1',
+        theme: _testTheme,
+        version: '1.0.0',
+        label: 'My App',
+        link: 'https://drive.google.com/drive/folders/abc?id=1&x=2',
+      );
+
+      expect(html, contains('MyApp-v1.0+1.apk'));
+      expect(html, contains('evil&lt;script&gt;.aab'));
+      expect(html, contains('Open in Google Drive'));
+      expect(html, contains('Anyone with the link can view'));
+      expect(html, contains('Uploaded Files'));
+      expect(
+        html,
+        contains(
+          'https://drive.google.com/drive/folders/abc?id=1&amp;x=2',
+        ),
+      );
+    });
   });
 }

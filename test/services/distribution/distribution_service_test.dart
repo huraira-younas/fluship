@@ -51,6 +51,7 @@ PipelineRunSnapshot _snapshot() {
     finishedAt: DateTime(2026, 6, 20),
     startedAt: DateTime(2026, 6, 20),
     logFilePath: '',
+    artifactsDir: '/tmp/artifacts',
     buildNumber: '1',
     platforms: 'None',
     appName: 'Demo',

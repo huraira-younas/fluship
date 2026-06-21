@@ -65,6 +65,61 @@ class ReportHtmlBuilder {
         '${ReportHtmlTheme.bodyClose}';
   }
 
+  String buildDriveLink({
+    required List<String> fileNames,
+    required ReportHtmlTheme theme,
+    required String buildNumber,
+    required String version,
+    required String label,
+    required String link,
+  }) {
+    final nowStr = DateFormat('MMM d, yyyy · HH:mm').format(DateTime.now());
+    final escapedLabel = _escape(label);
+    final escapedLink = _escape(link);
+    final escapedVersion = _escape(version);
+    final escapedBuild = _escape(buildNumber);
+    final versionTag = version.isNotEmpty && buildNumber.isNotEmpty
+        ? ' &mdash; v$escapedVersion+$escapedBuild'
+        : '';
+    final subtitle = '$escapedLabel Upload$versionTag';
+
+    final fileRows = StringBuffer();
+    for (final name in fileNames) {
+      fileRows.write(
+        '<tr><td style="padding:6px 12px;border-bottom:1px solid ${theme.cardBorder};'
+        'color:${theme.text};font-size:13px;">📦&ensp;${_escape(name)}</td></tr>',
+      );
+    }
+
+    final versionRow = version.isNotEmpty && buildNumber.isNotEmpty
+        ? _summaryRow('Version', 'v$version+$buildNumber', theme, bold: true)
+        : '';
+
+    return '${theme.bodyOpen}'
+        '${_htmlHeader(subtitle, escapedLabel, theme)}'
+        "${_htmlBanner('📁&ensp;Upload Complete', theme.success)}"
+        '<div style="background:${theme.cardBg};padding:16px 20px;${theme.borderLr}">'
+        '<table style="width:100%;border-collapse:collapse;">'
+        '${_summaryRow('Type', '$label Build', theme, bold: true)}'
+        '$versionRow'
+        '${_summaryRow('Date', nowStr, theme)}'
+        '</table></div>'
+        '<div style="background:${theme.cardBg};${theme.borderLr}">'
+        '<div style="padding:12px 20px 6px;border-top:1px solid ${theme.cardBorder};">'
+        '<h2 ${theme.sectionH2Styled}>Uploaded Files</h2></div>'
+        '<table style="width:100%;border-collapse:collapse;">'
+        '$fileRows</table></div>'
+        '<div style="background:${theme.cardBg};padding:18px 20px;text-align:center;${theme.borderLr}">'
+        '<a href="$escapedLink" style="display:inline-block;background:'
+        'linear-gradient(135deg,${theme.accent},${theme.section});color:#fff;text-decoration:none;'
+        'padding:11px 32px;border-radius:8px;font-size:14px;font-weight:700;'
+        'letter-spacing:0.2px;">Open in Google Drive</a>'
+        '<p style="margin:8px 0 0;font-size:11px;color:${theme.textDim};">'
+        'Anyone with the link can view</p></div>'
+        '${_htmlFooter(escapedLabel, theme)}'
+        '${ReportHtmlTheme.bodyClose}';
+  }
+
   List<ReportStepResult> stepsFromPipelineViews(List<PipelineStepView> views) {
     return views
         .where((v) => v.status != .pending)
