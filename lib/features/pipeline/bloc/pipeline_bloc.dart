@@ -1,4 +1,6 @@
 import 'package:fluship/services/console/models/shell_run_result.dart';
+import 'package:fluship/services/distribution/distribution.dart';
+import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,11 +15,13 @@ part 'pipeline_state.dart';
 
 class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
   PipelineBloc({
+    DistributionService? distribution,
     PipelineLogWriter? logWriter,
     required this._configSource,
     required this._consolePort,
     PipelineExecutor? executor,
-  }) : _logWriter = logWriter ?? const FilePipelineLogWriter(),
+  }) : _distribution = distribution ?? DistributionModule.createService(),
+       _logWriter = logWriter ?? const FilePipelineLogWriter(),
        _executor = executor ?? const PipelineExecutor(),
        super(PipelineState.idle()) {
     on<DismissPipelinePanel>(handler(_onDismissPipelinePanel));
@@ -26,6 +30,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
   }
 
   final PipelineConfigSource _configSource;
+  final DistributionService _distribution;
   final PipelineConsolePort _consolePort;
   final PipelineLogWriter _logWriter;
   final PipelineExecutor _executor;
@@ -188,6 +193,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     final totalFormatted = PipelineUtils.formatPipelineDuration(totalElapsed);
 
     final sessionId = _sessionId;
+    String? logFilePath;
     if (sessionId != null) {
       await _consolePort.logLine(
         text: '[pipeline ${runStatus.name} in $totalFormatted]',
@@ -196,8 +202,22 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       );
 
       try {
-        await _savePipelineLog(sessionId: sessionId);
+        logFilePath = await _savePipelineLog(sessionId: sessionId);
       } catch (_) {}
+
+      if (logFilePath != null) {
+        try {
+          await _runDistribution(
+            configState: configState,
+            logFilePath: logFilePath,
+            finishedAt: finishedAt,
+            runStatus: runStatus,
+            sessionId: sessionId,
+            startedAt: startedAt,
+            stepViews: stepViews,
+          );
+        } catch (_) {}
+      }
     }
 
     if (isClosed) return;
@@ -222,9 +242,42 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     );
   }
 
-  Future<void> _savePipelineLog({required String sessionId}) async {
+  Future<void> _runDistribution({
+    required List<PipelineStepView> stepViews,
+    required PipelineRunStatus runStatus,
+    required ConfigState configState,
+    required DateTime finishedAt,
+    required DateTime startedAt,
+    required String logFilePath,
+    required String sessionId,
+  }) async {
+    final info = configState.appInfo;
+    final snapshot = PipelineRunSnapshot(
+      platforms: DistributionPlatforms.fromConfig(configState),
+      totalElapsed: finishedAt.difference(startedAt),
+      steps: List<PipelineStepView>.of(stepViews),
+      buildNumber: info.buildNumber ?? '0',
+      appName: info.appName ?? 'unknown',
+      version: info.version ?? 'unknown',
+      logFilePath: logFilePath,
+      finishedAt: finishedAt,
+      runStatus: runStatus,
+      startedAt: startedAt,
+    );
+
+    await _distribution.run(
+      snapshot: snapshot,
+      config: configState.distribution,
+      logger: PipelineDistributionLogger(
+        consolePort: _consolePort,
+        sessionId: sessionId,
+      ),
+    );
+  }
+
+  Future<String?> _savePipelineLog({required String sessionId}) async {
     final lines = _consolePort.sessionLines(sessionId);
-    if (lines.isEmpty) return;
+    if (lines.isEmpty) return null;
 
     final info = _configSource.state.appInfo;
 
@@ -232,7 +285,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     final buildNumber = info.buildNumber ?? '0';
     final version = info.version ?? 'unknown';
 
-    await _logWriter.save(
+    final logPath = await _logWriter.save(
       buildNumber: buildNumber,
       projectName: projectName,
       version: version,
@@ -250,6 +303,8 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       sessionId: sessionId,
       stream: .system,
     );
+
+    return logPath;
   }
 
   String _summaryWithTotal({

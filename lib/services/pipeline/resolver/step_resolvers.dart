@@ -137,7 +137,11 @@ List<CommandStep> resolvePostGit(ConfigState state) {
   ];
 }
 
-List<CommandStep> resolveDistribution(ConfigState state) => const [];
+List<CommandStep> resolveDistribution(ConfigState state) {
+  // Phase 2+: Google Drive + drive link email via DistributionService handlers
+  // wired as CommandStep.onExecute once upload steps need mid-pipeline execution.
+  return const [];
+}
 
 List<CommandStep> resolvePostBuild(ConfigState state) {
   if (!state.postBuild.enabled) return const [];

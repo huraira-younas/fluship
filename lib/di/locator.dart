@@ -8,6 +8,7 @@ import 'package:fluship/features/pipeline/contracts/pipeline_config_source.dart'
 import 'package:fluship/features/pipeline/contracts/pipeline_console_port.dart';
 import 'package:fluship/features/file_manager/bloc/file_manager_bloc.dart';
 import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
+import 'package:fluship/services/distribution/distribution.dart';
 import 'package:fluship/features/console/bloc/console_bloc.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/services/file_picker_service.dart';
@@ -18,21 +19,32 @@ final getIt = GetIt.instance;
 class AppLocator {
   static void initialize() {
     getIt.registerSingleton(const FilePickerService());
+
     getIt.registerSingleton(ConfigBloc());
+
     getIt.registerLazySingleton(() => const FileManagerRepository());
+
     getIt.registerFactory(
       () => FileManagerBloc(repository: getIt<FileManagerRepository>()),
     );
 
     getIt.registerSingleton<IShellRunnerFactory>(ShellRunnerFactory());
+
     getIt.registerSingleton<IConsoleSessionPool>(
       ConsoleSessionPool(factory: getIt<IShellRunnerFactory>()),
     );
+
     getIt.registerSingleton(ConsoleBloc(pool: getIt<IConsoleSessionPool>()));
+
+    getIt.registerSingleton<DistributionService>(
+      DistributionModule.createService(),
+    );
+
     getIt.registerSingleton(
       PipelineBloc(
         configSource: ConfigBlocPipelineSource(getIt<ConfigBloc>()),
         consolePort: ConsoleBlocPipelinePort(getIt<ConsoleBloc>()),
+        distribution: getIt<DistributionService>(),
       ),
     );
   }
