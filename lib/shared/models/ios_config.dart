@@ -13,7 +13,9 @@ final class IosConfigModel extends BaseConfig {
   final bool podClean;
   final bool buildIpa;
 
-  factory IosConfigModel.fromJson(Map<String, dynamic> json) {
+  factory IosConfigModel.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return IosConfigModel();
+
     final data = json.at<IosConfigModel>();
     return IosConfigModel(
       podClean: data.parse<bool>('podClean', defaultValue: false),
