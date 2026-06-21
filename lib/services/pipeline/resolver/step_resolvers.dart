@@ -79,10 +79,10 @@ List<CommandStep> resolveAndroid(ConfigState state) {
         name: 'Build App Bundle',
       ),
       _collectArtifactStep(
-        state,
         collector: _artifactCollector.collectAab,
         name: 'Collect App Bundle',
         command: 'collect: aab',
+        state,
       ),
     ],
     if (android.buildType != null)
@@ -93,10 +93,10 @@ List<CommandStep> resolveAndroid(ConfigState state) {
             name: 'Build APK',
           ),
           _collectArtifactStep(
-            state,
             collector: _artifactCollector.collectApks,
             command: 'collect: apk',
             name: 'Collect APK',
+            state,
           ),
         ],
         .arbs => [
@@ -105,10 +105,10 @@ List<CommandStep> resolveAndroid(ConfigState state) {
             name: 'Build AAR',
           ),
           _collectArtifactStep(
-            state,
             collector: _artifactCollector.collectApks,
             name: 'Collect Split APKs',
             command: 'collect: apk',
+            state,
           ),
         ],
         _ => [
@@ -117,10 +117,10 @@ List<CommandStep> resolveAndroid(ConfigState state) {
             name: 'Build APK',
           ),
           _collectArtifactStep(
-            state,
             collector: _artifactCollector.collectApks,
             command: 'collect: apk',
             name: 'Collect APK',
+            state,
           ),
         ],
       },
@@ -140,10 +140,10 @@ List<CommandStep> resolveIos(ConfigState state) {
     if (ios.buildIpa) ...[
       const CommandStep(name: 'Build IPA', command: 'flutter build ipa'),
       _collectArtifactStep(
-        state,
         collector: _artifactCollector.collectIpa,
         command: 'collect: ipa',
         name: 'Collect IPA',
+        state,
       ),
     ],
   ];
