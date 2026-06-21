@@ -15,7 +15,7 @@ class ConfigScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spacing = context.flushipTheme.spacing;
-    final pad = context.screenHeight * 0.29;
+    final pad = context.screenHeight * 0.2;
 
     return BlocBuilder<ConfigBloc, ConfigState>(
       builder: (context, state) {
