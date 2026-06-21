@@ -1,5 +1,6 @@
 import 'package:fluship/features/pipeline/widgets/pipeline_runner_panel.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
+import 'package:fluship/shared/app_layout/navigator_cubit.dart';
 import 'package:fluship/shared/extensions/context_extensions.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_cta_button.dart';
@@ -38,7 +39,7 @@ class ConfigScreen extends StatelessWidget {
         final fp = state.appInfo.flutterProjectPath;
         if (fp == null || fp.isEmpty) {
           return AppCtaButton(
-            onTap: () => context.read<ConfigBloc>().add(const LoadConfig()),
+            onTap: () => context.read<NavigatorCubit>().navigate(.settings),
             text: "No Flutter project path found",
             btnText: "Select Project",
             icon: Icons.folder,

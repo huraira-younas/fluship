@@ -1,12 +1,11 @@
-import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
 import 'package:fluship/core/responsive/models/layout_constraints.dart';
 import 'package:fluship/features/settings/views/settings_screen.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/features/console/views/console_screen.dart';
-import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
 import 'package:fluship/core/responsive/responsive_extension.dart';
 import 'package:fluship/features/config/views/config_screen.dart';
 import 'package:fluship/features/console/bloc/console_bloc.dart';
+import 'package:fluship/shared/app_layout/navigator_cubit.dart';
 import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +23,6 @@ class LayoutScreen extends StatefulWidget {
 
 class _LayoutScreenState extends State<LayoutScreen>
     with WidgetsBindingObserver {
-  LayoutTabs _selectedTab = .config;
-
   final List<Widget> _tabs = [
     const ConfigScreen(),
     const ConsoleScreen(),
@@ -56,7 +53,8 @@ class _LayoutScreenState extends State<LayoutScreen>
     final w = LayoutConstraints.material3;
     final ft = ctx.flushipTheme;
 
-    final content = _buildContent(ctx, ft.spacing);
+    final state = context.watch<NavigatorCubit>().state;
+    final content = _buildContent(ctx, ft.spacing, state);
 
     return Scaffold(
       body: LayoutBuilder(
@@ -87,45 +85,37 @@ class _LayoutScreenState extends State<LayoutScreen>
     );
   }
 
-  Widget _buildContent(BuildContext context, ThemeSpacing spacing) {
+  Widget _buildContent(
+    BuildContext context,
+    ThemeSpacing spacing,
+    LayoutTabs state,
+  ) {
     final isMobile = context.isMobile;
     final hPad = isMobile ? spacing.md : spacing.lg;
 
-    final tab = _tabs[_selectedTab.value];
-    final key = ValueKey(_selectedTab);
+    final key = ValueKey(state.value);
+    final tab = _tabs[state.value];
 
-    final body = _selectedTab == .console
+    final body = state == .console
         ? Padding(padding: .all(hPad), child: tab)
         : SingleChildScrollView(padding: .all(hPad), child: tab);
 
-    return BlocListener<PipelineBloc, PipelineState>(
-      listenWhen: (previous, current) =>
-          previous.runStatus != PipelineRunStatus.running &&
-          current.runStatus == PipelineRunStatus.running,
-      listener: (context, state) {
-        if (_selectedTab != LayoutTabs.console) {
-          setState(() => _selectedTab = LayoutTabs.console);
-        }
-      },
-      child:
-          Column(
-            spacing: spacing.sm,
-            children: [
-              LayoutTopBuilder(
-                onTabChanged: (tab) => setState(() => _selectedTab = tab),
-                selectedTab: _selectedTab,
-                spacing: spacing,
-              ).padOnly(l: hPad, r: hPad),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: KeyedSubtree(key: key, child: body),
-              ).expanded(),
-              const AppText.accent("Made with ❤️ by Senpai").center(),
-            ],
-          ).padOnly(
-            t: isMobile ? MediaQuery.paddingOf(context).top : spacing.lg,
-            b: spacing.lg,
-          ),
+    return Column(
+      spacing: spacing.sm,
+      children: [
+        LayoutTopBuilder(
+          selectedTab: state,
+          spacing: spacing,
+        ).padOnly(l: hPad, r: hPad),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: KeyedSubtree(key: key, child: body),
+        ).expanded(),
+        const AppText.accent("Made with ❤️ by Senpai").center(),
+      ],
+    ).padOnly(
+      t: isMobile ? MediaQuery.paddingOf(context).top : spacing.lg,
+      b: spacing.lg,
     );
   }
 }

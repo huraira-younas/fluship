@@ -13,25 +13,15 @@ import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_tabs.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:fluship/shared/models/app_info.dart';
-
-enum LayoutTabs {
-  config(0),
-  console(1),
-  settings(2);
-
-  const LayoutTabs(this.value);
-  final int value;
-}
+import 'navigator_cubit.dart';
 
 class LayoutTopBuilder extends StatelessWidget {
   const LayoutTopBuilder({
-    required this.onTabChanged,
     required this.selectedTab,
     required this.spacing,
     super.key,
   });
 
-  final Function(LayoutTabs) onTabChanged;
   final LayoutTabs selectedTab;
   final ThemeSpacing spacing;
 
@@ -97,8 +87,8 @@ class LayoutTopBuilder extends StatelessWidget {
             horizontal: spacing.lg + 10,
             vertical: spacing.sm,
           ),
+          onChange: (tab) => context.read<NavigatorCubit>().navigate(tab),
           labels: LayoutTabs.values,
-          onChange: onTabChanged,
           label: selectedTab,
         ),
       ],
