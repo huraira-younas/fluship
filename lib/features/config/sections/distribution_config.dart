@@ -68,6 +68,20 @@ class DistributionConfig extends StatelessWidget {
               "Play Store supports production and internal tracks; App Store builds are uploaded to TestFlight for beta testers and review. "
               "Enable Google Drive to share the artifact with your team - expand recipients below to pick who receives it.",
           children: [
+            SwitchLabel(
+              error: (dist.reportRecipient?.buildReport ?? false)
+                  ? "Build report is disabled."
+                  : null,
+              value: dist.reportRecipient?.buildReport ?? false,
+              disabled: !sectionEnabled,
+              label: "Build Report",
+              onChange: (value) => _updateDistribution(
+                dist.copyWith(
+                  reportRecipient: report.copyWith(buildReport: value),
+                ),
+                bloc,
+              ),
+            ),
             SwitchLabelsRow<PlayStoreDistribution>(
               labels: PlayStoreDistribution.values,
               error: canPlay ? null : _playStoreCredError,

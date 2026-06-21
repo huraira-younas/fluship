@@ -5,8 +5,10 @@ class ReportRecipientConfig extends Equatable {
   final String? reportRecipient;
   final String? gmailAddress;
   final String? appPassword;
+  final bool buildReport;
 
   const ReportRecipientConfig({
+    this.buildReport = false,
     this.emails = const [],
     this.reportRecipient,
     this.gmailAddress,
@@ -18,10 +20,12 @@ class ReportRecipientConfig extends Equatable {
     String? reportRecipient,
     String? gmailAddress,
     String? appPassword,
+    bool? buildReport,
   }) => ReportRecipientConfig(
     reportRecipient: reportRecipient ?? this.reportRecipient,
     gmailAddress: gmailAddress ?? this.gmailAddress,
     appPassword: appPassword ?? this.appPassword,
+    buildReport: buildReport ?? this.buildReport,
     emails: emails ?? this.emails,
   );
 
@@ -30,6 +34,7 @@ class ReportRecipientConfig extends Equatable {
 
     final data = json.at<ReportRecipientConfig>();
     return ReportRecipientConfig(
+      buildReport: data.parse<bool>('buildReport', defaultValue: false),
       emails: data.list('emails', DistributionEmail.fromJson),
       reportRecipient: data.parse<String?>('reportRecipient'),
       gmailAddress: data.parse<String?>('gmailAddress'),
@@ -41,6 +46,7 @@ class ReportRecipientConfig extends Equatable {
     'emails': emails.map((e) => e.toJson()).toList(),
     'reportRecipient': reportRecipient,
     'gmailAddress': gmailAddress,
+    'buildReport': buildReport,
     'appPassword': appPassword,
   };
 
@@ -48,6 +54,7 @@ class ReportRecipientConfig extends Equatable {
   List<Object?> get props => [
     reportRecipient,
     gmailAddress,
+    buildReport,
     appPassword,
     emails,
   ];

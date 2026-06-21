@@ -22,8 +22,8 @@ class ReportEmailHandler implements DistributionHandler {
   @override
   Future<DistributionResult> run(DistributionContext context) async {
     final report = context.config.reportRecipient;
-    if (report == null) {
-      return DistributionResult.skipped('Report recipient config is missing.');
+    if (report == null || !report.buildReport) {
+      return DistributionResult.skipped('Build report is disabled.');
     }
 
     final recipient = report.reportRecipient?.trim() ?? '';
@@ -52,12 +52,12 @@ class ReportEmailHandler implements DistributionHandler {
 
     final snapshot = context.snapshot;
     final html = _htmlBuilder.build(
-      steps: _htmlBuilder.stepsFromPipelineViews(snapshot.steps),
       totalElapsed: PipelineUtils.formatPipelineDuration(snapshot.totalElapsed),
-      theme: context.emailTheme,
+      steps: _htmlBuilder.stepsFromPipelineViews(snapshot.steps),
       buildNumber: snapshot.buildNumber,
       platforms: snapshot.platforms,
       success: snapshot.success,
+      theme: context.emailTheme,
       appName: snapshot.appName,
       version: snapshot.version,
     );
@@ -73,8 +73,8 @@ class ReportEmailHandler implements DistributionHandler {
           attachmentPath: logPath,
           recipients: [recipient],
           password: gmailPass,
-          subject: subject,
           sender: gmailUser,
+          subject: subject,
           html: html,
         ),
       );
