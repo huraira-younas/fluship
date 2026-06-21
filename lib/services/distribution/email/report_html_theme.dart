@@ -22,14 +22,6 @@ class ReportHtmlTheme {
   static const bodyClose = '</div></body></html>';
   static const flushipVersion = '1.0.0';
 
-  static const sectionH2 =
-      'style="margin:0;font-size:13px;font-weight:700;'
-      'text-transform:uppercase;letter-spacing:0.6px;"';
-
-  static const thStyle =
-      'style="padding:8px 12px;font-size:11px;font-weight:700;'
-      'text-transform:uppercase;letter-spacing:0.4px;text-align:{align};"';
-
   final String cardBorder;
   final String borderLr;
   final String bodyOpen;

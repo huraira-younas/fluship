@@ -2,8 +2,8 @@ import 'package:fluship/shared/models/distribution/distribution_config.dart';
 
 import 'contracts/distribution_context.dart';
 import 'contracts/distribution_handler.dart';
+import 'contracts/distribution_logger.dart';
 import 'models/pipeline_run_snapshot.dart';
-import 'pipeline_distribution_logger.dart';
 import 'models/distribution_result.dart';
 import 'email/report_html_theme.dart';
 

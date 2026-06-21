@@ -269,7 +269,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       emailTheme: ReportHtmlTheme.fromCurrentTheme(),
       snapshot: snapshot,
       config: configState.distribution,
-      logger: DistributionLogger(
+      logger: PipelineDistributionLogger(
         consolePort: _consolePort,
         sessionId: sessionId,
       ),

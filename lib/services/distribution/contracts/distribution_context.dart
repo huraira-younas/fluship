@@ -1,8 +1,8 @@
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
 
 import '../models/pipeline_run_snapshot.dart';
-import '../pipeline_distribution_logger.dart';
 import '../email/report_html_theme.dart';
+import 'distribution_logger.dart';
 
 class DistributionContext {
   const DistributionContext({
