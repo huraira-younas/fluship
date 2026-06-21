@@ -35,14 +35,16 @@ class ConfigState extends BaseBlocState {
   );
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
     distribution,
     postBuild,
     commonCmd,
     postGit,
     android,
     appInfo,
+    loading,
     preGit,
+    error,
     ios,
   ];
 
@@ -64,10 +66,10 @@ class ConfigState extends BaseBlocState {
       postBuild: postBuild ?? this.postBuild,
       commonCmd: commonCmd ?? this.commonCmd,
       android: android ?? this.android,
+      loading: loading ?? this.loading,
       postGit: postGit ?? this.postGit,
       appInfo: appInfo ?? this.appInfo,
       preGit: preGit ?? this.preGit,
-      loading: loading ?? false,
       ios: ios ?? this.ios,
       error: error,
     );
