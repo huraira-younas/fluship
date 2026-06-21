@@ -13,7 +13,7 @@ class PipelineRunnerPanel extends StatelessWidget {
       selector: (state) => state,
       builder: (context, state) {
         return AnimatedSize(
-          duration: const Duration(milliseconds: 1000),
+          duration: const Duration(milliseconds: 300),
           child: state.isPanelVisible
               ? PipelineRunnerPanelBody(state: state)
               : const SizedBox.shrink(),
