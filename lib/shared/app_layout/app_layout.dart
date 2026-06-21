@@ -1,3 +1,4 @@
+import 'package:fluship/features/file_manager/views/file_manager_screen.dart';
 import 'package:fluship/core/responsive/models/layout_constraints.dart';
 import 'package:fluship/features/settings/views/settings_screen.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
@@ -21,11 +22,12 @@ class LayoutScreen extends StatefulWidget {
 }
 
 class _LayoutScreenState extends State<LayoutScreen> {
-  final List<Widget> _tabs = [
-    const ConfigScreen(),
-    const ConsoleScreen(),
-    const SettingsScreen(),
-  ];
+  Widget _tabFor(LayoutTabs tab) => switch (tab) {
+    .config => const ConfigScreen(),
+    .console => const ConsoleScreen(),
+    .settings => const SettingsScreen(),
+    .files => const FileManagerScreen(),
+  };
 
   @override
   Widget build(BuildContext ctx) {
@@ -64,11 +66,13 @@ class _LayoutScreenState extends State<LayoutScreen> {
     );
   }
 
+  bool _usesExpandedBody(LayoutTabs tab) => tab == .console || tab == .files;
+
   Widget _buildTabBody({required LayoutTabs state, required double hPad}) {
     final key = ValueKey(state.value);
-    final tab = _tabs[state.value];
+    final tab = _tabFor(state);
 
-    final body = state == .console
+    final body = _usesExpandedBody(state)
         ? Padding(padding: .all(hPad), child: tab)
         : SingleChildScrollView(padding: .all(hPad), child: tab);
 

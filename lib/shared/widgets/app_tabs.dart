@@ -286,13 +286,24 @@ class AppTabTiles<T> extends StatelessWidget {
     required this.labels,
     required this.label,
     this.contentPadding,
+    this.titleFor,
+    this.iconFor,
     super.key,
   });
 
+  final IconData Function(T value)? iconFor;
+  final String Function(T value)? titleFor;
   final void Function(T label) onChange;
   final EdgeInsets? contentPadding;
   final List<T> labels;
   final T label;
+
+  String _titleFor(T value) {
+    if (titleFor != null) return titleFor!(value);
+    if (value is Enum) return value.name;
+    if (value is String) return value;
+    return value.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -302,24 +313,19 @@ class AppTabTiles<T> extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: .stretch,
-      spacing: theme.spacing.sm,
+      spacing: 6,
       children: List.generate(labels.length, (idx) {
         final value = labels[idx];
         final active = label == value;
-
-        final text = value is Enum
-            ? value.name
-            : value is String
-            ? value
-            : value.toString();
 
         return _TabTileButton(
           onTap: () {
             HapticFeedback.lightImpact();
             onChange(value);
           },
+          title: _titleFor(value).capitalize,
           contentPadding: contentPadding,
-          title: text.capitalize,
+          icon: iconFor?.call(value),
           isSelected: active,
           radius: radius.btn,
           colors: colors,
@@ -333,39 +339,75 @@ class _TabTileButton extends StatelessWidget {
   const _TabTileButton({
     required this.contentPadding,
     required this.isSelected,
-    required this.title,
     required this.colors,
     required this.radius,
     required this.onTap,
+    required this.title,
+    this.icon,
   });
 
   final EdgeInsets? contentPadding;
   final ThemePalette colors;
   final VoidCallback onTap;
   final bool isSelected;
-  final String title;
+  final IconData? icon;
   final double radius;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: isSelected ? colors.text : colors.consoleBg,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: colors.cardBorder),
+    final accent = colors.accent;
+    final foreground = isSelected ? accent : colors.textDim;
+    final borderColor = isSelected
+        ? accent.withValues(alpha: 0.55)
+        : colors.cardBorder.withValues(alpha: 0.75);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
         borderRadius: .circular(radius),
+        color: isSelected ? accent.withValues(alpha: 0.12) : Colors.transparent,
+        border: .all(color: borderColor, width: isSelected ? 1.5 : 1),
       ),
       clipBehavior: .antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          width: .infinity,
-          padding:
-              contentPadding ?? const .symmetric(horizontal: 20, vertical: 14),
-          child: AppText(
-            color: isSelected ? colors.bg : colors.textDim,
-            weight: isSelected ? .w700 : .w500,
-            variant: .custom,
-            title,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          splashColor: accent.withValues(alpha: 0.08),
+          highlightColor: accent.withValues(alpha: 0.04),
+          child: Padding(
+            padding:
+                contentPadding ??
+                const .symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              spacing: 12,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  width: 3,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: isSelected ? accent : Colors.transparent,
+                    borderRadius: .circular(99),
+                  ),
+                ),
+                if (icon != null) Icon(icon, size: 20, color: foreground),
+                AppText(
+                  weight: isSelected ? .w700 : .w500,
+                  color: foreground,
+                  variant: .custom,
+                  title,
+                ).expanded(),
+                if (isSelected)
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: accent.withValues(alpha: 0.85),
+                    size: 18,
+                  ),
+              ],
+            ),
           ),
         ),
       ),

@@ -46,37 +46,35 @@ class LayoutTopBuilder extends StatelessWidget {
       },
     );
 
-    final fileManager = sidePanel
-        ? SizedBox(
-            width: double.infinity,
-            child: AppButton.icon(
-              onPressed: () => FileManagerRoutes.openFileManager(),
-              leading: const Icon(Icons.folder),
-              variant: .outline,
-            ),
-          )
-        : AppButton.icon(
-            onPressed: () => FileManagerRoutes.openFileManager(),
-            leading: const Icon(Icons.folder),
-            variant: .outline,
-          );
+    final fileManager = AppButton.icon(
+      onPressed: () => FileManagerRoutes.openFileManager(),
+      leading: const Icon(Icons.folder),
+      variant: .outline,
+    );
+
+    final navTabs = sidePanel ? LayoutTabs.desktopNav : LayoutTabs.mobileNav;
 
     final tabPadding = EdgeInsets.symmetric(
-      horizontal: spacing.lg + 10,
+      horizontal: spacing.md,
       vertical: spacing.sm,
     );
 
     final tabs = sidePanel
         ? AppTabTiles(
             onChange: (tab) => context.read<NavigatorCubit>().navigate(tab),
+            titleFor: (tab) => tab.label,
             contentPadding: tabPadding,
-            labels: LayoutTabs.values,
+            iconFor: (tab) => tab.icon,
             label: selectedTab,
+            labels: navTabs,
           )
         : AppTabs(
             onChange: (tab) => context.read<NavigatorCubit>().navigate(tab),
-            contentPadding: tabPadding,
-            labels: LayoutTabs.values,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: spacing.lg + 10,
+              vertical: spacing.sm,
+            ),
+            labels: navTabs,
             label: selectedTab,
           );
 
@@ -90,7 +88,6 @@ class LayoutTopBuilder extends StatelessWidget {
             children: [
               AppText.display(appInfo.appName ?? 'Fluship'),
               pipeline,
-              fileManager,
               tabs,
             ],
           );

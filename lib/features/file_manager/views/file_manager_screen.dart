@@ -21,6 +21,19 @@ class FileManagerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    getIt<FileManagerBloc>().add(const FileManagerInitialized());
+    return BlocProvider.value(
+      value: getIt<FileManagerBloc>(),
+      child: const _FileManagerView(),
+    );
+  }
+}
+
+class _FileManagerView extends StatelessWidget {
+  const _FileManagerView();
+
+  @override
+  Widget build(BuildContext context) {
     final repository = getIt<FileManagerRepository>();
     final ft = context.flushipTheme;
 
