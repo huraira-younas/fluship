@@ -3,6 +3,20 @@ import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
 import 'package:fluship/services/distribution/distribution.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+const _testTheme = ReportHtmlTheme(
+  borderLr: 'border-left:1px solid #1e293b;border-right:1px solid #1e293b;',
+  bodyOpen: '<!DOCTYPE html><html><head></head><body><div>',
+  cardBorder: '#1e293b',
+  success: '#a3be8c',
+  section: '#94a3b8',
+  textDim: '#64748b',
+  accent: '#81a1c1',
+  cardBg: '#3b4252',
+  error: '#bf616a',
+  text: '#eceff4',
+  bg: '#2e3440',
+);
+
 class FakeDistributionLogger implements DistributionLogger {
   final lines = <String>[];
 
@@ -16,7 +30,10 @@ class RecordingHandler implements DistributionHandler {
   RecordingHandler(this.name, this.result);
 
   final DistributionResult result;
+
+  @override
   final String name;
+
   var runCount = 0;
 
   @override
@@ -49,6 +66,7 @@ void main() {
     final service = DistributionService(handlers: [first, second]);
 
     await service.run(
+      emailTheme: _testTheme,
       snapshot: _snapshot(),
       config: const DistributionConfigModel(enabled: false),
       logger: logger,
@@ -67,6 +85,7 @@ void main() {
     final service = DistributionService(handlers: [first, second, third]);
 
     await service.run(
+      emailTheme: _testTheme,
       snapshot: _snapshot(),
       config: const DistributionConfigModel(enabled: true),
       logger: logger,

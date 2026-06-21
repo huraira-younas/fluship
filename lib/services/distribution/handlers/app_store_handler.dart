@@ -1,6 +1,5 @@
-import '../contracts/distribution_context.dart';
-import '../contracts/distribution_handler.dart';
-import '../models/distribution_result.dart';
+import '../contracts/exports.dart';
+import '../models/exports.dart';
 
 class AppStoreHandler implements DistributionHandler {
   const AppStoreHandler();

@@ -10,10 +10,9 @@ import 'build_report_html_builder.dart';
 
 class BuildReportEmailHandler implements DistributionHandler {
   const BuildReportEmailHandler({
-    required BuildReportHtmlBuilder htmlBuilder,
-    required EmailClient emailClient,
-  }) : _htmlBuilder = htmlBuilder,
-       _emailClient = emailClient;
+    required this._htmlBuilder,
+    required this._emailClient,
+  });
 
   final BuildReportHtmlBuilder _htmlBuilder;
   final EmailClient _emailClient;
@@ -52,8 +51,9 @@ class BuildReportEmailHandler implements DistributionHandler {
     final html = _htmlBuilder.build(
       steps: _htmlBuilder.stepsFromPipelineViews(snapshot.steps),
       totalElapsed: PipelineUtils.formatPipelineDuration(snapshot.totalElapsed),
-      platforms: snapshot.platforms,
+      theme: context.emailTheme,
       buildNumber: snapshot.buildNumber,
+      platforms: snapshot.platforms,
       success: snapshot.success,
       appName: snapshot.appName,
       version: snapshot.version,
@@ -61,7 +61,8 @@ class BuildReportEmailHandler implements DistributionHandler {
 
     final statusEmoji = snapshot.success ? '✓' : '✗';
     final subject =
-        '$statusEmoji ${snapshot.appName} v${snapshot.version}+${snapshot.buildNumber} — Build Report';
+        '$statusEmoji ${snapshot.appName} '
+        'v${snapshot.version}+${snapshot.buildNumber} — Build Report';
 
     try {
       await _emailClient.send(
@@ -75,9 +76,7 @@ class BuildReportEmailHandler implements DistributionHandler {
         ),
       );
 
-      return DistributionResult.success(
-        'Build report emailed to $recipient',
-      );
+      return DistributionResult.success('Build report emailed to $recipient');
     } catch (error) {
       return DistributionResult.failed('Failed to email build report: $error');
     }

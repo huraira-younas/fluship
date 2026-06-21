@@ -266,9 +266,10 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     );
 
     await _distribution.run(
+      emailTheme: ReportHtmlTheme.fromCurrentTheme(),
       snapshot: snapshot,
       config: configState.distribution,
-      logger: PipelineDistributionLogger(
+      logger: DistributionLogger(
         consolePort: _consolePort,
         sessionId: sessionId,
       ),

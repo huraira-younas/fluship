@@ -5,6 +5,20 @@ import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+const _testTheme = ReportHtmlTheme(
+  borderLr: 'border-left:1px solid #1e293b;border-right:1px solid #1e293b;',
+  bodyOpen: '<!DOCTYPE html><html><head></head><body><div>',
+  cardBorder: '#1e293b',
+  success: '#a3be8c',
+  section: '#94a3b8',
+  textDim: '#64748b',
+  accent: '#81a1c1',
+  cardBg: '#3b4252',
+  error: '#bf616a',
+  text: '#eceff4',
+  bg: '#2e3440',
+);
+
 class FakeDistributionLogger implements DistributionLogger {
   final lines = <String>[];
 
@@ -54,12 +68,13 @@ DistributionContext _context({
   DistributionConfigModel? config,
 }) {
   return DistributionContext(
+    emailTheme: _testTheme,
     snapshot: snapshot,
     config:
         config ??
-        DistributionConfigModel(
+        const DistributionConfigModel(
           enabled: true,
-          reportRecipient: const ReportRecipientConfig(
+          reportRecipient: ReportRecipientConfig(
             reportRecipient: 'dev@example.com',
             gmailAddress: 'sender@gmail.com',
             appPassword: 'secret',

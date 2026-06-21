@@ -2,9 +2,10 @@ import 'package:fluship/shared/models/distribution/distribution_config.dart';
 
 import 'contracts/distribution_context.dart';
 import 'contracts/distribution_handler.dart';
-import 'contracts/distribution_logger.dart';
-import 'models/distribution_result.dart';
 import 'models/pipeline_run_snapshot.dart';
+import 'pipeline_distribution_logger.dart';
+import 'models/distribution_result.dart';
+import 'email/report_html_theme.dart';
 
 class DistributionService {
   DistributionService({required List<DistributionHandler> handlers})
@@ -13,13 +14,15 @@ class DistributionService {
   final List<DistributionHandler> _handlers;
 
   Future<void> run({
-    required PipelineRunSnapshot snapshot,
     required DistributionConfigModel config,
+    required PipelineRunSnapshot snapshot,
+    required ReportHtmlTheme emailTheme,
     required DistributionLogger logger,
   }) async {
     if (!config.enabled) return;
 
     final context = DistributionContext(
+      emailTheme: emailTheme,
       snapshot: snapshot,
       config: config,
       logger: logger,
@@ -29,16 +32,24 @@ class DistributionService {
 
     for (final handler in _handlers) {
       final result = await handler.run(context);
-      final prefix = switch (result.status) {
-        DistributionResultStatus.success => '[distribution] ${handler.name}:',
-        DistributionResultStatus.skipped => '[distribution] ${handler.name} skipped:',
-        DistributionResultStatus.failed => '[distribution] ${handler.name} failed:',
-      };
-
-      final suffix = result.message.isEmpty ? '\n' : ' ${result.message}\n';
-      await logger.logLine('$prefix$suffix');
+      await _logResult(result, logger, handler.name);
     }
 
     await logger.logLine('[distribution finished]\n');
+  }
+
+  Future<void> _logResult(
+    DistributionResult result,
+    DistributionLogger logger,
+    String handlerName,
+  ) {
+    final prefix = switch (result.status) {
+      .skipped => '[distribution] $handlerName skipped:',
+      .failed => '[distribution] $handlerName failed:',
+      .success => '[distribution] $handlerName:',
+    };
+
+    final suffix = result.message.isEmpty ? '\n' : ' ${result.message}\n';
+    return logger.logLine('$prefix$suffix');
   }
 }

@@ -1,6 +1,22 @@
-import 'package:fluship/services/distribution/distribution.dart';
 import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
+import 'package:fluship/services/distribution/distribution.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+const _testTheme = ReportHtmlTheme(
+  borderLr: 'border-left:1px solid #1e293b;border-right:1px solid #1e293b;',
+  bodyOpen: '<!DOCTYPE html><html><head><meta charset="utf-8"></head>'
+      '<body style="margin:0;padding:24px 12px;background:#2e3440;">'
+      '<div style="max-width:560px;margin:0 auto;">',
+  cardBorder: '#1e293b',
+  success: '#a3be8c',
+  section: '#94a3b8',
+  textDim: '#64748b',
+  accent: '#81a1c1',
+  cardBg: '#3b4252',
+  error: '#bf616a',
+  text: '#eceff4',
+  bg: '#2e3440',
+);
 
 void main() {
   const builder = BuildReportHtmlBuilder();
@@ -23,6 +39,7 @@ void main() {
         totalElapsed: '1m 5s',
         platforms: 'Android',
         buildNumber: '42',
+        theme: _testTheme,
         success: false,
         appName: 'My App & Co',
         version: '1.2.0',
@@ -35,6 +52,30 @@ void main() {
       expect(html, contains('Build Failed'));
       expect(html, contains('v1.2.0+42'));
       expect(html, contains('Pipeline Steps'));
+    });
+
+    test('uses theme colors in HTML output', () {
+      final html = builder.build(
+        steps: const [
+          BuildReportStepResult(
+            name: 'Clean',
+            elapsed: Duration(seconds: 1),
+            success: true,
+          ),
+        ],
+        totalElapsed: '1s',
+        buildNumber: '1',
+        platforms: 'Android',
+        theme: _testTheme,
+        appName: 'Demo',
+        version: '1.0.0',
+        success: true,
+      );
+
+      expect(html, contains('#2e3440'));
+      expect(html, contains('#3b4252'));
+      expect(html, contains('#81a1c1'));
+      expect(html, contains('#a3be8c'));
     });
 
     test('stepsFromPipelineViews skips pending steps', () {
