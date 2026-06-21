@@ -4,7 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 const _testTheme = ReportHtmlTheme(
   borderLr: 'border-left:1px solid #1e293b;border-right:1px solid #1e293b;',
-  bodyOpen: '<!DOCTYPE html><html><head><meta charset="utf-8"></head>'
+  bodyOpen:
+      '<!DOCTYPE html><html><head><meta charset="utf-8"></head>'
       '<body style="margin:0;padding:24px 12px;background:#2e3440;">'
       '<div style="max-width:560px;margin:0 auto;">',
   cardBorder: '#1e293b',
@@ -19,18 +20,18 @@ const _testTheme = ReportHtmlTheme(
 );
 
 void main() {
-  const builder = BuildReportHtmlBuilder();
+  const builder = ReportHtmlBuilder();
 
-  group('BuildReportHtmlBuilder', () {
+  group('ReportHtmlBuilder', () {
     test('includes escaped app name and step rows', () {
       final html = builder.build(
         steps: const [
-          BuildReportStepResult(
+          ReportStepResult(
             name: 'Build APK',
             elapsed: Duration(seconds: 12),
             success: true,
           ),
-          BuildReportStepResult(
+          ReportStepResult(
             name: 'Collect & <script>',
             elapsed: Duration(milliseconds: 500),
             success: false,
@@ -57,7 +58,7 @@ void main() {
     test('uses theme colors in HTML output', () {
       final html = builder.build(
         steps: const [
-          BuildReportStepResult(
+          ReportStepResult(
             name: 'Clean',
             elapsed: Duration(seconds: 1),
             success: true,

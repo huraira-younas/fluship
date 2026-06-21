@@ -1,10 +1,7 @@
 enum DistributionResultStatus { success, skipped, failed }
 
 class DistributionResult {
-  const DistributionResult._({
-    required this.status,
-    required this.message,
-  });
+  const DistributionResult._({required this.status, required this.message});
 
   final DistributionResultStatus status;
   final String message;
@@ -18,7 +15,7 @@ class DistributionResult {
   factory DistributionResult.failed(String reason) =>
       DistributionResult._(status: .failed, message: reason);
 
-  bool get isSuccess => status == DistributionResultStatus.success;
-  bool get isSkipped => status == DistributionResultStatus.skipped;
-  bool get isFailed => status == DistributionResultStatus.failed;
+  bool get isSuccess => status == .success;
+  bool get isSkipped => status == .skipped;
+  bool get isFailed => status == .failed;
 }

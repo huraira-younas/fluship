@@ -86,12 +86,12 @@ DistributionContext _context({
 
 void main() {
   late FakeEmailClient emailClient;
-  late BuildReportEmailHandler handler;
+  late ReportEmailHandler handler;
 
   setUp(() {
     emailClient = FakeEmailClient();
-    handler = BuildReportEmailHandler(
-      htmlBuilder: const BuildReportHtmlBuilder(),
+    handler = ReportEmailHandler(
+      htmlBuilder: const ReportHtmlBuilder(),
       emailClient: emailClient,
     );
   });

@@ -1,20 +1,19 @@
-import 'dart:io';
-
 import 'package:fluship/services/pipeline/pipeline.dart';
+import 'dart:io' show File;
 
 import '../contracts/distribution_context.dart';
 import '../contracts/distribution_handler.dart';
-import '../contracts/email_client.dart';
 import '../models/distribution_result.dart';
-import 'build_report_html_builder.dart';
+import '../email/report_html_builder.dart';
+import '../contracts/email_client.dart';
 
-class BuildReportEmailHandler implements DistributionHandler {
-  const BuildReportEmailHandler({
+class ReportEmailHandler implements DistributionHandler {
+  const ReportEmailHandler({
     required this._htmlBuilder,
     required this._emailClient,
   });
 
-  final BuildReportHtmlBuilder _htmlBuilder;
+  final ReportHtmlBuilder _htmlBuilder;
   final EmailClient _emailClient;
 
   @override
@@ -35,12 +34,16 @@ class BuildReportEmailHandler implements DistributionHandler {
     final gmailUser = report.gmailAddress?.trim() ?? '';
     final gmailPass = report.appPassword?.trim() ?? '';
     if (gmailUser.isEmpty || gmailPass.isEmpty) {
-      return DistributionResult.skipped('Gmail credentials are not configured.');
+      return DistributionResult.skipped(
+        'Gmail credentials are not configured.',
+      );
     }
 
     final logPath = context.snapshot.logFilePath.trim();
     if (logPath.isEmpty) {
-      return DistributionResult.skipped('Pipeline log file path is unavailable.');
+      return DistributionResult.skipped(
+        'Pipeline log file path is unavailable.',
+      );
     }
 
     if (!await File(logPath).exists()) {

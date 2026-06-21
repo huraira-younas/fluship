@@ -6,7 +6,7 @@ class DistributionModule {
   const DistributionModule._();
 
   static DistributionService createService() {
-    const htmlBuilder = BuildReportHtmlBuilder();
+    const htmlBuilder = ReportHtmlBuilder();
     const emailClient = GmailSmtpClient();
 
     return DistributionService(
@@ -15,7 +15,7 @@ class DistributionModule {
         const GoogleDriveHandler(),
         const PlayStoreHandler(),
         const AppStoreHandler(),
-        const BuildReportEmailHandler(
+        const ReportEmailHandler(
           htmlBuilder: htmlBuilder,
           emailClient: emailClient,
         ),

@@ -1,19 +1,18 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
+import 'package:equatable/equatable.dart';
 
 class PipelineRunSnapshot extends Equatable {
   const PipelineRunSnapshot({
-    required this.steps,
-    required this.runStatus,
-    required this.startedAt,
+    required this.totalElapsed,
+    required this.buildNumber,
+    required this.logFilePath,
     required this.finishedAt,
     required this.platforms,
-    required this.buildNumber,
-    required this.totalElapsed,
-    required this.logFilePath,
+    required this.runStatus,
+    required this.startedAt,
     required this.appName,
     required this.version,
+    required this.steps,
   });
 
   final List<PipelineStepView> steps;
@@ -27,16 +26,16 @@ class PipelineRunSnapshot extends Equatable {
   final String appName;
   final String version;
 
-  bool get success => runStatus == PipelineRunStatus.completed;
+  bool get success => runStatus == .completed;
 
   @override
   List<Object?> get props => [
-    runStatus,
     totalElapsed,
     logFilePath,
     buildNumber,
     finishedAt,
     platforms,
+    runStatus,
     startedAt,
     appName,
     version,

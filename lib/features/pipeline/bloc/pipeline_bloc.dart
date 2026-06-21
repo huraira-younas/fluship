@@ -137,8 +137,8 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
       if (_cancelRequested || result.wasCancelled) {
         stepViews[index] = _finalizeStepTiming(stepViews[index]).copyWith(
-          status: PipelineStepStatus.failed,
           errorMessage: 'Cancelled',
+          status: .failed,
         );
         await _logStepTiming(
           errorMessage: 'Cancelled',
@@ -146,8 +146,8 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
           stepName: step.name,
           success: false,
         );
-        runStatus = PipelineRunStatus.cancelled;
         summaryMessage = 'Pipeline cancelled.';
+        runStatus = .cancelled;
 
         _markRemainingSkipped(stepViews, index + 1);
         _emitSteps(emit, steps: stepViews, activeStepIndex: null);
@@ -267,8 +267,8 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
     await _distribution.run(
       emailTheme: ReportHtmlTheme.fromCurrentTheme(),
-      snapshot: snapshot,
       config: configState.distribution,
+      snapshot: snapshot,
       logger: PipelineDistributionLogger(
         consolePort: _consolePort,
         sessionId: sessionId,

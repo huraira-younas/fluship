@@ -1,11 +1,10 @@
-import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
+import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:intl/intl.dart';
-
 import 'report_html_theme.dart';
 
-class BuildReportStepResult {
-  const BuildReportStepResult({
+class ReportStepResult {
+  const ReportStepResult({
     required this.elapsed,
     required this.success,
     required this.name,
@@ -16,32 +15,32 @@ class BuildReportStepResult {
   final String name;
 }
 
-class BuildReportHtmlBuilder {
-  const BuildReportHtmlBuilder();
+class ReportHtmlBuilder {
+  const ReportHtmlBuilder();
 
   String build({
-    required List<BuildReportStepResult> steps,
+    required List<ReportStepResult> steps,
     required ReportHtmlTheme theme,
     required String totalElapsed,
     required String buildNumber,
     required String platforms,
-    required bool success,
     required String appName,
     required String version,
+    required bool success,
   }) {
-    final statusColor = success ? theme.success : theme.error;
-    final statusText = success ? 'Build Succeeded' : 'Build Failed';
-    final statusEmoji = success ? '✓' : '✗';
     final nowStr = DateFormat('MMM d, yyyy · HH:mm').format(DateTime.now());
+    final statusText = success ? 'Build Succeeded' : 'Build Failed';
+    final statusColor = success ? theme.success : theme.error;
+    final statusEmoji = success ? '✓' : '✗';
 
     final stepRows = StringBuffer();
     for (final step in steps) {
       stepRows.write(_stepRow(step, theme));
     }
 
-    final escapedApp = _escape(appName);
-    final escapedVersion = _escape(version);
     final escapedBuild = _escape(buildNumber);
+    final escapedVersion = _escape(version);
+    final escapedApp = _escape(appName);
 
     return '${theme.bodyOpen}'
         '${_htmlHeader('Build Report &mdash; v$escapedVersion+$escapedBuild', escapedApp, theme)}'
@@ -66,14 +65,12 @@ class BuildReportHtmlBuilder {
         '${ReportHtmlTheme.bodyClose}';
   }
 
-  List<BuildReportStepResult> stepsFromPipelineViews(
-    List<PipelineStepView> views,
-  ) {
+  List<ReportStepResult> stepsFromPipelineViews(List<PipelineStepView> views) {
     return views
-        .where((v) => v.status != PipelineStepStatus.pending)
+        .where((v) => v.status != .pending)
         .map(
-          (v) => BuildReportStepResult(
-            success: v.status == PipelineStepStatus.completed,
+          (v) => ReportStepResult(
+            success: v.status == .completed,
             elapsed: v.elapsed,
             name: v.name,
           ),
@@ -81,7 +78,7 @@ class BuildReportHtmlBuilder {
         .toList();
   }
 
-  String _stepRow(BuildReportStepResult step, ReportHtmlTheme theme) {
+  String _stepRow(ReportStepResult step, ReportHtmlTheme theme) {
     final elapsed = step.elapsed;
     final elapsedText = elapsed == null
         ? '—'
@@ -128,8 +125,8 @@ class BuildReportHtmlBuilder {
     String label,
     String value,
     ReportHtmlTheme theme, {
-    String? color,
     bool bold = false,
+    String? color,
   }) {
     final textColor = color ?? theme.text;
     final weight = bold ? 'font-weight:600;' : '';

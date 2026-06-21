@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:mailer/mailer.dart' as mailer;
 import 'package:mailer/smtp_server/gmail.dart';
 import 'package:path/path.dart' as p;
+import 'dart:io' show File;
 
 import '../contracts/email_client.dart';
 
