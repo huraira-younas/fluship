@@ -116,8 +116,8 @@ class _LayoutScreenState extends State<LayoutScreen> {
             Container(
               height: double.infinity,
               decoration: BoxDecoration(
-                border: Border(right: BorderSide(color: ft.colors.cardBorder)),
-                color: ft.colors.consoleBg.withValues(alpha: 0.35),
+                border: Border(right: BorderSide(color: ft.colors.codeBorder)),
+                color: ft.colors.codeBg,
               ),
               child: Column(
                 children: <Widget>[
