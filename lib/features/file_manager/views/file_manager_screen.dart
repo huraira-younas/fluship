@@ -21,9 +21,8 @@ class FileManagerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    getIt<FileManagerBloc>().add(const FileManagerInitialized());
     return BlocProvider.value(
-      value: getIt<FileManagerBloc>(),
+      value: getIt<FileManagerBloc>()..add(const FileManagerInitialized()),
       child: const _FileManagerView(),
     );
   }
