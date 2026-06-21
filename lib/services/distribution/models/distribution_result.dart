@@ -18,4 +18,7 @@ class DistributionResult {
   bool get isSuccess => status == .success;
   bool get isSkipped => status == .skipped;
   bool get isFailed => status == .failed;
+
+  DistributionResult copyWith({String? message}) =>
+      DistributionResult._(status: status, message: message ?? this.message);
 }

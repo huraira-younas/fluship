@@ -21,8 +21,8 @@ class FakeDistributionLogger implements DistributionLogger {
   final lines = <String>[];
 
   @override
-  Future<void> logLine(String text) async {
-    lines.add(text);
+  Future<void> logLine(DistributionResult result) async {
+    lines.add(result.message);
   }
 }
 
@@ -79,7 +79,10 @@ void main() {
 
   test('runs handlers in order and continues after failure', () async {
     final first = RecordingHandler('First', DistributionResult.failed('boom'));
-    final second = RecordingHandler('Second', DistributionResult.skipped('n/a'));
+    final second = RecordingHandler(
+      'Second',
+      DistributionResult.skipped('n/a'),
+    );
     final third = RecordingHandler('Third', DistributionResult.success('ok'));
     final logger = FakeDistributionLogger();
     final service = DistributionService(handlers: [first, second, third]);

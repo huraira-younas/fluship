@@ -39,10 +39,10 @@ dependencies:
   file_picker: ^11.0.2
   flutter_bloc: ^9.1.1
   equatable: ^2.0.8
+  mailer: ^6.6.0
   get_it: ^9.0.5
   intl: ^0.20.2
   path: ^1.9.1
-  mailer: ^6.6.0
   xml: ^7.0.1
 
 dev_dependencies:

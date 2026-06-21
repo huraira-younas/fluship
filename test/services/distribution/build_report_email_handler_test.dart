@@ -23,8 +23,8 @@ class FakeDistributionLogger implements DistributionLogger {
   final lines = <String>[];
 
   @override
-  Future<void> logLine(String text) async {
-    lines.add(text);
+  Future<void> logLine(DistributionResult result) async {
+    lines.add(result.message);
   }
 }
 

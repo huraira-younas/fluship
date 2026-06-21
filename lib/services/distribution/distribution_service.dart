@@ -28,14 +28,18 @@ class DistributionService {
       logger: logger,
     );
 
-    await logger.logLine('[distribution started]\n');
+    await logger.logLine(
+      DistributionResult.success('[distribution started]\n'),
+    );
 
     for (final handler in _handlers) {
       final result = await handler.run(context);
       await _logResult(result, logger, handler.name);
     }
 
-    await logger.logLine('[distribution finished]\n');
+    await logger.logLine(
+      DistributionResult.success('[distribution finished]\n'),
+    );
   }
 
   Future<void> _logResult(
@@ -50,6 +54,6 @@ class DistributionService {
     };
 
     final suffix = result.message.isEmpty ? '\n' : ' ${result.message}\n';
-    return logger.logLine('$prefix$suffix');
+    return logger.logLine(result.copyWith(message: '$prefix$suffix'));
   }
 }
