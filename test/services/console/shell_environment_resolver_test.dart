@@ -26,7 +26,9 @@ flutter.sdk=/Users/dev/flutter
 
     test('returns null when no flutter root is present', () {
       expect(
-        ShellEnvironmentResolver.parseFlutterRootFromConfig('sdk.dir=/android/sdk'),
+        ShellEnvironmentResolver.parseFlutterRootFromConfig(
+          'sdk.dir=/android/sdk',
+        ),
         isNull,
       );
     });

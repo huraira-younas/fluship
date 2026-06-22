@@ -47,12 +47,11 @@ class _FakeDistributionHandler implements DistributionHandler {
   }
 }
 
-List<CommandStep> _resolve(ConfigState state) =>
-    ConfigPipelineResolver.resolve(
-      state,
-      contextProvider: () => throw UnimplementedError(),
-      handlers: const {},
-    );
+List<CommandStep> _resolve(ConfigState state) => ConfigPipelineResolver.resolve(
+  state,
+  contextProvider: () => throw UnimplementedError(),
+  handlers: const {},
+);
 
 void main() {
   group('ConfigPipelineResolver', () {

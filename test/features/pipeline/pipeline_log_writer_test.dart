@@ -61,36 +61,49 @@ void main() {
       }
     });
 
-    test('writes logs under fluship outputs/project/version/build folder', () async {
-      final writer = FilePipelineLogWriter(
-        workspacePaths: FlushipWorkspacePaths(overrideRoot: tempDir.path),
-      );
-      final savedPath = await writer.save(
-        projectName: 'ReelStay',
-        buildNumber: '5700',
-        version: '1.5.4',
-        lines: const [
-          ConsoleLine(stream: ConsoleStream.system, text: '[pipeline started]'),
-          ConsoleLine(stream: ConsoleStream.system, text: '[exit 0]'),
-        ],
-      );
+    test(
+      'writes logs under fluship outputs/project/version/build folder',
+      () async {
+        final writer = FilePipelineLogWriter(
+          workspacePaths: FlushipWorkspacePaths(overrideRoot: tempDir.path),
+        );
+        final savedPath = await writer.save(
+          projectName: 'ReelStay',
+          buildNumber: '5700',
+          version: '1.5.4',
+          lines: const [
+            ConsoleLine(
+              stream: ConsoleStream.system,
+              text: '[pipeline started]',
+            ),
+            ConsoleLine(stream: ConsoleStream.system, text: '[exit 0]'),
+          ],
+        );
 
-      final file = File(savedPath);
-      expect(await file.exists(), isTrue);
-      expect(
-        savedPath,
-        contains(
-          'outputs${Platform.pathSeparator}reelstay${Platform.pathSeparator}v1.5.4${Platform.pathSeparator}5700${Platform.pathSeparator}logs.txt',
-        ),
-      );
-      expect(
-        savedPath,
-        p.join(tempDir.path, 'outputs', 'reelstay', 'v1.5.4', '5700', 'logs.txt'),
-      );
+        final file = File(savedPath);
+        expect(await file.exists(), isTrue);
+        expect(
+          savedPath,
+          contains(
+            'outputs${Platform.pathSeparator}reelstay${Platform.pathSeparator}v1.5.4${Platform.pathSeparator}5700${Platform.pathSeparator}logs.txt',
+          ),
+        );
+        expect(
+          savedPath,
+          p.join(
+            tempDir.path,
+            'outputs',
+            'reelstay',
+            'v1.5.4',
+            '5700',
+            'logs.txt',
+          ),
+        );
 
-      final content = await file.readAsString();
-      expect(content, contains('[pipeline started]'));
-      expect(content, contains('[exit 0]'));
-    });
+        final content = await file.readAsString();
+        expect(content, contains('[pipeline started]'));
+        expect(content, contains('[exit 0]'));
+      },
+    );
   });
 }

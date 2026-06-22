@@ -61,23 +61,20 @@ description: Test
     },
   );
 
-  test(
-    'bumpVersion throws when pubspec.yaml has no name field',
-    () async {
-      await File('${tempDir.path}/pubspec.yaml').writeAsString('''
+  test('bumpVersion throws when pubspec.yaml has no name field', () async {
+    await File('${tempDir.path}/pubspec.yaml').writeAsString('''
 description: Test
 ''');
 
-      expect(
-        () => service.bumpVersion(
-          projectPath: tempDir.path,
-          buildNumber: '1',
-          version: '1.0.0',
-        ),
-        throwsA(isA<FlutterProjectException>()),
-      );
-    },
-  );
+    expect(
+      () => service.bumpVersion(
+        projectPath: tempDir.path,
+        buildNumber: '1',
+        version: '1.0.0',
+      ),
+      throwsA(isA<FlutterProjectException>()),
+    );
+  });
 
   test('bumpVersion replaces indented version line', () async {
     await File('${tempDir.path}/pubspec.yaml').writeAsString('''

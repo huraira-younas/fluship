@@ -4,7 +4,6 @@ import 'drive/drive_uploader.dart';
 import 'handlers/exports.dart';
 import 'email/exports.dart';
 
-
 class DistributionModule {
   const DistributionModule._();
 

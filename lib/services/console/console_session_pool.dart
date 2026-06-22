@@ -15,6 +15,19 @@ class ConsoleSessionPool implements IConsoleSessionPool {
   int get sessionCount => _runners.length;
 
   @override
+  Map<String, int> get trackedShellPids {
+    final pids = <String, int>{};
+    for (final entry in _runners.entries) {
+      final pid = entry.value.processId;
+      if (pid != null) pids[entry.key] = pid;
+    }
+    return pids;
+  }
+
+  @override
+  Set<int> get trackedShellPidSet => trackedShellPids.values.toSet();
+
+  @override
   bool hasSession(String sessionId) => _runners.containsKey(sessionId);
 
   @override

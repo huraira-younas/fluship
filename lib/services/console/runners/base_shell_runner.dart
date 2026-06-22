@@ -34,6 +34,9 @@ abstract base class BaseShellRunner implements IShellRunner {
   @override
   bool get isRunning => _running;
 
+  @override
+  int? get processId => _process?.pid;
+
   bool get _isAlive => !_disposed && _process != null;
 
   String get executable;

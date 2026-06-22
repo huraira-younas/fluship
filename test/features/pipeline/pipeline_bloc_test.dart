@@ -63,7 +63,9 @@ class FakePipelineConsolePort implements PipelineConsolePort {
     required String command,
   }) async {
     commands.add(command);
-    capturedLines.add(ConsoleLine(stream: ConsoleStream.input, text: '> $command'));
+    capturedLines.add(
+      ConsoleLine(stream: ConsoleStream.input, text: '> $command'),
+    );
 
     if (delayStep) {
       await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -191,10 +193,7 @@ void main() {
         bloc.state.steps.map((step) => step.status),
         everyElement(PipelineStepStatus.completed),
       );
-      expect(
-        bloc.state.steps.every((step) => step.elapsed != null),
-        isTrue,
-      );
+      expect(bloc.state.steps.every((step) => step.elapsed != null), isTrue);
       expect(
         console.logLines.any((line) => line.contains('completed in')),
         isTrue,

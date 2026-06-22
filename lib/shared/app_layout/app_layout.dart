@@ -1,3 +1,4 @@
+import 'package:fluship/features/process_manager/views/process_manager_screen.dart';
 import 'package:fluship/features/file_manager/views/file_manager_screen.dart';
 import 'package:fluship/core/responsive/models/layout_constraints.dart';
 import 'package:fluship/features/settings/views/settings_screen.dart';
@@ -23,10 +24,11 @@ class LayoutScreen extends StatefulWidget {
 
 class _LayoutScreenState extends State<LayoutScreen> {
   Widget _tabFor(LayoutTabs tab) => switch (tab) {
-    .config => const ConfigScreen(),
-    .console => const ConsoleScreen(),
+    .processes => const ProcessManagerScreen(),
     .settings => const SettingsScreen(),
     .files => const FileManagerScreen(),
+    .console => const ConsoleScreen(),
+    .config => const ConfigScreen(),
   };
 
   @override
@@ -66,7 +68,8 @@ class _LayoutScreenState extends State<LayoutScreen> {
     );
   }
 
-  bool _usesExpandedBody(LayoutTabs tab) => tab == .console || tab == .files;
+  bool _usesExpandedBody(LayoutTabs tab) =>
+      tab == .console || tab == .files || tab == .processes;
 
   Widget _buildTabBody({required LayoutTabs state, required double hPad}) {
     final key = ValueKey(state.value);

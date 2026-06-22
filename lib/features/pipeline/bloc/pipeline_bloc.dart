@@ -345,7 +345,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
   PipelineStepView _finalizeStepTiming(PipelineStepView view) {
     final started = view.startedAt;
     if (started == null) return view;
-    
+
     return view.copyWith(
       elapsed: DateTime.now().difference(started),
       clearStartedAt: true,

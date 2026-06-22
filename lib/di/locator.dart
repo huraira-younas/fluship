@@ -4,6 +4,7 @@ import 'package:fluship/services/console/runners/shell_runner_factory.dart';
 import 'package:fluship/services/console/console_session_pool.dart';
 
 import 'package:fluship/features/file_manager/repository/file_manager_repository.dart';
+import 'package:fluship/features/process_manager/bloc/process_manager_bloc.dart';
 import 'package:fluship/features/pipeline/contracts/pipeline_config_source.dart';
 import 'package:fluship/features/pipeline/contracts/pipeline_console_port.dart';
 import 'package:fluship/features/file_manager/bloc/file_manager_bloc.dart';
@@ -35,6 +36,10 @@ class AppLocator {
     );
 
     getIt.registerSingleton(ConsoleBloc(pool: getIt<IConsoleSessionPool>()));
+
+    getIt.registerLazySingleton(
+      () => ProcessManagerBloc(sessionPool: getIt<IConsoleSessionPool>()),
+    );
 
     getIt.registerSingleton(
       PipelineBloc(

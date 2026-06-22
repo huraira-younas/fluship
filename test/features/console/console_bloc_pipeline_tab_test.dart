@@ -16,6 +16,12 @@ class FakeConsoleSessionPool implements IConsoleSessionPool {
   int get sessionCount => created.length - disposed.length;
 
   @override
+  Map<String, int> get trackedShellPids => const {};
+
+  @override
+  Set<int> get trackedShellPidSet => const {};
+
+  @override
   bool hasSession(String sessionId) =>
       created.contains(sessionId) && !disposed.contains(sessionId);
 

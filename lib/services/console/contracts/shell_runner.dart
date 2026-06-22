@@ -1,6 +1,8 @@
 import '../models/shell_run_result.dart';
 
 abstract interface class IShellRunner {
+  int? get processId;
+
   Future<void> start({required String workingDirectory});
 
   Future<ShellRunResult> run(

@@ -15,6 +15,9 @@ class FakeShellRunner implements IShellRunner {
   bool get isRunning => running;
 
   @override
+  int? get processId => started ? 4242 : null;
+
+  @override
   Future<void> cancel() async {
     running = false;
   }

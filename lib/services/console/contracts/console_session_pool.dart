@@ -18,4 +18,7 @@ abstract interface class IConsoleSessionPool {
 
   bool hasSession(String sessionId);
   int get sessionCount;
+
+  Map<String, int> get trackedShellPids;
+  Set<int> get trackedShellPidSet;
 }

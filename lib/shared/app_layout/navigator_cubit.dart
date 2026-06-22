@@ -5,7 +5,8 @@ enum LayoutTabs {
   config(0),
   console(1),
   settings(2),
-  files(3);
+  files(3),
+  processes(4);
 
   const LayoutTabs(this.value);
   final int value;
@@ -17,6 +18,7 @@ enum LayoutTabs {
       values.firstWhere((e) => e.value == value);
 
   String get label => switch (this) {
+    .processes => 'Processes',
     .settings => 'Settings',
     .console => 'Console',
     .config => 'Config',
@@ -26,6 +28,7 @@ enum LayoutTabs {
   IconData get icon => switch (this) {
     .settings => Icons.settings_rounded,
     .console => Icons.terminal_rounded,
+    .processes => Icons.memory_rounded,
     .files => Icons.folder_outlined,
     .config => Icons.tune_rounded,
   };

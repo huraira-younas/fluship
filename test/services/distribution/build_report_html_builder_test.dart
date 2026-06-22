@@ -116,9 +116,7 @@ void main() {
       expect(html, contains('Uploaded Files'));
       expect(
         html,
-        contains(
-          'https://drive.google.com/drive/folders/abc?id=1&amp;x=2',
-        ),
+        contains('https://drive.google.com/drive/folders/abc?id=1&amp;x=2'),
       );
     });
   });
