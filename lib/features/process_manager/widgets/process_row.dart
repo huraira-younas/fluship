@@ -1,6 +1,6 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
-import 'package:fluship/services/process/process.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
+import 'package:fluship/services/process/process.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
@@ -18,49 +18,43 @@ class ProcessRowTile extends StatelessWidget {
       .orphan => ft.colors.warn,
     };
 
+    final shape = RoundedRectangleBorder(
+      side: BorderSide(color: ft.colors.cardBorder),
+      borderRadius: .circular(ft.radius.card),
+    );
+
     return Material(
       color: ft.colors.cardBg,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: ft.colors.cardBorder),
-        borderRadius: .circular(ft.radius.card),
-      ),
-      child: InkWell(
-        borderRadius: .circular(ft.radius.card),
+      shape: shape,
+      child: ListTile(
         onTap: () => _showDetails(context, ft),
-        child: Row(
-          spacing: ft.spacing.md,
-          children: [
-            Icon(
-              ProcessCommandLabel.iconFor(row.command),
-              color: color,
-              size: 22,
-            ),
-            Column(
-              crossAxisAlignment: .start,
-              spacing: ft.spacing.sm,
-              children: [
-                Row(
-                  spacing: ft.spacing.sm,
-                  children: [
-                    AppText.body(row.displayName, weight: .w600).expanded(),
-                    _badge(ft, color),
-                  ],
-                ),
-                AppText.custom(
-                  'PID ${row.pid}'
-                  '${row.sessionLabel != null ? ' · ${row.sessionLabel}' : ''}'
-                  '${row.depth > 0 ? ' · depth ${row.depth}' : ''}',
-                  color: ft.colors.textDim,
-                ),
-              ],
-            ).expanded(),
+        visualDensity: .compact,
+        shape: shape,
+        leading: Icon(
+          ProcessCommandLabel.iconFor(row.command),
+          color: color,
+          size: 22,
+        ),
+        title: AppText.body(row.displayName, weight: .w600),
+        subtitle: AppText.custom(
+          'PID ${row.pid}'
+          '${row.sessionLabel != null ? ' · ${row.sessionLabel}' : ''}'
+          '${row.depth > 0 ? ' · depth ${row.depth}' : ''}',
+          color: ft.colors.textDim,
+          size: .caption,
+        ),
+        trailing: Row(
+          spacing: ft.spacing.sm,
+          mainAxisSize: .min,
+          children: <Widget>[
+            _badge(ft, color),
             IconButton(
               icon: Icon(Icons.delete_outline_rounded, color: ft.colors.danger),
               tooltip: 'Kill process',
               onPressed: onKill,
             ),
           ],
-        ).padSym(h: ft.spacing.md, v: ft.spacing.md),
+        ),
       ),
     ).padOnly(l: row.depth * 18.0, b: ft.spacing.sm);
   }

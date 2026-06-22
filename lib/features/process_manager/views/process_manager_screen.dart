@@ -4,7 +4,6 @@ import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/services/process/process.dart';
 import 'package:fluship/shared/widgets/app_toast.dart';
-import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluship/di/locator.dart';
@@ -79,7 +78,6 @@ class _ProcessManagerView extends StatelessWidget {
           crossAxisAlignment: .stretch,
           spacing: ft.spacing.md,
           children: [
-            _buildIntro(ft),
             _buildToolbar(context, ft, state),
             _buildSummary(ft, state),
             if (state.loading && state.processes.isEmpty)
@@ -88,21 +86,6 @@ class _ProcessManagerView extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-
-  Widget _buildIntro(FlushipThemeExtension ft) {
-    return AppCard(
-      title: 'Fluship processes only',
-      description:
-          'Only processes started by Fluship pipeline/console, or leftovers from your project after a cancelled run.',
-      children: [
-        AppText.custom(
-          color: ft.colors.textDim,
-          'Active = still linked to a running Fluship shell (do not kill unless you want to stop the build). '
-          'Orphan = leftover from an earlier run with no active shell — safe to kill.',
-        ),
-      ],
     );
   }
 
@@ -169,6 +152,12 @@ class _ProcessManagerView extends StatelessWidget {
         ).expanded(),
         const AppText.body('Non-build children'),
         Switch(
+          trackOutlineColor: WidgetStateProperty.all(
+            state.showAllChildren ? Colors.transparent : ft.colors.consoleBg,
+          ),
+          inactiveThumbColor: ft.colors.textDim,
+          inactiveTrackColor: ft.colors.codeBg,
+          activeThumbColor: ft.colors.accent,
           value: state.showAllChildren,
           onChanged: (value) =>
               bloc.add(ProcessManagerShowAllChildrenToggled(value: value)),
@@ -215,7 +204,7 @@ class _ProcessManagerView extends StatelessWidget {
         if (state.actives.isNotEmpty) ...[
           _sectionHeader(
             subtitle:
-                'Running under Fluship pipeline or console — killing stops the build.',
+                'Running under Fluship pipeline or console - killing stops the build.',
             color: ft.colors.success,
             title: 'Active',
             ft,
@@ -230,7 +219,7 @@ class _ProcessManagerView extends StatelessWidget {
         if (state.orphans.isNotEmpty) ...[
           _sectionHeader(
             subtitle:
-                'Leftover from a previous Fluship run. Not linked to any shell — safe to kill.',
+                'Leftover from a previous Fluship run. Not linked to any shell - safe to kill.',
             color: ft.colors.warn,
             title: 'Orphans',
             ft,
