@@ -1,15 +1,20 @@
 import 'dart:async' show Completer, StreamSubscription;
-import 'dart:io' show Directory, Platform, Process;
+import 'dart:io' show Directory, Process;
 import 'dart:convert' show utf8;
 
 import '../exceptions/console_shell_exceptions.dart';
 import '../contracts/shell_output_parser.dart';
+import '../shell_environment_resolver.dart';
 import '../models/shell_parse_result.dart';
 import '../models/shell_run_result.dart';
 import '../contracts/shell_runner.dart';
 
 abstract base class BaseShellRunner implements IShellRunner {
-  BaseShellRunner({required this._parser});
+  BaseShellRunner({
+    ShellEnvironmentResolver? envResolver,
+    required this._parser,
+  }) : _envResolver = envResolver ?? const ShellEnvironmentResolver();
+  final ShellEnvironmentResolver _envResolver;
   final IShellOutputParser _parser;
 
   Completer<ShellRunResult>? _runCompleter;
@@ -45,11 +50,15 @@ abstract base class BaseShellRunner implements IShellRunner {
       throw StateError('Working directory does not exist: $workingDirectory');
     }
 
+    final environment = await _envResolver.resolve(
+      workingDirectory: workingDirectory,
+    );
+
     final process = await Process.start(
       executable,
       startupArguments,
+      environment: environment,
       workingDirectory: workingDirectory,
-      environment: Platform.environment,
     );
     _process = process;
 
