@@ -95,7 +95,7 @@ void main() {
 
       expect(names, ['Bump Version', 'Pre-Commit', 'Pre-Pull']);
       expect(steps[1].command, contains('git commit'));
-      expect(steps[2].command, 'git pull origin develop');
+      expect(steps[2].command, '(git pull origin develop) || true');
     });
 
     test('skips disabled sections', () {

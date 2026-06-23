@@ -36,7 +36,8 @@ class IosConfig extends StatelessWidget {
             SwitchLabel(
               disabled: !ios.enabled,
               value: ios.podClean,
-              label: "Pod Clean → pod deintegrate && pod update && pod install",
+              label:
+                  "Pod Clean → cd ios && pod deintegrate && pod repo update && pod update",
               onChange: (value) =>
                   bloc.add(UpdateConfig(config: ios.copyWith(podClean: value))),
             ),

@@ -128,13 +128,13 @@ List<CommandStep> resolveAndroid(ConfigState state) {
 }
 
 List<CommandStep> resolveIos(ConfigState state) {
-  if (!Platform.isIOS || !state.ios.enabled) return const [];
+  if (!Platform.isMacOS || !state.ios.enabled) return const [];
 
   final ios = state.ios;
   return [
     if (ios.podClean)
       const CommandStep(
-        command: 'pod deintegrate && pod update && pod install',
+        command: '(cd ios && pod deintegrate && pod repo update && pod update)',
         name: 'Pod Clean',
       ),
     if (ios.buildIpa) ...[
