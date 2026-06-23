@@ -34,10 +34,9 @@ class IosConfig extends StatelessWidget {
               "Pod Clean is especially useful when native dependency versions change and a simple pod install isn't enough.",
           children: [
             SwitchLabel(
+              label: "Pod Install → cd ios && pod install --repo-update",
               disabled: !ios.enabled,
               value: ios.podClean,
-              label:
-                  "Pod Clean → cd ios && pod deintegrate && pod repo update && pod update",
               onChange: (value) =>
                   bloc.add(UpdateConfig(config: ios.copyWith(podClean: value))),
             ),

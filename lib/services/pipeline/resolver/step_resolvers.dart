@@ -134,8 +134,8 @@ List<CommandStep> resolveIos(ConfigState state) {
   return [
     if (ios.podClean)
       const CommandStep(
-        command: '(cd ios && pod deintegrate && pod repo update && pod update)',
-        name: 'Pod Clean',
+        command: '(cd ios && pod install --repo-update)',
+        name: 'Pod Install',
       ),
     if (ios.buildIpa) ...[
       const CommandStep(name: 'Build IPA', command: 'flutter build ipa'),
