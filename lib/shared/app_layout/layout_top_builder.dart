@@ -1,3 +1,4 @@
+import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
 import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/features/file_manager/routes.dart';
@@ -29,22 +30,26 @@ class LayoutTopBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pipeline = BlocSelector<PipelineBloc, PipelineState, bool>(
-      selector: (state) => state.isRunning,
-      builder: (context, isRunning) {
-        return AppButton.primary(
-          isExpanded: sidePanel,
-          isLoading: isRunning,
-          onPressed: isRunning
-              ? null
-              : () {
-                  getIt<PipelineBloc>().add(const RunPipeline());
-                  context.read<NavigatorCubit>().navigate(.console);
-                },
-          label: isRunning ? 'Running…' : 'Run Pipeline',
+    final pipeline =
+        BlocSelector<PipelineBloc, PipelineState, PipelineStepView?>(
+          selector: (state) {
+            if (state.activeStepIndex == null) return null;
+            return state.steps[state.activeStepIndex!];
+          },
+          builder: (context, step) {
+            final running = step?.status == .running;
+            return AppButton.primary(
+              label: running ? 'Running: ${step?.name}' : 'Run Pipeline',
+              isExpanded: sidePanel,
+              onPressed: running
+                  ? null
+                  : () {
+                      getIt<PipelineBloc>().add(const RunPipeline());
+                      context.read<NavigatorCubit>().navigate(.console);
+                    },
+            );
+          },
         );
-      },
-    );
 
     final fileManager = AppButton.icon(
       onPressed: () => FileManagerRoutes.openFileManager(),
@@ -70,12 +75,12 @@ class LayoutTopBuilder extends StatelessWidget {
           )
         : AppTabs(
             onChange: (tab) => context.read<NavigatorCubit>().navigate(tab),
-            contentPadding: EdgeInsets.symmetric(
+            contentPadding: .symmetric(
               horizontal: spacing.lg + 10,
               vertical: spacing.sm,
             ),
-            labels: navTabs,
             label: selectedTab,
+            labels: navTabs,
           );
 
     return BlocSelector<ConfigBloc, ConfigState, AppInfoModel>(

@@ -4,7 +4,6 @@ import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
 import '../models/pipeline_step_view.dart';
-import 'pipeline_progress_icon.dart';
 import 'pipeline_status_style.dart';
 import 'pipeline_elapsed.dart';
 
@@ -69,12 +68,17 @@ class PipelineStepRow extends StatelessWidget {
             ],
           ).expanded(),
           PipelineStepElapsedBadge(step: step),
-          PipelineProgressIcon(
-            showSpinner: isRunning || isActive,
-            color: statusColor,
-            icon: step.status.icon,
-            size: 16,
-          ),
+          if (isRunning || isActive)
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                color: statusColor,
+                strokeWidth: 2,
+              ),
+            )
+          else
+            Icon(step.status.icon, size: 16, color: statusColor),
         ],
       ),
     );

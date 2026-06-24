@@ -7,7 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
 import '../bloc/pipeline_bloc.dart';
-import 'pipeline_progress_icon.dart';
 import 'pipeline_status_style.dart';
 import 'pipeline_step_row.dart';
 import 'pipeline_elapsed.dart';
@@ -37,11 +36,6 @@ class PipelineRunnerPanelBody extends StatelessWidget {
           crossAxisAlignment: .start,
           spacing: ft.spacing.sm,
           children: [
-            PipelineProgressIcon(
-              showSpinner: runStatus == .running,
-              icon: runStatus.icon,
-              color: statusColor,
-            ),
             Column(
               crossAxisAlignment: .stretch,
               spacing: 4,
