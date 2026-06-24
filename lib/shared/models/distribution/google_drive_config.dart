@@ -13,6 +13,8 @@ class GoogleDriveConfig extends Equatable {
     this.folderId,
   });
 
+  bool get canSend => hasCreds(oauthJson) && hasCreds(tokenJson);
+
   GoogleDriveConfig copyWith({
     String? oauthJson,
     String? tokenJson,

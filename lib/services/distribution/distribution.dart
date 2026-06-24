@@ -1,4 +1,5 @@
 export 'contracts/exports.dart';
+export 'app_store/exports.dart';
 export 'handlers/exports.dart';
 export 'models/exports.dart';
 export 'email/exports.dart';

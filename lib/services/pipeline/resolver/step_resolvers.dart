@@ -171,8 +171,8 @@ List<CommandStep> resolveDistribution(
   required Map<DistributionStepKind, DistributionHandler> handlers,
   required Future<DistributionContext> Function() contextProvider,
 }) {
-  final distribution = state.distribution;
-  if (!distribution.enabled) return const [];
+  final dist = state.distribution;
+  if (!dist.enabled) return const [];
 
   CommandStep distributionStep(DistributionStepKind kind) {
     final handler = handlers[kind]!;
@@ -194,12 +194,17 @@ List<CommandStep> resolveDistribution(
     );
   }
 
+  bool vl(bool? v) => v ?? false;
+
   return [
     for (final kind in <DistributionStepKind>[
-      if (distribution.canSendToDrive) .drive,
-      if (distribution.canSendToAppStore) .appStore,
-      if (distribution.canSendToPlayStore) .playStore,
-      if (distribution.canSendBuildReport) .report,
+      if (dist.canSendToAppStore && vl(dist.appstore?.enabled)) .appStore,
+      if (dist.canSendToDrive && vl(dist.driveConfig?.enabled)) .drive,
+
+      if (dist.canSendToPlayStore && vl(dist.playstore?.distribution != null))
+        .playStore,
+      if (dist.canSendBuildReport && vl(dist.reportRecipient?.buildReport))
+        .report,
     ])
       if (handlers.containsKey(kind)) distributionStep(kind),
   ];

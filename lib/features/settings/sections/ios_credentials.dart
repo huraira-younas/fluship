@@ -1,11 +1,14 @@
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
+import 'package:fluship/services/file_picker_service.dart';
 import 'package:fluship/shared/widgets/app_text_field.dart';
 import 'package:fluship/shared/widgets/app_toast.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluship/di/locator.dart';
 import 'package:flutter/material.dart';
+
+import '../widgets/field_button.dart';
 
 class IosCredentials extends StatelessWidget {
   const IosCredentials({super.key});
@@ -22,6 +25,17 @@ class IosCredentials extends StatelessWidget {
     );
   }
 
+  Future<void> _pickApiKey(IosConfig ios) async {
+    final path = await getIt<FilePickerService>().pickFile(
+      dialogTitle: 'Select App Store Connect API Key (.p8)',
+      allowedExtensions: ['p8'],
+    );
+
+    if (path == null) return;
+
+    _updateIos(ios.copyWith(apiKeyPath: path));
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ConfigBloc, ConfigState, IosConfig?>(
@@ -30,22 +44,29 @@ class IosCredentials extends StatelessWidget {
         if (ios == null) return const SizedBox.shrink();
 
         return AppCard(
-          title: 'iOS Config',
+          title: 'App Store Connect',
           description:
-              'Browse to your Google Cloud service account JSON key so Fluship can authenticate Play Store uploads when you build an AAB. Leave package name blank to auto-detect it from your Flutter project.',
+              'Enter your App Store Connect API credentials so Fluship can upload IPA builds to TestFlight. '
+              'Create an API key in App Store Connect under Users and Access, then browse to the downloaded AuthKey .p8 file.',
           spacing: 15,
           children: [
             AppTextField.label(
               onChanged: (value) => _updateIos(ios.copyWith(issuerId: value)),
               initialValue: ios.issuerId,
               label: 'Issuer ID',
-              hint: '1234567890',
+              hint: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
             ),
             AppTextField.label(
               onChanged: (value) => _updateIos(ios.copyWith(apiKeyId: value)),
               initialValue: ios.apiKeyId,
               label: 'API Key ID',
-              hint: '1234567890',
+              hint: 'XXXXXXXXXX',
+            ),
+            FieldButton(
+              hint: '/Users/Username/Keys/AuthKey_XXXXXXXXXX.p8',
+              onBrowse: () => _pickApiKey(ios),
+              label: 'Auth Key (.p8)',
+              value: ios.apiKeyPath,
             ),
           ],
         );

@@ -1,8 +1,7 @@
-import 'dart:io' show Platform;
-
 import 'package:fluship/core/json_parser/exports.dart';
 import 'package:equatable/equatable.dart';
 import '../base_config.dart';
+import 'has_creds.dart';
 
 part 'report_recipient_config.dart';
 part 'google_drive_config.dart';
@@ -24,13 +23,10 @@ final class DistributionConfigModel extends BaseConfig {
   final GoogleDriveConfig? driveConfig;
   final IosConfig? appstore;
 
-  bool get canSendBuildReport => reportRecipient?.canSendBuildReport ?? false;
-  bool get canSendToPlayStore => _hasCredential(playstore?.saJsonPath);
-  bool get canSendToDrive => _hasCredential(driveConfig?.oauthJson);
-  bool get canSendToAppStore =>
-      Platform.isMacOS && _hasCredential(appstore?.apiKeyId);
-
-  static bool _hasCredential(String? path) => path != null && path.isNotEmpty;
+  bool get canSendBuildReport => reportRecipient?.canSend ?? false;
+  bool get canSendToPlayStore => playstore?.canSend ?? false;
+  bool get canSendToAppStore => appstore?.canSend ?? false;
+  bool get canSendToDrive => driveConfig?.canSend ?? false;
 
   factory DistributionConfigModel.fromJson(Map<String, dynamic>? json) {
     if (json == null) return const DistributionConfigModel();
