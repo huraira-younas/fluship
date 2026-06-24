@@ -29,6 +29,8 @@ class DistributionConfig extends StatelessWidget {
       'No OAuth JSON found. Please configure Google Drive in the Settings tab.';
   static const _buildReportCredError =
       'Configure Gmail and report recipient in Settings.';
+  static const _appStoreCredError =
+      'No API key found. Please configure iOS credentials in the Settings tab.';
 
   void _updateDistribution(
     DistributionConfigModel distribution,
@@ -49,8 +51,10 @@ class DistributionConfig extends StatelessWidget {
         final dist = view.distribution;
         final report = dist.reportRecipient ?? const ReportRecipientConfig();
         final drive = dist.driveConfig ?? const GoogleDriveConfig();
+        final ios = dist.appstore ?? const IosConfig();
 
         final canBuildReport = dist.canSendBuildReport;
+        final canAppStore = dist.canSendToAppStore;
         final canPlay = dist.canSendToPlayStore;
         final canDrive = dist.canSendToDrive;
         final sectionEnabled = dist.enabled;
@@ -95,11 +99,14 @@ class DistributionConfig extends StatelessWidget {
             ),
             if (Platform.isMacOS)
               SwitchLabel(
-                disabled: !sectionEnabled,
-                value: dist.appstore,
+                error: canAppStore ? null : _appStoreCredError,
+                disabled: !sectionEnabled || !canAppStore,
+                value: canAppStore && ios.enabled,
                 label: "App Store → TestFlight",
-                onChange: (value) =>
-                    _updateDistribution(dist.copyWith(appstore: value), bloc),
+                onChange: (value) => _updateDistribution(
+                  dist.copyWith(appstore: ios.copyWith(enabled: value)),
+                  bloc,
+                ),
               ),
             SwitchLabel(
               label: "Google Drive",

@@ -7,26 +7,28 @@ import '../base_config.dart';
 part 'report_recipient_config.dart';
 part 'google_drive_config.dart';
 part 'distribution_email.dart';
+part 'ios_config.dart';
 part 'enum.dart';
 
 final class DistributionConfigModel extends BaseConfig {
   const DistributionConfigModel({
-    this.appstore = false,
     super.enabled = true,
     this.reportRecipient,
     this.driveConfig,
     this.playstore,
+    this.appstore,
   });
 
   final ReportRecipientConfig? reportRecipient;
   final PlayStoreDistribution? playstore;
   final GoogleDriveConfig? driveConfig;
-  final bool appstore;
+  final IosConfig? appstore;
 
   bool get canSendBuildReport => reportRecipient?.canSendBuildReport ?? false;
   bool get canSendToDrive => _hasCredential(driveConfig?.oauthJson);
-  bool get canSendToAppStore => Platform.isMacOS;
   bool get canSendToPlayStore => false;
+  bool get canSendToAppStore =>
+      Platform.isMacOS && _hasCredential(appstore?.apiKeyId);
 
   static bool _hasCredential(String? path) => path != null && path.isNotEmpty;
 
@@ -36,7 +38,7 @@ final class DistributionConfigModel extends BaseConfig {
     final data = json.at<DistributionConfigModel>();
     return DistributionConfigModel(
       driveConfig: data.objectOrNull(GoogleDriveConfig.fromJson, 'driveConfig'),
-      appstore: data.parse<bool>('appstore', defaultValue: Platform.isMacOS),
+      appstore: data.objectOrNull(IosConfig.fromJson, 'appstore'),
       enabled: data.parse<bool>('enabled', defaultValue: true),
       playstore: .fromString(data.parse<String?>('playstore')),
       reportRecipient: data.objectOrNull(
@@ -52,13 +54,14 @@ final class DistributionConfigModel extends BaseConfig {
     PlayStoreDistribution? playstore,
     GoogleDriveConfig? driveConfig,
     bool clearPlaystore = false,
-    bool? appstore,
+    bool clearAppstore = false,
+    IosConfig? appstore,
     bool? enabled,
   }) => DistributionConfigModel(
     playstore: clearPlaystore ? null : playstore ?? this.playstore,
+    appstore: clearAppstore ? null : appstore ?? this.appstore,
     reportRecipient: reportRecipient ?? this.reportRecipient,
     driveConfig: driveConfig ?? this.driveConfig,
-    appstore: appstore ?? this.appstore,
     enabled: enabled ?? this.enabled,
   );
 
@@ -75,8 +78,8 @@ final class DistributionConfigModel extends BaseConfig {
   Map<String, dynamic> toJson() => {
     'reportRecipient': reportRecipient?.toJson(),
     'driveConfig': driveConfig?.toJson(),
+    'appstore': appstore?.toJson(),
     'playstore': playstore?.name,
-    'appstore': appstore,
     'enabled': enabled,
   };
 

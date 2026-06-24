@@ -9,7 +9,7 @@ class AppStoreHandler implements DistributionHandler {
 
   @override
   Future<DistributionResult> run(DistributionContext context) async {
-    if (!context.config.appstore) {
+    if (context.config.appstore == null) {
       return DistributionResult.skipped('App Store upload is disabled.');
     }
 
