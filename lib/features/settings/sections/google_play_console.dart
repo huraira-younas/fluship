@@ -1,7 +1,7 @@
+import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/shared/widgets/app_text_field.dart';
 import 'package:fluship/services/file_picker_service.dart';
-import 'package:fluship/shared/models/android_config.dart';
 import 'package:fluship/shared/widgets/app_toast.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,12 +15,12 @@ class GooglePlayConsole extends StatelessWidget {
 
   void _updateGp(GooglePlayConsoleConfig config) {
     final bloc = getIt<ConfigBloc>();
-    final android = bloc.state.android;
+    final distribution = bloc.state.distribution;
 
     bloc.add(
       UpdateConfig(
         onError: (error) => AppToast.error(error.message),
-        config: android.copyWith(gpConfig: config),
+        config: distribution.copyWith(playstore: config),
       ),
     );
   }
@@ -39,7 +39,8 @@ class GooglePlayConsole extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ConfigBloc, ConfigState, GooglePlayConsoleConfig?>(
-      selector: (s) => s.android.gpConfig ?? const GooglePlayConsoleConfig(),
+      selector: (s) =>
+          s.distribution.playstore ?? const GooglePlayConsoleConfig(),
       builder: (_, c) {
         if (c == null) return const SizedBox.shrink();
 

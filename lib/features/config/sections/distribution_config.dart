@@ -15,11 +15,6 @@ import '../widgets/checkbox_label.dart';
 import '../widgets/switch_label.dart';
 import '../bloc/config_bloc.dart';
 
-typedef _DistributionView = ({
-  DistributionConfigModel distribution,
-  String? playStoreSaJson,
-});
-
 class DistributionConfig extends StatelessWidget {
   const DistributionConfig({super.key});
 
@@ -42,14 +37,11 @@ class DistributionConfig extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = getIt<ConfigBloc>();
-    return BlocSelector<ConfigBloc, ConfigState, _DistributionView>(
-      selector: (state) => (
-        distribution: state.distribution,
-        playStoreSaJson: state.android.gpConfig?.saJsonPath,
-      ),
-      builder: (context, view) {
-        final dist = view.distribution;
+    return BlocSelector<ConfigBloc, ConfigState, DistributionConfigModel>(
+      selector: (state) => state.distribution,
+      builder: (context, dist) {
         final report = dist.reportRecipient ?? const ReportRecipientConfig();
+        final playstore = dist.playstore ?? const GooglePlayConsoleConfig();
         final drive = dist.driveConfig ?? const GoogleDriveConfig();
         final ios = dist.appstore ?? const IosConfig();
 
@@ -86,14 +78,16 @@ class DistributionConfig extends StatelessWidget {
               ),
             ),
             SwitchLabelsRow<PlayStoreDistribution>(
-              labels: PlayStoreDistribution.values,
+              value: canPlay ? playstore.distribution : null,
               error: canPlay ? null : _playStoreCredError,
               disabled: !sectionEnabled || !canPlay,
-              value: canPlay ? dist.playstore : null,
+              labels: PlayStoreDistribution.values,
               switchLabel: 'Play Store',
               defaultValue: .production,
               onChange: (value) => _updateDistribution(
-                dist.copyWith(clearPlaystore: value == null, playstore: value),
+                dist.copyWith(
+                  playstore: playstore.copyWith(distribution: value),
+                ),
                 bloc,
               ),
             ),
