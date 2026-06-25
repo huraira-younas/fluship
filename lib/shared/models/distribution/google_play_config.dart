@@ -22,8 +22,7 @@ class GooglePlayConsoleConfig extends Equatable {
     this.saJsonPath,
   });
 
-  bool get canSend =>
-      hasCreds(saJsonPath) && hasCreds(packageName) && distribution != null;
+  bool get canSend => hasCreds(saJsonPath) && hasCreds(packageName);
 
   GooglePlayConsoleConfig copyWith({
     PlayStoreDistribution? distribution,
