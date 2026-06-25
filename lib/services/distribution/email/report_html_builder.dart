@@ -34,8 +34,8 @@ class ReportHtmlBuilder {
     final statusEmoji = success ? '✓' : '✗';
 
     final stepRows = StringBuffer();
-    for (final step in steps) {
-      stepRows.write(_stepRow(step, theme));
+    for (var i = 0; i < steps.length; i++) {
+      stepRows.write(_stepRow(steps[i], theme, index: i));
     }
 
     final escapedBuild = _escape(buildNumber);
@@ -43,9 +43,10 @@ class ReportHtmlBuilder {
     final escapedApp = _escape(appName);
 
     return '${theme.bodyOpen}'
+        '<div ${theme.cardOpen}>'
         '${_htmlHeader('Build Report &mdash; v$escapedVersion+$escapedBuild', escapedApp, theme)}'
         "${_htmlBanner('$statusEmoji&ensp;$statusText', statusColor)}"
-        '<div style="background:${theme.cardBg};padding:16px 20px;${theme.borderLr}">'
+        '<div style="background:${theme.cardBg};padding:18px 22px;${theme.borderLr}">'
         '<table style="width:100%;border-collapse:collapse;">'
         '${_summaryRow('Version', 'v$version+$buildNumber', theme, bold: true)}'
         '${_summaryRow('Platforms', platforms, theme)}'
@@ -53,15 +54,17 @@ class ReportHtmlBuilder {
         '${_summaryRow('Date', nowStr, theme)}'
         '</table></div>'
         '<div style="background:${theme.cardBg};${theme.borderLr}">'
-        '<div style="padding:12px 20px 6px;border-top:1px solid ${theme.cardBorder};">'
+        '<div style="padding:14px 22px 10px;border-top:1px solid ${theme.cardBorder};'
+        'border-bottom:1px solid ${theme.cardBorder};">'
         '<h2 ${theme.sectionH2Styled}>Pipeline Steps</h2></div>'
-        '<table style="width:100%;border-collapse:collapse;">'
+        '<table class="report-step-table" style="width:100%;border-collapse:collapse;">'
         '<tr style="background:${theme.bg};">'
         '<th ${theme.thStyleAligned('left')}>Step</th>'
         '<th ${theme.thStyleAligned('center')}>Status</th>'
         '<th ${theme.thStyleAligned('right')}>Time</th>'
         '</tr>$stepRows</table></div>'
-        '${_htmlFooter(escapedApp, theme)}'
+        '${_htmlFooter(theme)}'
+        '</div>'
         '${ReportHtmlTheme.bodyClose}';
   }
 
@@ -86,7 +89,7 @@ class ReportHtmlBuilder {
     final fileRows = StringBuffer();
     for (final name in fileNames) {
       fileRows.write(
-        '<tr><td style="padding:6px 12px;border-bottom:1px solid ${theme.cardBorder};'
+        '<tr><td style="padding:10px 14px;border-bottom:1px solid ${theme.cardBorder};'
         'color:${theme.text};font-size:13px;">📦&ensp;${_escape(name)}</td></tr>',
       );
     }
@@ -96,33 +99,40 @@ class ReportHtmlBuilder {
         : '';
 
     return '${theme.bodyOpen}'
+        '<div ${theme.cardOpen}>'
         '${_htmlHeader(subtitle, escapedLabel, theme)}'
         "${_htmlBanner('📁&ensp;Upload Complete', theme.success)}"
-        '<div style="background:${theme.cardBg};padding:16px 20px;${theme.borderLr}">'
+        '<div style="background:${theme.cardBg};padding:18px 22px;${theme.borderLr}">'
         '<table style="width:100%;border-collapse:collapse;">'
         '${_summaryRow('Type', '$label Build', theme, bold: true)}'
         '$versionRow'
         '${_summaryRow('Date', nowStr, theme)}'
         '</table></div>'
         '<div style="background:${theme.cardBg};${theme.borderLr}">'
-        '<div style="padding:12px 20px 6px;border-top:1px solid ${theme.cardBorder};">'
+        '<div style="padding:14px 22px 10px;border-top:1px solid ${theme.cardBorder};'
+        'border-bottom:1px solid ${theme.cardBorder};">'
         '<h2 ${theme.sectionH2Styled}>Uploaded Files</h2></div>'
         '<table style="width:100%;border-collapse:collapse;">'
         '$fileRows</table></div>'
-        '<div style="background:${theme.cardBg};padding:18px 20px;text-align:center;${theme.borderLr}">'
+        '<div style="background:${theme.cardBg};padding:20px 22px;text-align:center;${theme.borderLr}">'
         '<a href="$escapedLink" style="display:inline-block;background:'
         'linear-gradient(135deg,${theme.accent},${theme.section});color:#fff;text-decoration:none;'
-        'padding:11px 32px;border-radius:8px;font-size:14px;font-weight:700;'
+        'padding:12px 32px;border-radius:8px;font-size:14px;font-weight:700;'
         'letter-spacing:0.2px;">Open in Google Drive</a>'
-        '<p style="margin:8px 0 0;font-size:11px;color:${theme.textDim};">'
+        '<p style="margin:10px 0 0;font-size:12px;color:${theme.textDim};">'
         'Anyone with the link can view</p></div>'
-        '${_htmlFooter(escapedLabel, theme)}'
+        '${_htmlFooter(theme)}'
+        '</div>'
         '${ReportHtmlTheme.bodyClose}';
   }
 
   List<ReportStepResult> stepsFromPipelineViews(List<PipelineStepView> views) {
     return views
-        .where((v) => v.status != .pending)
+        .where(
+          (v) =>
+              v.status != .pending &&
+              v.name != DistributionStepKind.report.label,
+        )
         .map(
           (v) => ReportStepResult(
             success: v.status == .completed,
@@ -133,18 +143,23 @@ class ReportHtmlBuilder {
         .toList();
   }
 
-  String _stepRow(ReportStepResult step, ReportHtmlTheme theme) {
+  String _stepRow(
+    ReportStepResult step,
+    ReportHtmlTheme theme, {
+    required int index,
+  }) {
     final elapsed = step.elapsed;
     final elapsedText = elapsed == null
         ? '—'
         : PipelineUtils.formatPipelineDuration(elapsed);
+    final rowBg = index.isEven ? theme.cardBg : theme.bg;
 
-    return '<tr>'
-        '<td style="padding:7px 12px;border-bottom:1px solid ${theme.cardBorder};'
+    return '<tr style="background:$rowBg;">'
+        '<td style="padding:10px 14px;border-bottom:1px solid ${theme.cardBorder};'
         'color:${theme.text};font-size:13px;">${_escape(step.name)}</td>'
-        '<td style="padding:7px 12px;border-bottom:1px solid ${theme.cardBorder};'
-        'text-align:center;">${_statusBadge(step.success, theme)}</td>'
-        '<td style="padding:7px 12px;border-bottom:1px solid ${theme.cardBorder};'
+        '<td style="padding:10px 14px;border-bottom:1px solid ${theme.cardBorder};'
+        'text-align:center;min-width:90px;">${_statusBadge(step.success, theme)}</td>'
+        '<td style="padding:10px 14px;border-bottom:1px solid ${theme.cardBorder};'
         'color:${theme.section};font-size:12px;text-align:right;'
         'font-family:Consolas,monospace;">$elapsedText</td>'
         '</tr>';
@@ -152,27 +167,28 @@ class ReportHtmlBuilder {
 
   String _htmlHeader(String subtitle, String appName, ReportHtmlTheme theme) {
     return '<div style="background:linear-gradient(135deg,${theme.accent},${theme.section});'
-        'border-radius:12px 12px 0 0;padding:22px 20px;text-align:center;">'
+        'padding:24px 22px;text-align:center;">'
         '<h1 style="margin:0;font-size:22px;color:#fff;letter-spacing:-0.3px;">'
         '⚡ $appName</h1>'
-        '<p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);font-weight:500;">'
+        '<p style="margin:6px 0 0;font-size:13px;color:rgba(255,255,255,0.85);font-weight:500;">'
         '$subtitle</p></div>';
   }
 
-  String _htmlFooter(String appName, ReportHtmlTheme theme) {
-    return '<div style="background:${theme.cardBg};border-radius:0 0 12px 12px;'
+  String _htmlFooter(ReportHtmlTheme theme) {
+    return '<div style="background:${theme.cardBg};'
         '${theme.borderLr}border-bottom:1px solid ${theme.cardBorder};'
-        'padding:14px 20px;text-align:center;">'
-        '<p style="margin:0 0 2px;font-size:10px;color:${theme.textDim};">'
-        'Generated by <strong style="color:${theme.accent};">$appName</strong>'
+        'padding:16px 22px;text-align:center;">'
+        '<p style="margin:0 0 4px;font-size:12px;color:${theme.textDim};">'
+        'Generated by <strong style="color:${theme.accent};">'
+        '${ReportHtmlTheme.flushipName}</strong>'
         ' v${ReportHtmlTheme.flushipVersion}</p>'
-        '<p style="margin:0;font-size:10px;color:${theme.section};">'
+        '<p style="margin:0;font-size:12px;color:${theme.section};">'
         'Made with ❤️ by Senpai</p></div>';
   }
 
   String _htmlBanner(String text, String bg) {
-    return '<div style="background:$bg;padding:9px 20px;text-align:center;">'
-        '<span style="color:#020617;font-size:14px;font-weight:700;'
+    return '<div style="background:$bg;padding:12px 22px;text-align:center;">'
+        '<span style="color:${ReportHtmlTheme.badgeText};font-size:14px;font-weight:700;'
         'letter-spacing:0.2px;">$text</span></div>';
   }
 
@@ -185,21 +201,23 @@ class ReportHtmlBuilder {
   }) {
     final textColor = color ?? theme.text;
     final weight = bold ? 'font-weight:600;' : '';
-    return '<tr><td style="padding:4px 0;color:${theme.textDim};font-size:12px;width:100px;">'
+    return '<tr><td style="padding:8px 0;color:${theme.textDim};font-size:12px;width:110px;">'
         '${_escape(label)}</td>'
-        '<td style="padding:4px 0;color:$textColor;font-size:13px;$weight">'
+        '<td style="padding:8px 0;color:$textColor;font-size:13px;$weight">'
         '${_escape(value)}</td></tr>';
   }
 
   String _statusBadge(bool ok, ReportHtmlTheme theme) {
     if (ok) {
-      return '<span style="display:inline-block;background:#065f46;color:${theme.success};'
-          'padding:1px 8px;border-radius:20px;font-size:11px;font-weight:600;">'
+      return '<span style="display:inline-block;background:${theme.success};'
+          'color:${ReportHtmlTheme.badgeText};padding:3px 10px;border-radius:20px;'
+          'font-size:11px;font-weight:600;white-space:nowrap;">'
           '✓ Passed</span>';
     }
 
-    return '<span style="display:inline-block;background:#7f1d1d;color:${theme.error};'
-        'padding:1px 8px;border-radius:20px;font-size:11px;font-weight:600;">'
+    return '<span style="display:inline-block;background:${theme.error};'
+        'color:${ReportHtmlTheme.badgeText};padding:3px 10px;border-radius:20px;'
+        'font-size:11px;font-weight:600;white-space:nowrap;">'
         '✗ Failed</span>';
   }
 

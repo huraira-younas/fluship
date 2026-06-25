@@ -21,6 +21,8 @@ class ReportHtmlTheme {
 
   static const bodyClose = '</div></body></html>';
   static const flushipVersion = '1.0.0';
+  static const flushipName = 'Fluship';
+  static const badgeText = '#ffffff';
 
   final String cardBorder;
   final String borderLr;
@@ -34,12 +36,16 @@ class ReportHtmlTheme {
   final String text;
   final String bg;
 
+  String get cardOpen =>
+      'class="report-card" style="border-radius:12px;overflow:hidden;'
+      'box-shadow:0 4px 24px rgba(0,0,0,0.25);border:1px solid $cardBorder;"';
+
   String get sectionH2Styled =>
       'style="margin:0;font-size:13px;font-weight:700;color:$text;'
-      'text-transform:uppercase;letter-spacing:0.6px;"';
+      'text-transform:uppercase;letter-spacing:0.8px;"';
 
   String thStyleAligned(String align) =>
-      'style="padding:8px 12px;font-size:11px;font-weight:700;color:$textDim;'
+      'style="padding:10px 14px;font-size:11px;font-weight:700;color:$textDim;'
       'text-transform:uppercase;letter-spacing:0.4px;text-align:$align;"';
 
   static ReportHtmlTheme fromCurrentTheme() {
@@ -72,10 +78,19 @@ class ReportHtmlTheme {
       borderLr:
           'border-left:1px solid $cardBorder;border-right:1px solid $cardBorder;',
       bodyOpen:
-          '<!DOCTYPE html><html><head><meta charset="utf-8"></head>'
-          '<body style="margin:0;padding:24px 12px;background:$bg;'
-          'font-family:Segoe UI,system-ui,sans-serif;">'
-          '<div style="max-width:560px;margin:0 auto;">',
+          '<!DOCTYPE html><html><head><meta charset="utf-8">'
+          '<meta name="viewport" content="width=device-width,initial-scale=1">'
+          '<style>'
+          '@media only screen and (max-width:480px){'
+          '.report-container{padding:16px 8px!important;}'
+          '.report-card{border-radius:10px!important;}'
+          '.report-step-table td,.report-step-table th{'
+          'padding:10px 8px!important;font-size:12px!important;}'
+          '}'
+          '</style></head>'
+          '<body class="report-container" style="margin:0;padding:24px 12px;'
+          'background:$bg;font-family:Segoe UI,system-ui,sans-serif;">'
+          '<div style="max-width:600px;margin:0 auto;">',
       cardBorder: cardBorder,
       success: success,
       section: section,
