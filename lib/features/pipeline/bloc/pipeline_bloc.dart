@@ -174,7 +174,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     stepViews = commandSteps
         .map(
           (step) => PipelineStepView(
-            command: step.command,
+            description: step.description,
             status: .pending,
             name: step.name,
           ),
@@ -237,7 +237,6 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         stepViews[index] = _finalizeStepTiming(stepViews[index]).copyWith(
           status: PipelineStepStatus.failed,
           errorMessage: result.errorMessage,
-          exitCode: result.exitCode,
         );
         await _logStepTiming(
           errorMessage: result.errorMessage,
@@ -256,7 +255,6 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
       stepViews[index] = _finalizeStepTiming(stepViews[index]).copyWith(
         status: PipelineStepStatus.completed,
-        exitCode: result.exitCode,
       );
 
       await _logStepTiming(

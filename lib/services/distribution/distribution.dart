@@ -8,5 +8,5 @@ export 'utils/exports.dart';
 export 'drive/exports.dart';
 
 export 'pipeline_distribution_logger.dart';
-export 'distribution_service.dart';
+export 'distribution_handler_log.dart';
 export 'distribution_module.dart';

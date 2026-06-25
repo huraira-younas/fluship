@@ -3,8 +3,9 @@ import 'dart:io' show Platform, Process;
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
 import 'package:fluship/services/distribution/contracts/distribution_handler.dart';
 import 'package:fluship/services/distribution/contracts/distribution_context.dart';
-import 'package:fluship/services/distribution/distribution_service.dart';
+import 'package:fluship/services/distribution/distribution_handler_log.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
+import 'package:fluship/shared/models/post_build_config.dart';
 
 import '../paths/fluship_workspace_paths.dart';
 import '../artifacts/artifact_collector.dart';
@@ -25,8 +26,10 @@ List<CommandStep> resolveAppInfo(ConfigState state) {
 
   return [
     CommandStep(
-      name: 'Bump Version',
+      description:
+          'Set version $version and build number $buildNumber in pubspec.yaml',
       command: 'pubspec: $version+$buildNumber',
+      name: 'Bump Version',
       onExecute: () => _projectService.bumpVersion(
         projectPath: projectPath,
         buildNumber: buildNumber,
@@ -59,11 +62,23 @@ List<CommandStep> resolveCommonCmd(ConfigState state) {
   final commonCmd = state.commonCmd;
   return [
     if (commonCmd.clean)
-      const CommandStep(name: 'Clean', command: 'flutter clean'),
+      const CommandStep(
+        description: 'Remove build cache and temporary Flutter files',
+        command: 'flutter clean',
+        name: 'Clean',
+      ),
     if (commonCmd.type == .get)
-      const CommandStep(name: 'Get', command: 'flutter pub get'),
+      const CommandStep(
+        description: 'Download and resolve package dependencies',
+        command: 'flutter pub get',
+        name: 'Get',
+      ),
     if (commonCmd.type == .upgrade)
-      const CommandStep(name: 'Upgrade', command: 'flutter pub upgrade'),
+      const CommandStep(
+        description: 'Upgrade packages to the latest compatible versions',
+        command: 'flutter pub upgrade',
+        name: 'Upgrade',
+      ),
   ];
 }
 
@@ -74,10 +89,13 @@ List<CommandStep> resolveAndroid(ConfigState state) {
   return [
     if (android.buildAab) ...[
       const CommandStep(
+        description: 'Compile a signed release Android App Bundle (.aab)',
         command: 'flutter build aab --release',
         name: 'Build App Bundle',
       ),
       _collectArtifactStep(
+        description:
+            'Copy the release App Bundle to your Fluship output folder',
         collector: _artifactCollector.collectAab,
         name: 'Collect App Bundle',
         command: 'collect: aab',
@@ -88,10 +106,12 @@ List<CommandStep> resolveAndroid(ConfigState state) {
       ...switch (android.buildType) {
         .apk => [
           const CommandStep(
+            description: 'Compile a signed release APK',
             command: 'flutter build apk --release',
             name: 'Build APK',
           ),
           _collectArtifactStep(
+            description: 'Copy the release APK to your Fluship output folder',
             collector: _artifactCollector.collectApks,
             command: 'collect: apk',
             name: 'Collect APK',
@@ -100,22 +120,28 @@ List<CommandStep> resolveAndroid(ConfigState state) {
         ],
         .arbs => [
           const CommandStep(
+            description:
+                'Build separate release APKs for each CPU architecture',
             command: 'flutter build apk --split-per-abi',
             name: 'Build AAR',
           ),
           _collectArtifactStep(
+            description:
+                'Copy the split APK files to your Fluship output folder',
             collector: _artifactCollector.collectApks,
-            name: 'Collect Split APKs',
             command: 'collect: apk',
+            name: 'Collect Split APKs',
             state,
           ),
         ],
         _ => [
           const CommandStep(
+            description: 'Compile a signed release APK',
             command: 'flutter build apk --release',
             name: 'Build APK',
           ),
           _collectArtifactStep(
+            description: 'Copy the release APK to your Fluship output folder',
             collector: _artifactCollector.collectApks,
             command: 'collect: apk',
             name: 'Collect APK',
@@ -133,12 +159,18 @@ List<CommandStep> resolveIos(ConfigState state) {
   return [
     if (ios.podClean)
       const CommandStep(
+        description: 'Install and update iOS CocoaPods dependencies',
         command: '(cd ios && pod install --repo-update)',
         name: 'Pod Install',
       ),
     if (ios.buildIpa) ...[
-      const CommandStep(name: 'Build IPA', command: 'flutter build ipa'),
+      const CommandStep(
+        description: 'Compile a signed release IPA for iOS',
+        command: 'flutter build ipa',
+        name: 'Build IPA',
+      ),
       _collectArtifactStep(
+        description: 'Copy the release IPA to your Fluship output folder',
         collector: _artifactCollector.collectIpa,
         command: 'collect: ipa',
         name: 'Collect IPA',
@@ -172,8 +204,9 @@ CommandStep _distributionStep(
 }) {
   final handler = handlers[kind]!;
   return CommandStep(
+    description: kind.description,
     command: kind.command,
-    name: kind.label,
+    name: kind.name,
     onExecute: () async {
       final context = await contextProvider();
       final result = await handler.run(context);
@@ -241,8 +274,9 @@ List<CommandStep> resolvePostBuild(ConfigState state) {
   return [
     if (postBuild.openOutputs)
       CommandStep(
-        name: 'Open Outputs',
+        description: 'Open this build\'s output folder in your file manager',
         command: 'open: fluship outputs',
+        name: 'Open Outputs',
         onExecute: () async {
           final outputDir = pipelineOutputDirectory(
             flushipRoot: state.appInfo.flushipWorkspacePath ?? '',
@@ -266,11 +300,18 @@ List<CommandStep> resolvePostBuild(ConfigState state) {
       ),
     if (postBuild.powerConfig != null)
       CommandStep(
+        description: _powerStepDescription(postBuild.powerConfig!.action),
         command: 'power ${postBuild.powerConfig!.action.name}',
         name: 'Power',
       ),
   ];
 }
+
+String _powerStepDescription(PowerAction action) => switch (action) {
+  .shutdown => 'Shut down the computer after the pipeline finishes',
+  .sleep => 'Put the computer to sleep after the pipeline finishes',
+  .lock => 'Lock the screen after the pipeline finishes',
+};
 
 CommandStep _collectArtifactStep(
   ConfigState state, {
@@ -279,11 +320,12 @@ CommandStep _collectArtifactStep(
     required String outputDir,
   })
   collector,
-
+  required String description,
   required String command,
   required String name,
 }) {
   return CommandStep(
+    description: description,
     command: command,
     name: name,
     onExecute: () async {

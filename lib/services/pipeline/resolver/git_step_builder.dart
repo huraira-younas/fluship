@@ -5,13 +5,24 @@ abstract final class GitStepBuilder {
     required String message,
     String name = 'Git Commit',
   }) => CommandStep(
+    description: message.trim().isEmpty
+        ? 'Stage all changes and create a git commit'
+        : 'Stage all changes and commit with message "$message"',
     command: '(git add . && git commit -m "$message") || true',
     name: name,
   );
 
   static CommandStep pull({required String branch, String name = 'Git Pull'}) =>
-      CommandStep(command: '(git pull origin $branch) || true', name: name);
+      CommandStep(
+        description: 'Pull the latest changes from origin/$branch',
+        command: '(git pull origin $branch) || true',
+        name: name,
+      );
 
   static CommandStep push({required String branch, String name = 'Git Push'}) =>
-      CommandStep(command: '(git push origin $branch) || true', name: name);
+      CommandStep(
+        description: 'Push local commits to origin/$branch',
+        command: '(git push origin $branch) || true',
+        name: name,
+      );
 }

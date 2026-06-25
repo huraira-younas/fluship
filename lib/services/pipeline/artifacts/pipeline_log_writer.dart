@@ -54,10 +54,11 @@ String pipelineLogRelativePath({
   required String version,
 }) {
   return p.posix.join(
-    'outputs',
-    PipelineUtils.sanitizeProjectFolderName(projectName),
-    'v${PipelineUtils.sanitizePathSegment(version)}',
-    PipelineUtils.sanitizePathSegment(buildNumber),
+    pipelineOutputRelativePath(
+      projectName: projectName,
+      buildNumber: buildNumber,
+      version: version,
+    ),
     FilePipelineLogWriter.pipelineLogFileName,
   );
 }

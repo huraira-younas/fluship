@@ -6,21 +6,19 @@ enum PipelineStepStatus { pending, running, completed, failed, skipped }
 
 class PipelineStepView extends Equatable {
   const PipelineStepView({
-    required this.command,
+    required this.description,
     required this.status,
     required this.name,
     this.errorMessage,
     this.startedAt,
-    this.exitCode,
     this.elapsed,
   });
 
   final PipelineStepStatus status;
   final String? errorMessage;
   final DateTime? startedAt;
+  final String description;
   final Duration? elapsed;
-  final String command;
-  final int? exitCode;
   final String name;
 
   bool get isTimingActive => status == .running && startedAt != null;
@@ -32,17 +30,14 @@ class PipelineStepView extends Equatable {
     String? errorMessage,
     DateTime? startedAt,
     Duration? elapsed,
-    String? command,
-    int? exitCode,
     String? name,
   }) {
     return PipelineStepView(
       startedAt: clearStartedAt ? null : (startedAt ?? this.startedAt),
       elapsed: clearElapsed ? null : (elapsed ?? this.elapsed),
       errorMessage: errorMessage ?? this.errorMessage,
-      exitCode: exitCode ?? this.exitCode,
-      command: command ?? this.command,
       status: status ?? this.status,
+      description: description,
       name: name ?? this.name,
     );
   }
@@ -50,9 +45,8 @@ class PipelineStepView extends Equatable {
   @override
   List<Object?> get props => [
     errorMessage,
+    description,
     startedAt,
-    exitCode,
-    command,
     elapsed,
     status,
     name,

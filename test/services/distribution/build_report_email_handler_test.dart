@@ -45,7 +45,7 @@ PipelineRunSnapshot _snapshot({String logFilePath = 'logs.txt'}) {
   return PipelineRunSnapshot(
     steps: const [
       PipelineStepView(
-        command: 'flutter build apk',
+        description: 'Compile a signed release APK',
         status: PipelineStepStatus.completed,
         name: 'Build APK',
         elapsed: Duration(seconds: 3),

@@ -103,13 +103,13 @@ void main() {
     test('stepsFromPipelineViews skips pending steps', () {
       final steps = builder.stepsFromPipelineViews(const [
         PipelineStepView(
-          command: 'flutter clean',
+          description: 'Remove build cache and temporary Flutter files',
           status: PipelineStepStatus.completed,
           name: 'Clean',
           elapsed: Duration(seconds: 2),
         ),
         PipelineStepView(
-          command: 'flutter pub get',
+          description: 'Download and resolve package dependencies',
           status: PipelineStepStatus.pending,
           name: 'Get',
         ),
@@ -123,20 +123,20 @@ void main() {
     test('stepsFromPipelineViews skips send build report step', () {
       final steps = builder.stepsFromPipelineViews([
         PipelineStepView(
-          command: 'email: report',
+          description: DistributionStepKind.report.description,
+          name: DistributionStepKind.report.name,
           status: PipelineStepStatus.running,
-          name: DistributionStepKind.report.label,
         ),
         PipelineStepView(
-          command: 'upload: drive',
+          description: DistributionStepKind.drive.description,
           status: PipelineStepStatus.completed,
-          name: DistributionStepKind.drive.label,
+          name: DistributionStepKind.drive.name,
           elapsed: const Duration(seconds: 57),
         ),
       ]);
 
       expect(steps, hasLength(1));
-      expect(steps.first.name, DistributionStepKind.drive.label);
+      expect(steps.first.name, DistributionStepKind.drive.name);
     });
 
     test('buildDriveLink includes files and escaped link', () {

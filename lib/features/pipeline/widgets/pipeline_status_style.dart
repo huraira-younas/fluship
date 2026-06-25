@@ -58,6 +58,16 @@ extension PipelineStateProgress on PipelineState {
     }
 
     final completed = steps.where((step) => step.status == .completed).length;
-    return '$completed of $total steps completed';
+    final skipped = steps.where((step) => step.status == .skipped).length;
+    final failed = steps.where((step) => step.status == .failed).length;
+
+    final parts = <String>[
+      if (completed > 0) '$completed completed',
+      if (skipped > 0) '$skipped skipped',
+      if (failed > 0) '$failed failed',
+    ];
+
+    if (parts.isEmpty) return '$total steps';
+    return '${parts.join(' · ')} of $total';
   }
 }

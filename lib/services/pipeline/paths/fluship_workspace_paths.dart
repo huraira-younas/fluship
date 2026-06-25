@@ -20,6 +20,19 @@ class FlushipWorkspacePaths {
   }
 }
 
+String pipelineOutputRelativePath({
+  required String projectName,
+  required String buildNumber,
+  required String version,
+}) {
+  return p.posix.join(
+    'outputs',
+    PipelineUtils.sanitizeProjectFolderName(projectName),
+    'v${PipelineUtils.sanitizePathSegment(version)}',
+    PipelineUtils.sanitizePathSegment(buildNumber),
+  );
+}
+
 String pipelineOutputDirectory({
   required String flushipRoot,
   required String projectName,

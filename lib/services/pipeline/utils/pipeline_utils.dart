@@ -44,4 +44,18 @@ class PipelineUtils {
 
     return trimmed.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
   }
+
+  static String formatStepError(String? message) {
+    if (message == null || message.trim().isEmpty) {
+      return 'Step failed without details. Check the Console tab for output.';
+    }
+
+    var text = message.trim();
+    const exceptionPrefix = 'Exception: ';
+    if (text.startsWith(exceptionPrefix)) {
+      text = text.substring(exceptionPrefix.length).trim();
+    }
+
+    return text;
+  }
 }

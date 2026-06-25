@@ -29,53 +29,64 @@ class PipelineRunnerPanelBody extends StatelessWidget {
     return AppCard(
       title: 'Pipeline',
       description:
-          'Live progress for your configured build steps. '
-          'Each step shows its status and duration here; full command output is logged in the Console tab.',
+          'Track each build step here. Full command output stays in the Console tab.',
       children: [
-        Row(
-          crossAxisAlignment: .start,
-          spacing: ft.spacing.sm,
-          children: [
-            Column(
-              crossAxisAlignment: .stretch,
-              spacing: 4,
-              children: [
-                AppText(
-                  state.summaryMessage.isEmpty
-                      ? runStatus.defaultSummary
-                      : state.summaryMessage,
-                  color: statusColor,
-                  variant: .custom,
-                  weight: .w600,
-                ),
-                if (state.steps.isNotEmpty)
+        Container(
+          padding: .symmetric(
+            horizontal: ft.spacing.md,
+            vertical: ft.spacing.sm,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: .circular(ft.radius.btn),
+            border: .all(color: statusColor.withValues(alpha: 0.25)),
+            color: statusColor.withValues(alpha: 0.08),
+          ),
+          child: Row(
+            crossAxisAlignment: .start,
+            spacing: ft.spacing.sm,
+            children: [
+              Icon(runStatus.icon, size: 20, color: statusColor),
+              Column(
+                crossAxisAlignment: .start,
+                spacing: 4,
+                children: [
                   AppText(
-                    state.stepProgressLabel,
-                    color: colors.textDim,
+                    state.summaryMessage.isEmpty
+                        ? runStatus.defaultSummary
+                        : state.summaryMessage,
+                    color: statusColor,
                     variant: .custom,
-                    size: .caption,
+                    weight: .w600,
                   ),
-                if (state.startedAt != null)
-                  PipelineTotalElapsed(
-                    finishedAt: state.finishedAt,
-                    startedAt: state.startedAt!,
-                    isRunning: isRunning,
-                  ),
-              ],
-            ).expanded(),
-            if (isRunning)
-              AppButton.danger(
-                onPressed: () => bloc.add(const CancelPipeline()),
-                label: 'Cancel',
-                size: .sm,
-              )
-            else
-              AppButton.ghost(
-                onPressed: () => bloc.add(const DismissPipelinePanel()),
-                label: 'Dismiss',
-                size: .sm,
-              ),
-          ],
+                  if (state.steps.isNotEmpty)
+                    AppText(
+                      state.stepProgressLabel,
+                      color: colors.textDim,
+                      variant: .custom,
+                      size: .caption,
+                    ),
+                  if (state.startedAt != null)
+                    PipelineTotalElapsed(
+                      finishedAt: state.finishedAt,
+                      startedAt: state.startedAt!,
+                      isRunning: isRunning,
+                    ),
+                ],
+              ).expanded(),
+              if (isRunning)
+                AppButton.danger(
+                  onPressed: () => bloc.add(const CancelPipeline()),
+                  label: 'Cancel',
+                  size: .sm,
+                )
+              else
+                AppButton.ghost(
+                  onPressed: () => bloc.add(const DismissPipelinePanel()),
+                  label: 'Dismiss',
+                  size: .sm,
+                ),
+            ],
+          ),
         ),
         if (state.steps.isNotEmpty) ...[
           Divider(height: 30, color: colors.consoleBorder),

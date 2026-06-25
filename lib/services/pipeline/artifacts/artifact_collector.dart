@@ -1,24 +1,7 @@
 import 'dart:io' show Directory, File;
 import 'package:path/path.dart' as p;
 
-abstract interface class ArtifactCollector {
-  Future<List<String>> collectApks({
-    required String sourceRoot,
-    required String outputDir,
-  });
-
-  Future<List<String>> collectAab({
-    required String sourceRoot,
-    required String outputDir,
-  });
-
-  Future<List<String>> collectIpa({
-    required String sourceRoot,
-    required String outputDir,
-  });
-}
-
-class FileArtifactCollector implements ArtifactCollector {
+class FileArtifactCollector {
   const FileArtifactCollector();
 
   static final _apkSourceRelative = p.join(
@@ -36,7 +19,6 @@ class FileArtifactCollector implements ArtifactCollector {
   );
   static final _ipaSourceRelative = p.join('build', 'ios', 'ipa');
 
-  @override
   Future<List<String>> collectApks({
     required String sourceRoot,
     required String outputDir,
@@ -47,7 +29,6 @@ class FileArtifactCollector implements ArtifactCollector {
     extension: '.apk',
   );
 
-  @override
   Future<List<String>> collectAab({
     required String sourceRoot,
     required String outputDir,
@@ -58,7 +39,6 @@ class FileArtifactCollector implements ArtifactCollector {
     extension: '.aab',
   );
 
-  @override
   Future<List<String>> collectIpa({
     required String sourceRoot,
     required String outputDir,

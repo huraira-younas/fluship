@@ -39,7 +39,7 @@ class _FakeDistributionHandler implements DistributionHandler {
   final DistributionStepKind stepKind;
 
   @override
-  String get name => stepKind.label;
+  String get name => stepKind.name;
 
   @override
   Future<DistributionResult> run(DistributionContext context) async {

@@ -1,4 +1,5 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
+import 'package:fluship/services/pipeline/utils/pipeline_utils.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
@@ -23,12 +24,18 @@ class PipelineStepRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
     final colors = ft.colors;
+
     final isRunning = step.status == .running;
+    final isSkipped = step.status == .skipped;
+    final isFailed = step.status == .failed;
     final statusColor = step.status.color(colors);
 
-    final background = isActive || isRunning
-        ? colors.consoleInner
-        : Colors.transparent;
+    final background = switch (step.status) {
+      .running || .pending when isActive => colors.consoleInner,
+      .failed => colors.danger.withValues(alpha: 0.06),
+      .skipped => colors.muted.withValues(alpha: 0.04),
+      _ => Colors.transparent,
+    };
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
@@ -36,49 +43,80 @@ class PipelineStepRow extends StatelessWidget {
       padding: .symmetric(horizontal: ft.spacing.sm, vertical: ft.spacing.sm),
       decoration: BoxDecoration(
         borderRadius: .circular(ft.radius.btn),
-        border: isActive
-            ? .all(color: colors.accent.withValues(alpha: 0.45))
-            : null,
+        border: .all(
+          color: isActive
+              ? colors.accent.withValues(alpha: 0.45)
+              : isFailed
+              ? colors.danger.withValues(alpha: 0.35)
+              : colors.consoleBorder.withValues(alpha: 0.45),
+        ),
         color: background,
       ),
       child: Row(
+        crossAxisAlignment: .start,
         spacing: ft.spacing.sm,
         children: [
           _StepIndexBadge(color: statusColor, index: index + 1),
           Column(
-            crossAxisAlignment: .stretch,
-            spacing: 2,
+            crossAxisAlignment: .start,
+            spacing: 4,
             children: [
               AppText(
+                weight: isActive || isRunning ? .w600 : .w500,
+                color: isSkipped ? colors.textDim : colors.text,
+                variant: .custom,
+                size: .body,
                 step.name,
-                weight: isActive ? .w600 : .w500,
-                color: colors.text,
+              ),
+              AppText(
+                isSkipped
+                    ? 'Skipped — not run in this pipeline'
+                    : step.description,
+                color: colors.textDim,
+                overflow: .ellipsis,
                 variant: .custom,
                 size: .caption,
+                maxLines: 2,
               ),
-              if (step.command.isNotEmpty)
-                AppText(
-                  color: colors.textDim,
-                  overflow: .ellipsis,
-                  variant: .custom,
-                  size: .caption,
-                  step.command,
-                  maxLines: 1,
+              if (isFailed)
+                Row(
+                  crossAxisAlignment: .start,
+                  spacing: 6,
+                  children: [
+                    Icon(
+                      Icons.error_outline_rounded,
+                      color: colors.danger,
+                      size: 14,
+                    ),
+                    AppText(
+                      PipelineUtils.formatStepError(step.errorMessage),
+                      color: colors.danger,
+                      variant: .custom,
+                      size: .caption,
+                      maxLines: 3,
+                    ).expanded(),
+                  ],
                 ),
             ],
           ).expanded(),
-          PipelineStepElapsedBadge(step: step),
-          if (isRunning || isActive)
-            SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                color: statusColor,
-                strokeWidth: 2,
-              ),
-            )
-          else
-            Icon(step.status.icon, size: 16, color: statusColor),
+          Column(
+            crossAxisAlignment: .end,
+            spacing: 6,
+            children: [
+              PipelineStepElapsedBadge(step: step),
+              if (isRunning || isActive)
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    color: statusColor,
+                    strokeWidth: 2,
+                  ),
+                )
+              else
+                Icon(step.status.icon, size: 18, color: statusColor),
+            ],
+          ),
         ],
       ),
     );
@@ -94,8 +132,8 @@ class _StepIndexBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 22,
-      height: 22,
+      height: 24,
+      width: 24,
       alignment: .center,
       decoration: BoxDecoration(
         border: .all(color: color.withValues(alpha: 0.35)),
