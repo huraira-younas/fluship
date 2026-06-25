@@ -106,11 +106,12 @@ class PipelineStepRow extends StatelessWidget {
               PipelineStepElapsedBadge(step: step),
               if (isRunning || isActive)
                 SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
+                  width: 60,
+                  height: 10,
+                  child: LinearProgressIndicator(
+                    backgroundColor: colors.bg.withValues(alpha: 0.65),
+                    borderRadius: .circular(10),
                     color: statusColor,
-                    strokeWidth: 2,
                   ),
                 )
               else
