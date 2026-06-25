@@ -26,17 +26,23 @@ class AppStoreHandler implements DistributionHandler {
 
     final issuerId = appstore.issuerId?.trim() ?? '';
     if (issuerId.isEmpty) {
-      return DistributionResult.skipped('App Store Issuer ID is not configured.');
+      return DistributionResult.skipped(
+        'App Store Issuer ID is not configured.',
+      );
     }
 
     final apiKeyId = appstore.apiKeyId?.trim() ?? '';
     if (apiKeyId.isEmpty) {
-      return DistributionResult.skipped('App Store API Key ID is not configured.');
+      return DistributionResult.skipped(
+        'App Store API Key ID is not configured.',
+      );
     }
 
     final apiKeyPath = appstore.apiKeyPath?.trim() ?? '';
     if (apiKeyPath.isEmpty) {
-      return DistributionResult.skipped('App Store Auth Key (.p8) is not configured.');
+      return DistributionResult.skipped(
+        'App Store Auth Key (.p8) is not configured.',
+      );
     }
 
     final artifactsDir = context.snapshot.artifactsDir.trim();

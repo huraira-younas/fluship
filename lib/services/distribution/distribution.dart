@@ -1,3 +1,4 @@
+export 'play_store/exports.dart';
 export 'contracts/exports.dart';
 export 'app_store/exports.dart';
 export 'handlers/exports.dart';

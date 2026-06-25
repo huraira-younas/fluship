@@ -19,7 +19,7 @@ class DistributionConfig extends StatelessWidget {
   const DistributionConfig({super.key});
 
   static const _playStoreCredError =
-      'No service account JSON found. Configure Google Play Console in Settings.';
+      'Configure package name and service account JSON in Settings.';
   static const _driveCredError =
       'No OAuth JSON found. Please configure Google Drive in the Settings tab.';
   static const _buildReportCredError =

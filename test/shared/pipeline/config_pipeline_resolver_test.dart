@@ -215,7 +215,10 @@ void main() {
 
       final names = steps.map((step) => step.name).toList();
 
-      expect(names.indexOf('Send Build Report'), greaterThan(names.indexOf('Power')));
+      expect(
+        names.indexOf('Send Build Report'),
+        greaterThan(names.indexOf('Power')),
+      );
       expect(names.last, 'Send Build Report');
     });
 

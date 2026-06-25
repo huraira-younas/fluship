@@ -1,20 +1,62 @@
-import '../contracts/exports.dart';
-import '../models/exports.dart';
+import '../contracts/distribution_context.dart';
+import '../play_store/play_store_uploader.dart';
+import '../contracts/distribution_handler.dart';
+import '../models/distribution_result.dart';
 
 class PlayStoreHandler implements DistributionHandler {
-  const PlayStoreHandler();
+  const PlayStoreHandler({this.uploader = const GooglePlayPublisherUploader()});
+
+  final PlayStoreUploader uploader;
 
   @override
   String get name => 'Play Store Upload';
 
   @override
   Future<DistributionResult> run(DistributionContext context) async {
-    if (context.config.playstore == null) {
+    final playstore = context.config.playstore;
+    final distribution = playstore?.distribution;
+    if (playstore == null || distribution == null) {
       return DistributionResult.skipped('Play Store upload is disabled.');
     }
 
-    return DistributionResult.skipped(
-      'Play Store distribution is not implemented yet.',
-    );
+    final saJsonPath = playstore.saJsonPath?.trim() ?? '';
+    if (saJsonPath.isEmpty) {
+      return DistributionResult.skipped(
+        'Service account JSON is not configured.',
+      );
+    }
+
+    final packageName = playstore.packageName?.trim() ?? '';
+    if (packageName.isEmpty) {
+      return DistributionResult.skipped('Package name is not configured.');
+    }
+
+    final artifactsDir = context.snapshot.artifactsDir.trim();
+    if (artifactsDir.isEmpty) {
+      return DistributionResult.skipped(
+        'Artifact output directory is unavailable.',
+      );
+    }
+
+    final aabPath = await uploader.findAab(artifactsDir);
+    if (aabPath == null) {
+      return DistributionResult.skipped('No AAB artifact found to upload.');
+    }
+
+    try {
+      final uploaded = await uploader.upload(
+        distribution: distribution,
+        packageName: packageName,
+        saJsonPath: saJsonPath,
+        logger: context.logger,
+        aabPath: aabPath,
+      );
+
+      return DistributionResult.success(
+        'Uploaded to Play Store (${distribution.name}): $uploaded',
+      );
+    } catch (error) {
+      return DistributionResult.failed('Play Store upload failed: $error');
+    }
   }
 }
