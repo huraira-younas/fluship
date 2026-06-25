@@ -9,6 +9,7 @@ import 'drive_mime.dart';
 
 abstract interface class DriveUploader {
   Future<DriveUploadOutcome> upload({
+    Future<void> Function(String fileName)? onFileUploaded,
     required GoogleDriveConfig driveConfig,
     required String artifactsDir,
     required String buildNumber,
@@ -26,6 +27,7 @@ class GoogleDriveUploader implements DriveUploader {
 
   @override
   Future<DriveUploadOutcome> upload({
+    Future<void> Function(String fileName)? onFileUploaded,
     required GoogleDriveConfig driveConfig,
     required String artifactsDir,
     required String buildNumber,
@@ -73,6 +75,8 @@ class GoogleDriveUploader implements DriveUploader {
       final uploadedNames = <String>[];
       for (final file in files) {
         final name = p.basename(file.path);
+        await onFileUploaded?.call(name);
+
         final length = await file.length();
         final mime = driveMimeForPath(file.path) ?? 'application/octet-stream';
 

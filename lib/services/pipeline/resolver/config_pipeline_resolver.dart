@@ -21,15 +21,21 @@ class ConfigPipelineResolver {
 
   static List<CommandStep> resolve(
     ConfigState state, {
+    required Future<DistributionContext> Function() reportContextProvider,
     required Map<DistributionStepKind, DistributionHandler> handlers,
     required Future<DistributionContext> Function() contextProvider,
   }) => [
     for (final resolver in _resolvers) ...resolver(state),
     ...resolveDistribution(
-      state,
       contextProvider: contextProvider,
       handlers: handlers,
+      state,
     ),
     ...resolvePostBuild(state),
+    ...resolveReport(
+      contextProvider: reportContextProvider,
+      handlers: handlers,
+      state,
+    ),
   ];
 }

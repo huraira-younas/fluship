@@ -53,6 +53,9 @@ class GoogleDriveHandler implements DistributionHandler {
         appName: snapshot.appName,
         version: snapshot.version,
         driveConfig: drive,
+        onFileUploaded: (name) => context.logger.logLine(
+          DistributionResult.success('[drive] uploading: $name\n'),
+        ),
       );
     } catch (error) {
       return DistributionResult.failed('Google Drive upload failed: $error');

@@ -55,6 +55,7 @@ class FakeDriveUploader implements DriveUploader {
 
   @override
   Future<DriveUploadOutcome> upload({
+    Future<void> Function(String fileName)? onFileUploaded,
     required GoogleDriveConfig driveConfig,
     required String artifactsDir,
     required String buildNumber,
@@ -63,6 +64,7 @@ class FakeDriveUploader implements DriveUploader {
   }) async {
     uploadCalls++;
     if (throwError != null) throw throwError!;
+    await onFileUploaded?.call('Demo.apk');
     return outcome;
   }
 }
@@ -185,15 +187,19 @@ void main() {
   });
 
   test('uploads and emails when fully configured', () async {
-    final result = await handler.run(
-      _context(snapshot: _snapshot(artifactsDir: artifactsDir.path)),
+    final context = _context(
+      snapshot: _snapshot(artifactsDir: artifactsDir.path),
     );
+    final logger = context.logger as FakeDistributionLogger;
+
+    final result = await handler.run(context);
 
     expect(result.isSuccess, isTrue);
     expect(driveUploader.uploadCalls, 1);
     expect(emailClient.sendCalls, 1);
     expect(emailClient.lastMessage?.recipients, ['tester@example.com']);
     expect(emailClient.lastMessage?.subject, contains('Download Link'));
+    expect(logger.lines, contains('[drive] uploading: Demo.apk\n'));
   });
 
   test('returns failed when email client throws after upload', () async {

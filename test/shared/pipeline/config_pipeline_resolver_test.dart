@@ -50,6 +50,7 @@ class _FakeDistributionHandler implements DistributionHandler {
 List<CommandStep> _resolve(ConfigState state) => ConfigPipelineResolver.resolve(
   state,
   contextProvider: () => throw UnimplementedError(),
+  reportContextProvider: () => throw UnimplementedError(),
   handlers: const {},
 );
 
@@ -159,6 +160,7 @@ void main() {
           reportRecipient: ReportRecipientConfig(
             reportRecipient: 'dev@example.com',
             gmailAddress: 'sender@gmail.com',
+            buildReport: true,
             appPassword: 'secret',
           ),
         ),
@@ -172,6 +174,7 @@ void main() {
           ),
         },
         contextProvider: () => throw UnimplementedError(),
+        reportContextProvider: () => throw UnimplementedError(),
       );
 
       final names = steps.map((step) => step.name).toList();
@@ -183,12 +186,46 @@ void main() {
       );
     });
 
+    test('places report step after post-build steps', () {
+      final state = _state(
+        postBuild: const PostBuildConfigModel(
+          openOutputs: true,
+          powerConfig: PowerConfig(),
+        ),
+        distribution: const DistributionConfigModel(
+          reportRecipient: ReportRecipientConfig(
+            reportRecipient: 'dev@example.com',
+            gmailAddress: 'sender@gmail.com',
+            buildReport: true,
+            appPassword: 'secret',
+          ),
+        ),
+      );
+
+      final steps = ConfigPipelineResolver.resolve(
+        state,
+        handlers: {
+          DistributionStepKind.report: const _FakeDistributionHandler(
+            DistributionStepKind.report,
+          ),
+        },
+        contextProvider: () => throw UnimplementedError(),
+        reportContextProvider: () => throw UnimplementedError(),
+      );
+
+      final names = steps.map((step) => step.name).toList();
+
+      expect(names.indexOf('Send Build Report'), greaterThan(names.indexOf('Power')));
+      expect(names.last, 'Send Build Report');
+    });
+
     test('skips distribution steps when no handlers match', () {
       final state = _state(
         distribution: const DistributionConfigModel(
           reportRecipient: ReportRecipientConfig(
             reportRecipient: 'dev@example.com',
             gmailAddress: 'sender@gmail.com',
+            buildReport: true,
             appPassword: 'secret',
           ),
         ),

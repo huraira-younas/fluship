@@ -165,6 +165,26 @@ List<CommandStep> resolvePostGit(ConfigState state) {
   ];
 }
 
+CommandStep _distributionStep(
+  DistributionStepKind kind, {
+  required Map<DistributionStepKind, DistributionHandler> handlers,
+  required Future<DistributionContext> Function() contextProvider,
+}) {
+  final handler = handlers[kind]!;
+  return CommandStep(
+    command: kind.command,
+    name: kind.label,
+    onExecute: () async {
+      final context = await contextProvider();
+      final result = await handler.run(context);
+      await logDistributionHandlerResult(result, context.logger, handler.name);
+      if (result.isFailed) throw Exception(result.message);
+    },
+  );
+}
+
+bool _distributionFlag(bool? value) => value ?? false;
+
 List<CommandStep> resolveDistribution(
   ConfigState state, {
   required Map<DistributionStepKind, DistributionHandler> handlers,
@@ -173,39 +193,44 @@ List<CommandStep> resolveDistribution(
   final dist = state.distribution;
   if (!dist.enabled) return const [];
 
-  CommandStep distributionStep(DistributionStepKind kind) {
-    final handler = handlers[kind]!;
-    return CommandStep(
-      command: kind.command,
-      name: kind.label,
-      onExecute: () async {
-        final context = await contextProvider();
-        final result = await handler.run(context);
-        await logDistributionHandlerResult(
-          result,
-          context.logger,
-          handler.name,
-        );
-        if (result.isFailed) {
-          throw Exception(result.message);
-        }
-      },
-    );
-  }
-
-  bool vl(bool? v) => v ?? false;
-
   return [
     for (final kind in <DistributionStepKind>[
-      if (dist.canSendToAppStore && vl(dist.appstore?.enabled)) .appStore,
-      if (dist.canSendToDrive && vl(dist.driveConfig?.enabled)) .drive,
-
-      if (dist.canSendToPlayStore && vl(dist.playstore?.distribution != null))
+      if (dist.canSendToAppStore && _distributionFlag(dist.appstore?.enabled))
+        .appStore,
+      if (dist.canSendToDrive && _distributionFlag(dist.driveConfig?.enabled))
+        .drive,
+      if (dist.canSendToPlayStore &&
+          _distributionFlag(dist.playstore?.distribution != null))
         .playStore,
-      if (dist.canSendBuildReport && vl(dist.reportRecipient?.buildReport))
-        .report,
     ])
-      if (handlers.containsKey(kind)) distributionStep(kind),
+      if (handlers.containsKey(kind))
+        _distributionStep(
+          contextProvider: contextProvider,
+          handlers: handlers,
+          kind,
+        ),
+  ];
+}
+
+List<CommandStep> resolveReport(
+  ConfigState state, {
+  required Map<DistributionStepKind, DistributionHandler> handlers,
+  required Future<DistributionContext> Function() contextProvider,
+}) {
+  final dist = state.distribution;
+  if (!dist.enabled) return const [];
+  if (!dist.canSendBuildReport) return const [];
+  if (!_distributionFlag(dist.reportRecipient?.buildReport)) return const [];
+
+  const kind = DistributionStepKind.report;
+  if (!handlers.containsKey(kind)) return const [];
+
+  return [
+    _distributionStep(
+      contextProvider: contextProvider,
+      handlers: handlers,
+      kind,
+    ),
   ];
 }
 

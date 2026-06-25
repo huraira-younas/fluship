@@ -88,40 +88,29 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     String? failureMessage;
     String? savedLogPath;
 
-    Future<DistributionContext> distributionContextProvider() async {
-      if (cachedDC != null) return cachedDC!;
-
-      final sessionId = _sessionId;
-      if (sessionId != null && savedLogPath == null) {
-        try {
-          savedLogPath = await _savePipelineLog(
-            projectName: projectName,
-            buildNumber: buildNumber,
-            sessionId: sessionId,
-            version: version,
-          );
-        } catch (_) {}
-      }
-
+    Future<DistributionContext> buildDistributionContext({
+      required String logFilePath,
+    }) async {
+      final sessionId = _sessionId!;
       final artifactsDir = pipelineOutputDirectory(
         flushipRoot: flushipWorkspace,
         projectName: projectName,
         buildNumber: buildNumber,
         version: version,
       );
-      final distributionFinishedAt = DateTime.now();
 
-      cachedDC = DistributionContext(
+      final contextFinishedAt = DateTime.now();
+      return DistributionContext(
         emailTheme: ReportHtmlTheme.fromCurrentTheme(),
         config: configState.distribution,
         snapshot: PipelineRunSnapshot(
-          totalElapsed: distributionFinishedAt.difference(startedAt),
           platforms: DistributionPlatforms.fromConfig(configState),
+          totalElapsed: contextFinishedAt.difference(startedAt),
           steps: List<PipelineStepView>.of(stepViews),
-          finishedAt: distributionFinishedAt,
-          logFilePath: savedLogPath ?? '',
+          finishedAt: contextFinishedAt,
           artifactsDir: artifactsDir,
           buildNumber: buildNumber,
+          logFilePath: logFilePath,
           appName: projectName,
           runStatus: runStatus,
           startedAt: startedAt,
@@ -129,15 +118,39 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         ),
         logger: PipelineDistributionLogger(
           consolePort: _consolePort,
-          sessionId: sessionId!,
+          sessionId: sessionId,
         ),
       );
+    }
 
+    Future<DistributionContext> distributionContextProvider() async {
+      if (cachedDC != null) return cachedDC!;
+
+      cachedDC = await buildDistributionContext(logFilePath: '');
       return cachedDC!;
+    }
+
+    Future<DistributionContext> reportContextProvider() async {
+      if (savedLogPath == null) {
+        final sessionId = _sessionId;
+        if (sessionId != null) {
+          try {
+            savedLogPath = await _savePipelineLog(
+              projectName: projectName,
+              buildNumber: buildNumber,
+              sessionId: sessionId,
+              version: version,
+            );
+          } catch (_) {}
+        }
+      }
+
+      return buildDistributionContext(logFilePath: savedLogPath ?? '');
     }
 
     final commandSteps = ConfigPipelineResolver.resolve(
       contextProvider: distributionContextProvider,
+      reportContextProvider: reportContextProvider,
       handlers: _distributions,
       configState,
     );
