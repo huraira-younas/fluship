@@ -73,7 +73,10 @@ class DistributionConfig extends StatelessWidget {
               defaultValue: .production,
               onChange: (value) => _updateDistribution(
                 dist.copyWith(
-                  playstore: playstore.copyWith(distribution: value),
+                  playstore: playstore.copyWith(
+                    clearDistribution: value == null,
+                    distribution: value,
+                  ),
                 ),
                 bloc,
               ),

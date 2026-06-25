@@ -26,10 +26,11 @@ class GooglePlayConsoleConfig extends Equatable {
 
   GooglePlayConsoleConfig copyWith({
     PlayStoreDistribution? distribution,
+    bool clearDistribution = false,
     String? packageName,
     String? saJsonPath,
   }) => GooglePlayConsoleConfig(
-    distribution: distribution ?? this.distribution,
+    distribution: clearDistribution ? null : distribution ?? this.distribution,
     packageName: packageName ?? this.packageName,
     saJsonPath: saJsonPath ?? this.saJsonPath,
   );
