@@ -142,7 +142,10 @@ class FakePipelineLogWriter implements PipelineLogWriter {
 
 ConfigState _configWithSteps() {
   return ConfigState.empty().copyWith(
-    appInfo: const AppInfoModel(flutterProjectPath: '/project'),
+    appInfo: const AppInfoModel(
+      flushipWorkspacePath: '/fluship',
+      flutterProjectPath: '/project',
+    ),
     commonCmd: const CommonCmdModel(enabled: true, clean: true),
     android: const AndroidConfigModel(enabled: true, buildAab: true),
   );
@@ -151,6 +154,7 @@ ConfigState _configWithSteps() {
 ConfigState _configWithStepsAndAppInfo() {
   return _configWithSteps().copyWith(
     appInfo: const AppInfoModel(
+      flushipWorkspacePath: '/fluship',
       flutterProjectPath: '/project',
       appName: 'ReelStay',
       buildNumber: '5700',
@@ -224,7 +228,10 @@ void main() {
     test('fails when pipeline has no steps', () async {
       final config = FakePipelineConfigSource(
         ConfigState.empty().copyWith(
-          appInfo: const AppInfoModel(flutterProjectPath: '/project'),
+          appInfo: const AppInfoModel(
+            flushipWorkspacePath: '/fluship',
+            flutterProjectPath: '/project',
+          ),
         ),
       );
       final console = FakePipelineConsolePort();
@@ -240,13 +247,17 @@ void main() {
       await bloc.close();
     });
 
-    test('stops pipeline and skips remaining steps on failure', () async {
+    test('continues pipeline after a step failure', () async {
       final config = FakePipelineConfigSource(_configWithSteps());
       final console = FakePipelineConsolePort(
         exitCode: 1,
         failCommand: 'flutter clean',
       );
-      final bloc = PipelineBloc(configSource: config, consolePort: console);
+      final bloc = PipelineBloc(
+        executor: const _StubPipelineExecutor(),
+        configSource: config,
+        consolePort: console,
+      );
 
       bloc.add(const RunPipeline());
       await _pumpBloc(bloc);
@@ -257,11 +268,19 @@ void main() {
 
       expect(bloc.state.runStatus, PipelineRunStatus.failed);
       expect(bloc.state.steps.first.status, PipelineStepStatus.failed);
+      expect(bloc.state.steps.first.name, 'Clean');
       expect(
-        bloc.state.steps.skip(1).map((step) => step.status),
-        everyElement(PipelineStepStatus.skipped),
+        bloc.state.steps.skip(1).every((step) => step.status != .skipped),
+        isTrue,
       );
-      expect(console.commands, ['flutter clean']);
+      expect(console.commands, [
+        'flutter clean',
+        'flutter build aab --release',
+      ]);
+      expect(
+        bloc.state.summaryMessage,
+        contains('finished with failed steps'),
+      );
       expect(console.disposeCalls, 0);
 
       await bloc.close();
@@ -294,7 +313,10 @@ void main() {
     test('dismiss resets panel to idle', () async {
       final config = FakePipelineConfigSource(
         ConfigState.empty().copyWith(
-          appInfo: const AppInfoModel(flutterProjectPath: '/project'),
+          appInfo: const AppInfoModel(
+            flushipWorkspacePath: '/fluship',
+            flutterProjectPath: '/project',
+          ),
         ),
       );
       final console = FakePipelineConsolePort();
@@ -318,6 +340,7 @@ void main() {
       final config = FakePipelineConfigSource(
         ConfigState.empty().copyWith(
           appInfo: const AppInfoModel(
+            flushipWorkspacePath: '/fluship',
             flutterProjectPath: '/project',
             buildNumber: '2',
             version: '1.1.0',

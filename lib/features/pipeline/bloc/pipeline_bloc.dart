@@ -85,6 +85,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     late List<PipelineStepView> stepViews;
     final startedAt = DateTime.now();
     DistributionContext? cachedDC;
+    var hadStepFailures = false;
     String? failureMessage;
     String? savedLogPath;
 
@@ -232,6 +233,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       }
 
       if (!result.success) {
+        hadStepFailures = true;
         stepViews[index] = _finalizeStepTiming(stepViews[index]).copyWith(
           status: PipelineStepStatus.failed,
           errorMessage: result.errorMessage,
@@ -245,12 +247,11 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         );
 
         summaryMessage = '${step.name} failed.';
+        failureMessage ??= result.errorMessage;
         runStatus = PipelineRunStatus.failed;
-        failureMessage = result.errorMessage;
 
-        _markRemainingSkipped(stepViews, index + 1);
         _emitSteps(emit, steps: stepViews, activeStepIndex: null);
-        break;
+        continue;
       }
 
       stepViews[index] = _finalizeStepTiming(stepViews[index]).copyWith(
@@ -294,6 +295,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     if (isClosed) return;
 
     summaryMessage = _summaryWithTotal(
+      hadStepFailures: hadStepFailures,
       totalFormatted: totalFormatted,
       fallback: summaryMessage,
       runStatus: runStatus,
@@ -347,10 +349,13 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
   String _summaryWithTotal({
     required PipelineRunStatus runStatus,
     required String totalFormatted,
+    required bool hadStepFailures,
     required String fallback,
   }) {
     return switch (runStatus) {
       .completed => 'Pipeline completed successfully in $totalFormatted.',
+      .failed when hadStepFailures =>
+        'Pipeline finished with failed steps in $totalFormatted.',
       .cancelled => 'Pipeline cancelled after $totalFormatted.',
       .running => fallback,
       .failed => fallback,
