@@ -62,10 +62,14 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     final buildNumber = info.buildNumber ?? '0';
     final version = info.version ?? 'unknown';
 
-    if (projectRoot.isEmpty) {
+    final flushipWorkspace = (info.flushipWorkspacePath ?? '').trim();
+
+    if (projectRoot.isEmpty || flushipWorkspace.isEmpty) {
       emit(
         PipelineState(
-          summaryMessage: 'Set Flutter project path in Settings first.',
+          summaryMessage: projectRoot.isEmpty
+              ? 'Set Flutter project path in Settings → Paths.'
+              : 'Set Fluship workspace path in Settings → Paths.',
           finishedAt: DateTime.now(),
           startedAt: DateTime.now(),
           activeStepIndex: null,
@@ -99,11 +103,10 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         } catch (_) {}
       }
 
-      final flushipRoot = await const FlushipWorkspacePaths().resolveRoot();
       final artifactsDir = pipelineOutputDirectory(
+        flushipRoot: flushipWorkspace,
         projectName: projectName,
         buildNumber: buildNumber,
-        flushipRoot: flushipRoot,
         version: version,
       );
       final distributionFinishedAt = DateTime.now();

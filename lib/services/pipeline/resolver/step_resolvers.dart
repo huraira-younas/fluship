@@ -1,4 +1,4 @@
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, Process;
 
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
 import 'package:fluship/services/distribution/contracts/distribution_handler.dart';
@@ -14,7 +14,6 @@ import 'git_step_builder.dart';
 import 'command_step.dart';
 
 const _artifactCollector = FileArtifactCollector();
-const _workspacePaths = FlushipWorkspacePaths();
 const _projectService = FlutterProjectService();
 
 List<CommandStep> resolveAppInfo(ConfigState state) {
@@ -216,7 +215,30 @@ List<CommandStep> resolvePostBuild(ConfigState state) {
   final postBuild = state.postBuild;
   return [
     if (postBuild.openOutputs)
-      const CommandStep(command: 'open build/outputs', name: 'Open Outputs'),
+      CommandStep(
+        name: 'Open Outputs',
+        command: 'open: fluship outputs',
+        onExecute: () async {
+          final outputDir = pipelineOutputDirectory(
+            flushipRoot: state.appInfo.flushipWorkspacePath ?? '',
+            projectName: state.appInfo.appName ?? 'unknown',
+            buildNumber: state.buildNumber,
+            version: state.version,
+          );
+
+          if (Platform.isMacOS) {
+            await Process.run('open', [outputDir]);
+            return;
+          }
+
+          if (Platform.isWindows) {
+            await Process.run('explorer', [outputDir]);
+            return;
+          }
+
+          await Process.run('xdg-open', [outputDir]);
+        },
+      ),
     if (postBuild.powerConfig != null)
       CommandStep(
         command: 'power ${postBuild.powerConfig!.action.name}',
@@ -240,11 +262,10 @@ CommandStep _collectArtifactStep(
     command: command,
     name: name,
     onExecute: () async {
-      final flushipRoot = await _workspacePaths.resolveRoot();
       final outputDir = pipelineOutputDirectory(
+        flushipRoot: state.appInfo.flushipWorkspacePath ?? '',
         projectName: state.appInfo.appName ?? 'unknown',
         buildNumber: state.buildNumber,
-        flushipRoot: flushipRoot,
         version: state.version,
       );
       await collector(sourceRoot: state.projectRoot, outputDir: outputDir);

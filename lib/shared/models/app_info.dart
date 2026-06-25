@@ -3,6 +3,7 @@ import 'base_config.dart';
 
 final class AppInfoModel extends BaseConfig {
   const AppInfoModel({
+    this.flushipWorkspacePath,
     this.flutterProjectPath,
     super.enabled = true,
     this.buildNumber,
@@ -10,6 +11,7 @@ final class AppInfoModel extends BaseConfig {
     this.appName,
   });
 
+  final String? flushipWorkspacePath;
   final String? flutterProjectPath;
   final String? buildNumber;
   final String? version;
@@ -17,12 +19,14 @@ final class AppInfoModel extends BaseConfig {
 
   @override
   AppInfoModel copyWith({
+    String? flushipWorkspacePath,
     String? flutterProjectPath,
     String? buildNumber,
     String? version,
     String? appName,
     bool? enabled,
   }) => AppInfoModel(
+    flushipWorkspacePath: flushipWorkspacePath ?? this.flushipWorkspacePath,
     flutterProjectPath: flutterProjectPath ?? this.flutterProjectPath,
     buildNumber: buildNumber ?? this.buildNumber,
     enabled: enabled ?? this.enabled,
@@ -35,6 +39,7 @@ final class AppInfoModel extends BaseConfig {
 
     final data = json.at<AppInfoModel>();
     return AppInfoModel(
+      flushipWorkspacePath: data.parse<String?>('fluship_workspace_path'),
       flutterProjectPath: data.parse<String?>('flutter_project_path'),
       enabled: data.parse<bool>('enabled', defaultValue: true),
       buildNumber: data.parse<String?>('build_number'),
@@ -45,6 +50,7 @@ final class AppInfoModel extends BaseConfig {
 
   @override
   Map<String, dynamic> toJson() => {
+    'fluship_workspace_path': flushipWorkspacePath,
     'flutter_project_path': flutterProjectPath,
     'build_number': buildNumber,
     'app_name': appName,
@@ -54,6 +60,7 @@ final class AppInfoModel extends BaseConfig {
 
   @override
   List<Object?> get props => [
+    flushipWorkspacePath,
     flutterProjectPath,
     buildNumber,
     appName,

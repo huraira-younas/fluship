@@ -13,7 +13,7 @@ class SettingsScreen extends StatelessWidget {
     return Column(
       spacing: spacing.md,
       children: [
-        const ProjectRoot(),
+        const ProjectPaths(),
         const GooglePlayConsole(),
         const IosCredentials(),
         const GoogleDrive(),
