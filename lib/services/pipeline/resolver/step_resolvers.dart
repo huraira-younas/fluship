@@ -129,8 +129,8 @@ List<CommandStep> resolveAndroid(ConfigState state) {
             description:
                 'Copy the split APK files to your Fluship output folder',
             collector: _artifactCollector.collectApks,
-            command: 'collect: apk',
             name: 'Collect Split APKs',
+            command: 'collect: apk',
             state,
           ),
         ],
