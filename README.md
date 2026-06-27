@@ -1,7 +1,15 @@
-# Fluship
+<p align="center">
+  <img src="assets/app_logo.png" alt="Fluship logo" width="160">
+</p>
 
-> **Ship Flutter apps from one pipeline.**  
-> Build, distribute, and report — without juggling terminals, store consoles, and email.
+<h1 align="center">Fluship</h1>
+
+<p align="center">
+  <strong>Ship Flutter apps from one pipeline.</strong><br>
+  Build, distribute, and report — without juggling terminals, store consoles, and email.
+</p>
+
+---
 
 Fluship is a cross-platform Flutter app that turns your release workflow into a configurable pipeline. Define your steps once in **Config**, hit **Run Pipeline**, and watch everything execute in order — git hygiene, builds, store uploads, and HTML email reports.
 
