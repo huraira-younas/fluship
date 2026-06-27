@@ -90,11 +90,7 @@ class LayoutTopBuilder extends StatelessWidget {
           return Column(
             crossAxisAlignment: .stretch,
             spacing: spacing.lg,
-            children: [
-              AppText.display(appInfo.appName ?? 'Fluship'),
-              pipeline,
-              tabs,
-            ],
+            children: [AppText.display(appInfo.appName ?? 'Fluship'), tabs],
           );
         }
 
