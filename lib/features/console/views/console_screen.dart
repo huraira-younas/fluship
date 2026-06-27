@@ -39,28 +39,27 @@ class _ConsoleScreenState extends State<ConsoleScreen> {
           SyncProjectRoot(path: state.appInfo.flutterProjectPath),
         );
       },
-      child: SizedBox.expand(
-        child: AppCard(
-          expandedBody: true,
-          title: 'Console',
-          spacing: 0,
-          description:
-              'Run shell commands in your Flutter project directory. '
-              'Open up to 3 terminal tabs — each keeps its own session and path.',
-          children: [
-            const ConsoleToolbar(),
-            const SizedBox(height: 12),
-            Column(
-              crossAxisAlignment: .stretch,
-              children: [
-                const ConsoleSessionTabs(),
-                const ConsoleOutput().expanded(),
-              ],
-            ).expanded(),
-            const SizedBox(height: 12),
-            const ConsoleInput(),
-          ],
-        ),
+      child: AppCard(
+        expandedBody: true,
+        title: 'Console',
+        radius: .zero,
+        spacing: 0,
+        description:
+            'Run shell commands in your Flutter project directory. '
+            'Open up to 3 terminal tabs — each keeps its own session and path.',
+        children: [
+          const ConsoleToolbar(),
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: .stretch,
+            children: [
+              const ConsoleSessionTabs(),
+              const ConsoleOutput().expanded(),
+            ],
+          ).expanded(),
+          const SizedBox(height: 12),
+          const ConsoleInput(),
+        ],
       ),
     );
   }

@@ -78,7 +78,9 @@ class _LayoutScreenState extends State<LayoutScreen> {
 
     final body = !_usesExpandedBody(state)
         ? SingleChildScrollView(padding: .all(hPad), child: tab)
-        : tab.padAll(hPad);
+        : state != .console
+        ? tab.padAll(hPad)
+        : tab;
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
