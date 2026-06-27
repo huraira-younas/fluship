@@ -1,4 +1,5 @@
 import 'package:fluship/features/process_manager/views/process_manager_screen.dart';
+import 'package:fluship/features/pipeline/widgets/pipeline_runner_panel.dart';
 import 'package:fluship/features/file_manager/views/file_manager_screen.dart';
 import 'package:fluship/core/responsive/models/layout_constraints.dart';
 import 'package:fluship/features/settings/views/settings_screen.dart';
@@ -142,6 +143,14 @@ class _LayoutScreenState extends State<LayoutScreen> {
               state: state,
               hPad: hPad,
             ).expanded(flex: LayoutConstraints.bodyFlex),
+            if (context.isDesktop)
+              Container(
+                height: double.infinity,
+                decoration: BoxDecoration(
+                  border: Border(left: BorderSide(color: ft.colors.codeBorder)),
+                ),
+                child: const PipelineRunnerPanel(),
+              ).expanded(flex: LayoutConstraints.pipeLineFlex),
           ],
         ).expanded(),
       ],

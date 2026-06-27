@@ -9,7 +9,8 @@ class LayoutConstraints extends Equatable {
   static final material3 = const LayoutConstraints();
 
   static const sidePanelFlex = 3;
-  static const bodyFlex = 7;
+  static const pipeLineFlex = 5;
+  static const bodyFlex = 8;
 
   @override
   List<Object?> get props => [minWidth, maxWidth];

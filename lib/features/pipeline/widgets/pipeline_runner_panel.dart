@@ -10,15 +10,8 @@ class PipelineRunnerPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<PipelineBloc, PipelineState, PipelineState>(
+      builder: (_, s) => PipelineRunnerPanelBody(state: s),
       selector: (state) => state,
-      builder: (context, state) {
-        return AnimatedSize(
-          duration: const Duration(milliseconds: 300),
-          child: state.isPanelVisible
-              ? PipelineRunnerPanelBody(state: state)
-              : const SizedBox.shrink(),
-        );
-      },
     );
   }
 }

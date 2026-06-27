@@ -20,8 +20,8 @@ class PipelineState extends BaseBlocState {
   final DateTime? startedAt;
 
   factory PipelineState.idle() => const PipelineState(
+    summaryMessage: 'Pipeline is ready to run.',
     activeStepIndex: null,
-    summaryMessage: '',
     runStatus: .idle,
     steps: [],
   );
