@@ -71,6 +71,11 @@ class _AppButtonColors {
   final Color hovered;
   final Color border;
 
+  static Color _onFilledBackground(Color background) =>
+      background.computeLuminance() > 0.55
+      ? const Color(0xFF1f2328)
+      : const Color(0xFFffffff);
+
   static _AppButtonColors resolve({
     required AppButtonVariant variant,
     required ThemePalette colors,
@@ -78,13 +83,13 @@ class _AppButtonColors {
     return switch (variant) {
       .primary => _AppButtonColors(
         overlay: colors.accent.withValues(alpha: 0.12),
+        foreground: _onFilledBackground(colors.accent),
         disabledBackground: colors.disabled,
         disabledForeground: colors.textDim,
         border: Colors.transparent,
         pressed: colors.accentHover,
         hovered: colors.accentHover,
         background: colors.accent,
-        foreground: colors.text,
       ),
       .secondary => _AppButtonColors(
         overlay: colors.hover.withValues(alpha: 0.35),
@@ -124,7 +129,7 @@ class _AppButtonColors {
         pressed: colors.dangerHover,
         hovered: colors.dangerHover,
         background: colors.danger,
-        foreground: colors.bg,
+        foreground: _onFilledBackground(colors.danger),
       ),
       .success => _AppButtonColors(
         overlay: colors.success.withValues(alpha: 0.12),
@@ -134,7 +139,7 @@ class _AppButtonColors {
         disabledForeground: colors.textDim,
         border: Colors.transparent,
         background: colors.success,
-        foreground: colors.bg,
+        foreground: _onFilledBackground(colors.success),
       ),
     };
   }

@@ -20,7 +20,7 @@ class AppTheme {
 
   Color get codeBorder => palette.codeBorder;
 
-  Color get inputBg => Color.lerp(palette.bg, palette.hover, 0.18)!;
+  Color get inputBg => Color.lerp(palette.bg, palette.hover, 0.32)!;
 
   Color get inputBorder => palette.cardBorder;
 
