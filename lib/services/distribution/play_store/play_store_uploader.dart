@@ -16,6 +16,7 @@ abstract interface class PlayStoreUploader {
     required String saJsonPath,
     DistributionLogger? logger,
     required String aabPath,
+    String? releaseNotes,
   });
 }
 
@@ -50,6 +51,7 @@ class GooglePlayPublisherUploader implements PlayStoreUploader {
     required String saJsonPath,
     DistributionLogger? logger,
     required String aabPath,
+    String? releaseNotes,
   }) async {
     final aabFile = File(aabPath);
     if (!await aabFile.exists()) {
@@ -102,12 +104,22 @@ class GooglePlayPublisherUploader implements PlayStoreUploader {
       };
 
       await _log(logger, '[play] assigning to $trackName track');
+
+      final notes = releaseNotes?.trim();
       await api.edits.tracks.update(
         androidpublisher.Track(
           track: trackName,
           releases: [
             androidpublisher.TrackRelease(
               versionCodes: [versionCode.toString()],
+              releaseNotes: notes != null && notes.isNotEmpty
+                  ? [
+                      androidpublisher.LocalizedText(
+                        language: 'en-US',
+                        text: notes,
+                      ),
+                    ]
+                  : null,
               status: 'completed',
             ),
           ],

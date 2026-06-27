@@ -13,6 +13,7 @@ final class DistributionConfigModel extends BaseConfig {
   const DistributionConfigModel({
     super.enabled = true,
     this.reportRecipient,
+    this.releaseNotes,
     this.driveConfig,
     this.playstore,
     this.appstore,
@@ -21,6 +22,7 @@ final class DistributionConfigModel extends BaseConfig {
   final ReportRecipientConfig? reportRecipient;
   final GooglePlayConsoleConfig? playstore;
   final GoogleDriveConfig? driveConfig;
+  final String? releaseNotes;
   final IosConfig? appstore;
 
   bool get canSendBuildReport => reportRecipient?.canSend ?? false;
@@ -36,6 +38,7 @@ final class DistributionConfigModel extends BaseConfig {
       driveConfig: data.objectOrNull(GoogleDriveConfig.fromJson, 'driveConfig'),
       appstore: data.objectOrNull(IosConfig.fromJson, 'appstore'),
       enabled: data.parse<bool>('enabled', defaultValue: true),
+      releaseNotes: data.parse<String?>('releaseNotes'),
       reportRecipient: data.objectOrNull(
         ReportRecipientConfig.fromJson,
         'reportRecipient',
@@ -53,11 +56,13 @@ final class DistributionConfigModel extends BaseConfig {
     GooglePlayConsoleConfig? playstore,
     GoogleDriveConfig? driveConfig,
     bool clearAppstore = false,
+    String? releaseNotes,
     IosConfig? appstore,
     bool? enabled,
   }) => DistributionConfigModel(
     appstore: clearAppstore ? null : appstore ?? this.appstore,
     reportRecipient: reportRecipient ?? this.reportRecipient,
+    releaseNotes: releaseNotes ?? this.releaseNotes,
     driveConfig: driveConfig ?? this.driveConfig,
     playstore: playstore ?? this.playstore,
     enabled: enabled ?? this.enabled,
@@ -66,6 +71,7 @@ final class DistributionConfigModel extends BaseConfig {
   @override
   List<Object?> get props => [
     reportRecipient,
+    releaseNotes,
     driveConfig,
     playstore,
     appstore,
@@ -78,6 +84,7 @@ final class DistributionConfigModel extends BaseConfig {
     'driveConfig': driveConfig?.toJson(),
     'playstore': playstore?.toJson(),
     'appstore': appstore?.toJson(),
+    'releaseNotes': releaseNotes,
     'enabled': enabled,
   };
 

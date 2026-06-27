@@ -30,11 +30,12 @@ class FakeDistributionLogger implements DistributionLogger {
 class FakePlayStoreUploader implements PlayStoreUploader {
   FakePlayStoreUploader({this.aabPath, this.uploadedName = 'Demo.aab'});
 
-  final String? aabPath;
   final String uploadedName;
-  Object? throwError;
+  String? lastReleaseNotes;
+  final String? aabPath;
   var uploadCalls = 0;
   String? lastAabPath;
+  Object? throwError;
 
   @override
   Future<String?> findAab(String artifactsDir) async => aabPath;
@@ -43,12 +44,14 @@ class FakePlayStoreUploader implements PlayStoreUploader {
   Future<String> upload({
     required PlayStoreDistribution distribution,
     required String packageName,
-    required String aabPath,
-    required String saJsonPath,
     DistributionLogger? logger,
+    required String saJsonPath,
+    required String aabPath,
+    String? releaseNotes,
   }) async {
     uploadCalls++;
     lastAabPath = aabPath;
+    lastReleaseNotes = releaseNotes;
     if (throwError != null) throw throwError!;
     return uploadedName;
   }
@@ -198,6 +201,58 @@ void main() {
     expect(uploader.uploadCalls, 1);
     expect(uploader.lastAabPath, aabPath);
     expect(result.message, contains('Uploaded to Play Store'));
+  });
+
+  test('passes release notes to uploader when configured', () async {
+    final aabPath = '${artifactsDir.path}/Demo.aab';
+    await File(aabPath).writeAsBytes([1, 2, 3]);
+    uploader = FakePlayStoreUploader(aabPath: aabPath);
+    handler = PlayStoreHandler(uploader: uploader);
+
+    final result = await handler.run(
+      _context(
+        snapshot: _snapshot(artifactsDir: artifactsDir.path),
+        config: const DistributionConfigModel(
+          enabled: true,
+          releaseNotes: 'Bug fixes and performance improvements.',
+          playstore: GooglePlayConsoleConfig(
+            distribution: PlayStoreDistribution.internal,
+            packageName: 'com.example.demo',
+            saJsonPath: '/secrets/play-sa.json',
+          ),
+        ),
+      ),
+    );
+
+    expect(result.isSuccess, isTrue);
+    expect(
+      uploader.lastReleaseNotes,
+      'Bug fixes and performance improvements.',
+    );
+  });
+
+  test('passes null release notes when empty', () async {
+    final aabPath = '${artifactsDir.path}/Demo.aab';
+    await File(aabPath).writeAsBytes([1, 2, 3]);
+    uploader = FakePlayStoreUploader(aabPath: aabPath);
+    handler = PlayStoreHandler(uploader: uploader);
+
+    await handler.run(
+      _context(
+        snapshot: _snapshot(artifactsDir: artifactsDir.path),
+        config: const DistributionConfigModel(
+          enabled: true,
+          releaseNotes: '   ',
+          playstore: GooglePlayConsoleConfig(
+            distribution: PlayStoreDistribution.internal,
+            packageName: 'com.example.demo',
+            saJsonPath: '/secrets/play-sa.json',
+          ),
+        ),
+      ),
+    );
+
+    expect(uploader.lastReleaseNotes, isNull);
   });
 
   test('returns failed when upload throws', () async {

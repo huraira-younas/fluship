@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
+import 'package:fluship/shared/widgets/app_text_field.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 
@@ -51,6 +52,9 @@ class DistributionConfig extends StatelessWidget {
         final canDrive = dist.canSendToDrive;
         final sectionEnabled = dist.enabled;
 
+        final showReleaseNotes =
+            sectionEnabled && canPlay && playstore.distribution != null;
+
         return AppCard(
           state: AppCardState(
             onEnable: (value) =>
@@ -81,6 +85,19 @@ class DistributionConfig extends StatelessWidget {
                 bloc,
               ),
             ),
+            if (showReleaseNotes)
+              AppTextField.label(
+                initialValue: dist.releaseNotes,
+                label: 'Release Notes',
+                hint: 'Bug fixes and improvements…',
+                maxLines: 4,
+                onChanged: (value) => _updateDistribution(
+                  dist.copyWith(
+                    releaseNotes: value.trim().isEmpty ? null : value,
+                  ),
+                  bloc,
+                ),
+              ),
             if (Platform.isMacOS)
               SwitchLabel(
                 error: canAppStore ? null : _appStoreCredError,

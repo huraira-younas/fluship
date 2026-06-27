@@ -44,7 +44,9 @@ class PlayStoreHandler implements DistributionHandler {
     }
 
     try {
+      final notes = context.config.releaseNotes?.trim();
       final uploaded = await uploader.upload(
+        releaseNotes: notes != null && notes.isNotEmpty ? notes : null,
         distribution: distribution,
         packageName: packageName,
         saJsonPath: saJsonPath,
