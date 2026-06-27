@@ -1,6 +1,6 @@
 {
-    "name": "fluship",
-    "short_name": "fluship",
+    "name": "Fluship",
+    "short_name": "Fluship",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
