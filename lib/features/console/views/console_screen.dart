@@ -40,6 +40,7 @@ class _ConsoleScreenState extends State<ConsoleScreen> {
         );
       },
       child: AppCard(
+        border: .all(color: Colors.transparent),
         expandedBody: true,
         title: 'Console',
         radius: .zero,

@@ -27,6 +27,7 @@ class PipelineRunnerPanelBody extends StatelessWidget {
 
     final steps = state.steps;
     return AppCard(
+      border: .all(color: Colors.transparent),
       title: 'Pipeline',
       radius: .zero,
       description:

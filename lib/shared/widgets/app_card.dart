@@ -28,6 +28,7 @@ class AppCard extends StatelessWidget {
     required this.title,
     this.spacing = 0,
     this.radius,
+    this.border,
     this.height,
     this.width,
     this.state,
@@ -39,6 +40,7 @@ class AppCard extends StatelessWidget {
   final AppCardState? state;
   final String description;
   final bool expandedBody;
+  final Border? border;
   final double? height;
   final double spacing;
   final double? width;
@@ -52,11 +54,11 @@ class AppCard extends StatelessWidget {
     final body = Column(spacing: spacing, children: children);
     return Container(
       height: height ?? (expandedBody ? double.infinity : null),
-      width: width,
       padding: .all(ft.spacing.lg),
+      width: width,
       decoration: BoxDecoration(
+        border: border ?? .all(color: ft.colors.cardBorder),
         borderRadius: radius ?? .circular(ft.radius.card),
-        border: .all(color: ft.colors.cardBorder),
         color: ft.colors.codeBg,
       ),
       child: Column(
