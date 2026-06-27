@@ -8,7 +8,6 @@ import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
-import '../models/pipeline_step_view.dart';
 import '../bloc/pipeline_bloc.dart';
 import 'pipeline_status_style.dart';
 import 'pipeline_step_row.dart';
@@ -114,12 +113,13 @@ class _PipelineRunStatus extends StatelessWidget {
                 ),
             ],
           ).expanded(),
-          AppButton.danger(
-            onPressed: () =>
-                context.read<PipelineBloc>().add(const CancelPipeline()),
-            label: 'Cancel',
-            size: .sm,
-          ),
+          if (isRunning)
+            AppButton.danger(
+              onPressed: () =>
+                  context.read<PipelineBloc>().add(const CancelPipeline()),
+              label: 'Cancel',
+              size: .sm,
+            ),
         ],
       ),
     );
@@ -132,43 +132,12 @@ class _PipelineRunActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bloc = context.read<PipelineBloc>();
-
-    return BlocSelector<PipelineBloc, PipelineState, PipelineStepView?>(
-      selector: (pipelineState) {
-        final activeIndex = pipelineState.activeStepIndex;
-        if (activeIndex == null) return null;
-        return pipelineState.steps[activeIndex];
-      },
-      builder: (context, activeStep) {
-        final running = activeStep?.status == .running;
-
-        if (running) {
-          return Row(
-            spacing: context.flushipTheme.spacing.sm,
-            children: [
-              AppButton.primary(
-                label: 'Running: ${activeStep?.name}',
-                isExpanded: true,
-                onPressed: null,
-              ),
-              AppButton.danger(
-                onPressed: () => bloc.add(const CancelPipeline()),
-                label: 'Cancel',
-                size: .md,
-              ),
-            ],
-          );
-        }
-
-        return AppButton.primary(
-          label: 'Run Pipeline',
-          isExpanded: true,
-          onPressed: () {
-            bloc.add(const RunPipeline());
-            context.read<NavigatorCubit>().navigate(.console);
-          },
-        );
+    return AppButton.primary(
+      label: 'Run Pipeline',
+      isExpanded: true,
+      onPressed: () {
+        context.read<PipelineBloc>().add(const RunPipeline());
+        context.read<NavigatorCubit>().navigate(.console);
       },
     );
   }
