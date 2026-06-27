@@ -1,5 +1,4 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
-import 'package:fluship/shared/extensions/context_extensions.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/app_layout/navigator_cubit.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
@@ -31,6 +30,7 @@ class PipelineRunnerPanelBody extends StatelessWidget {
     final steps = state.steps;
     return AppCard(
       border: .all(color: Colors.transparent),
+      expandedBody: true,
       title: 'Pipeline',
       radius: .zero,
       description:
@@ -50,7 +50,6 @@ class PipelineRunnerPanelBody extends StatelessWidget {
           ListView.separated(
             physics: const ClampingScrollPhysics(),
             itemCount: steps.length,
-            shrinkWrap: true,
             itemBuilder: (_, index) {
               return PipelineStepRow(
                 isActive: state.activeStepIndex == index,
@@ -61,11 +60,9 @@ class PipelineRunnerPanelBody extends StatelessWidget {
             separatorBuilder: (context, index) {
               return SizedBox(height: ft.spacing.sm);
             },
-          ),
+          ).expanded(),
         ] else
-          const _PipelineIdlePlaceholder().center().padOnly(
-            t: context.screenHeight * 0.3,
-          ),
+          const _PipelineIdlePlaceholder().center().expanded(),
       ],
     );
   }
