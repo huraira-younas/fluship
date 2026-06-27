@@ -21,8 +21,12 @@ class PipelineRunnerPanelBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isRunning = state.isRunning;
+
     final ft = context.flushipTheme;
     final colors = ft.colors;
+
+    final showStatus = isRunning || state.runStatus != .idle;
+    final showActions = !isRunning;
 
     final steps = state.steps;
     return AppCard(
@@ -32,11 +36,13 @@ class PipelineRunnerPanelBody extends StatelessWidget {
       description:
           'Track each build step here. Full command output stays in the Console tab.',
       children: [
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: isRunning || steps.isNotEmpty
-              ? _PipelineRunStatus(state: state)
-              : _PipelineRunActions(state: state),
+        Column(
+          crossAxisAlignment: .stretch,
+          spacing: ft.spacing.sm,
+          children: [
+            if (showActions) _PipelineRunActions(state: state),
+            if (showStatus) _PipelineRunStatus(state: state),
+          ],
         ),
 
         if (steps.isNotEmpty) ...[
