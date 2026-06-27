@@ -131,7 +131,7 @@ class ReportHtmlBuilder {
         .where(
           (v) =>
               v.status != .pending &&
-              v.name != DistributionStepKind.report.name,
+              v.name != DistributionStepKind.report.command,
         )
         .map(
           (v) => ReportStepResult(

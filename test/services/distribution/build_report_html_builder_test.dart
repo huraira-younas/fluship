@@ -124,19 +124,19 @@ void main() {
       final steps = builder.stepsFromPipelineViews([
         PipelineStepView(
           description: DistributionStepKind.report.description,
-          name: DistributionStepKind.report.name,
+          name: DistributionStepKind.report.command,
           status: PipelineStepStatus.running,
         ),
         PipelineStepView(
           description: DistributionStepKind.drive.description,
           status: PipelineStepStatus.completed,
-          name: DistributionStepKind.drive.name,
+          name: DistributionStepKind.drive.command,
           elapsed: const Duration(seconds: 57),
         ),
       ]);
 
       expect(steps, hasLength(1));
-      expect(steps.first.name, DistributionStepKind.drive.name);
+      expect(steps.first.name, DistributionStepKind.drive.command);
     });
 
     test('buildDriveLink includes files and escaped link', () {

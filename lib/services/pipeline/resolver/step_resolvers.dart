@@ -206,7 +206,7 @@ CommandStep _distributionStep(
   return CommandStep(
     description: kind.description,
     command: kind.command,
-    name: kind.name,
+    name: kind.command,
     onExecute: () async {
       final context = await contextProvider();
       final result = await handler.run(context);
