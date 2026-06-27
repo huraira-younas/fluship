@@ -253,9 +253,9 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         continue;
       }
 
-      stepViews[index] = _finalizeStepTiming(stepViews[index]).copyWith(
-        status: PipelineStepStatus.completed,
-      );
+      stepViews[index] = _finalizeStepTiming(
+        stepViews[index],
+      ).copyWith(status: PipelineStepStatus.completed);
 
       await _logStepTiming(
         view: stepViews[index],

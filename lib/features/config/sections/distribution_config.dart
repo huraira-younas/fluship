@@ -85,7 +85,8 @@ class DistributionConfig extends StatelessWidget {
                 bloc,
               ),
             ),
-            if (showReleaseNotes)
+            if (showReleaseNotes) ...[
+              const SizedBox(height: 10),
               AppTextField.label(
                 initialValue: dist.releaseNotes,
                 label: 'Release Notes',
@@ -98,6 +99,8 @@ class DistributionConfig extends StatelessWidget {
                   bloc,
                 ),
               ),
+              const SizedBox(height: 10),
+            ],
             if (Platform.isMacOS)
               SwitchLabel(
                 error: canAppStore ? null : _appStoreCredError,
@@ -119,7 +122,8 @@ class DistributionConfig extends StatelessWidget {
                 bloc,
               ),
             ),
-            if (canDrive && drive.enabled && report.emails.isNotEmpty)
+            if (canDrive && drive.enabled && report.emails.isNotEmpty) ...[
+              const SizedBox(height: 10),
               _DriveRecipientsPanel(
                 disabled: !sectionEnabled,
                 emails: report.emails,
@@ -138,6 +142,8 @@ class DistributionConfig extends StatelessWidget {
                   bloc,
                 ),
               ),
+              const SizedBox(height: 10),
+            ],
             SwitchLabel(
               label:
                   "Build Report → ${report.reportRecipient ?? 'Set Recipient'}",

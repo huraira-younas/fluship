@@ -277,10 +277,7 @@ void main() {
         'flutter clean',
         'flutter build aab --release',
       ]);
-      expect(
-        bloc.state.summaryMessage,
-        contains('finished with failed steps'),
-      );
+      expect(bloc.state.summaryMessage, contains('finished with failed steps'));
       expect(console.disposeCalls, 0);
 
       await bloc.close();
