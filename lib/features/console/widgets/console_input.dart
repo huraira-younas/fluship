@@ -6,20 +6,28 @@ import 'package:flutter/material.dart';
 
 import '../bloc/console_bloc.dart';
 
+typedef ConsoleInputState = ({bool isPipeline, bool isRunning});
+
 class ConsoleInput extends StatelessWidget {
   const ConsoleInput({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<ConsoleBloc, ConsoleState, bool>(
-      selector: (state) => state.activeSession?.isRunning ?? false,
-      builder: (context, isRunning) {
+    return BlocSelector<ConsoleBloc, ConsoleState, ConsoleInputState>(
+      selector: (state) {
+        return (
+          isPipeline: isPipelineConsoleSession(state.activeSessionId ?? ''),
+          isRunning: state.activeSession?.isRunning ?? false,
+        );
+      },
+      builder: (context, state) {
         final bloc = context.read<ConsoleBloc>();
+        if (state.isPipeline) return const SizedBox.shrink();
 
         return _ConsoleInputField(
           onSubmit: (cmd) => bloc.add(SubmitCommand(command: cmd)),
           onCancel: () => bloc.add(const CancelCommand()),
-          disabled: isRunning,
+          disabled: state.isRunning,
         );
       },
     );

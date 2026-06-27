@@ -27,6 +27,7 @@ class AppCard extends StatelessWidget {
     required this.children,
     required this.title,
     this.spacing = 0,
+    this.padding,
     this.radius,
     this.border,
     this.height,
@@ -37,6 +38,7 @@ class AppCard extends StatelessWidget {
 
   final List<Widget> children;
   final BorderRadius? radius;
+  final EdgeInsets? padding;
   final AppCardState? state;
   final String description;
   final bool expandedBody;
@@ -54,7 +56,7 @@ class AppCard extends StatelessWidget {
     final body = Column(spacing: spacing, children: children);
     return Container(
       height: height ?? (expandedBody ? double.infinity : null),
-      padding: .all(ft.spacing.lg),
+      padding: padding ?? .all(ft.spacing.lg),
       width: width,
       decoration: BoxDecoration(
         border: border ?? .all(color: ft.colors.cardBorder),

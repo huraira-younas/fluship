@@ -47,16 +47,20 @@ class PipelineRunnerPanelBody extends StatelessWidget {
 
         if (steps.isNotEmpty) ...[
           Divider(height: 30, color: colors.consoleBorder),
-          Column(
-            spacing: ft.spacing.sm,
-            children: [
-              for (var i = 0; i < steps.length; i++)
-                PipelineStepRow(
-                  isActive: state.activeStepIndex == i,
-                  step: steps[i],
-                  index: i,
-                ),
-            ],
+          ListView.separated(
+            physics: const ClampingScrollPhysics(),
+            itemCount: steps.length,
+            shrinkWrap: true,
+            itemBuilder: (_, index) {
+              return PipelineStepRow(
+                isActive: state.activeStepIndex == index,
+                step: steps[index],
+                index: index,
+              );
+            },
+            separatorBuilder: (context, index) {
+              return SizedBox(height: ft.spacing.sm);
+            },
           ),
         ] else
           const _PipelineIdlePlaceholder().center().padOnly(
