@@ -1,6 +1,5 @@
 import 'package:fluship/core/responsive/models/layout_constraints.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'dart:io' show Platform;
 
 void main() {
   group('LayoutConstraints', () {
@@ -8,11 +7,11 @@ void main() {
       final constraints = LayoutConstraints.material3;
 
       expect(constraints.minWidth, 360);
-      expect(constraints.maxWidth, Platform.isWindows ? 1380 : 1080);
+      expect(constraints.maxWidth, double.infinity);
     });
 
     test('supports custom minimum mobile width', () {
-      final constraints = LayoutConstraints(minWidth: 390);
+      final constraints = const LayoutConstraints(minWidth: 390);
 
       expect(constraints.minWidth, 390);
     });
