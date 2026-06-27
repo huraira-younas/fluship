@@ -2,11 +2,11 @@ import 'package:fluship/core/json_parser/exports.dart';
 import 'base_config.dart';
 
 enum AndroidBuildType {
-  arbs,
+  splits,
   apk;
 
   static AndroidBuildType? fromString(String? value) => switch (value) {
-    'arbs' => .arbs,
+    'splits' => .splits,
     'apk' => .apk,
     _ => null,
   };

@@ -118,12 +118,12 @@ List<CommandStep> resolveAndroid(ConfigState state) {
             state,
           ),
         ],
-        .arbs => [
+        .splits => [
           const CommandStep(
             description:
                 'Build separate release APKs for each CPU architecture',
             command: 'flutter build apk --split-per-abi',
-            name: 'Build AAR',
+            name: 'Build Splits APKs',
           ),
           _collectArtifactStep(
             description:

@@ -41,8 +41,8 @@ class AndroidConfig extends StatelessWidget {
             ),
             SwitchLabelsRow<AndroidBuildType>(
               labels: AndroidBuildType.values,
+              switchLabel: 'Build Artifacts',
               disabled: !android.enabled,
-              switchLabel: 'Build Type',
               value: android.buildType,
               defaultValue: .apk,
               onChange: (value) => bloc.add(
