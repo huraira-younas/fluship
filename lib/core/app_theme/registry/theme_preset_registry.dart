@@ -9,6 +9,7 @@ class ThemePresetRegistry {
     CatppuccinMochaPreset(),
     InstagramPreset(),
     OneDarkPreset(),
+    CrimsonPreset(),
     GitHubPreset(),
     NordPreset(),
   ];

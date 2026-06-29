@@ -7,6 +7,7 @@ enum AppThemes {
   oneDark('one_dark', 'One Dark'),
   gruvbox('gruvbox', 'Gruvbox'),
   dracula('dracula', 'Dracula'),
+  crimson('crimson', 'Crimson'),
   github('github', 'GitHub'),
   nord('nord', 'Nord');
 
