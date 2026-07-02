@@ -2,6 +2,7 @@ import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
 
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
+import 'package:fluship/shared/models/fluship_config_export.dart';
 import 'package:fluship/shared/models/post_build_config.dart';
 import 'package:fluship/shared/models/post_git.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,11 +24,15 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
 
   ConfigBloc() : super(ConfigState.empty()) {
     on<SyncProjectAppInfo>(handler(_syncProjectAppInfo));
+    on<ImportConfig>(handler(_importConfig));
     on<UpdateConfigs>(handler(_updateConfigs));
     on<UpdateConfig>(handler(_updateConfig));
     on<LoadConfig>(handler(_loadConfig));
     on<SaveConfig>(handler(_saveConfig));
   }
+
+  Map<String, dynamic> exportConfig() =>
+      FlushipConfigExport.fromState(state).toJson();
 
   ConfigState _applyConfig(ConfigState current, BaseConfig config) {
     return switch (config) {
@@ -166,6 +171,26 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
       _sharedPrefs.setObject(.preGit, state.preGit.toJson()),
       _sharedPrefs.setObject(.ios, state.ios.toJson()),
     ]);
+  }
+
+  Future<void> _importConfig(
+    Emitter<ConfigState> emit,
+    ImportConfig event,
+  ) async {
+    final export = FlushipConfigExport.fromJson(event.data);
+    var imported = export.toState();
+
+    final path = imported.appInfo.flutterProjectPath ?? '';
+    if (path.isNotEmpty) {
+      final appInfo = await _projectService.extractAppInfo(
+        flutterProjectPath: path,
+        base: imported.appInfo,
+      );
+      imported = imported.copyWith(appInfo: appInfo);
+    }
+
+    emit(imported);
+    await persistCurrentConfig();
   }
 
   Future<void> _saveConfig(Emitter<ConfigState> emit, SaveConfig event) async {

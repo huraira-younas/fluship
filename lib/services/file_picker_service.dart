@@ -21,4 +21,17 @@ class FilePickerService {
 
     return result?.files.single.path;
   }
+
+  Future<String?> saveFile({
+    List<String>? allowedExtensions,
+    String? dialogTitle,
+    String? fileName,
+  }) {
+    return FilePicker.saveFile(
+      type: allowedExtensions != null ? FileType.custom : FileType.any,
+      allowedExtensions: allowedExtensions,
+      dialogTitle: dialogTitle,
+      fileName: fileName,
+    );
+  }
 }

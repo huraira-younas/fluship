@@ -32,8 +32,7 @@ class SlackWebhook extends StatelessWidget {
           title: 'Slack Webhook',
           description:
               'Paste the Web Request URL from your Slack Workflow trigger. '
-              'When Google Drive upload completes, Fluship will POST build '
-              'metadata (version, platform, status, app, artifacts link) to this URL.',
+              'Payload: version, platform, status, app, artifacts.',
           spacing: 15,
           children: [
             AppTextField.label(

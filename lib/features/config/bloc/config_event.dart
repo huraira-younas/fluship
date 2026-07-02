@@ -56,3 +56,13 @@ class UpdateConfigs extends ConfigEvent {
     'types': configs.map((config) => config.runtimeType.toString()).toList(),
   };
 }
+
+class ImportConfig extends ConfigEvent {
+  const ImportConfig({required this.data, super.onSuccess, super.onError})
+    : super(name: 'Import_Config');
+
+  final Map<String, dynamic> data;
+
+  @override
+  Map<String, dynamic> toJson() => {'keys': data.keys.toList()};
+}
