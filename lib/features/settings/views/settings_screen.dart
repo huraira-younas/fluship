@@ -17,6 +17,7 @@ class SettingsScreen extends StatelessWidget {
         const GooglePlayConsole(),
         const IosCredentials(),
         const GoogleDrive(),
+        const SlackWebhook(),
         const ReportsRecipients(),
         ThemeSelector(spacing: spacing.md),
       ],

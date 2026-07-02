@@ -25,6 +25,8 @@ class DistributionConfig extends StatelessWidget {
       'No OAuth JSON found. Please configure Google Drive in the Settings tab.';
   static const _buildReportCredError =
       'Configure Gmail and report recipient in Settings.';
+  static const _slackCredError =
+      'No webhook URL found. Please configure Slack in the Settings tab.';
   static const _appStoreCredError =
       'No API key found. Please configure iOS credentials in the Settings tab.';
 
@@ -44,10 +46,12 @@ class DistributionConfig extends StatelessWidget {
         final report = dist.reportRecipient ?? const ReportRecipientConfig();
         final playstore = dist.playstore ?? const GooglePlayConsoleConfig();
         final drive = dist.driveConfig ?? const GoogleDriveConfig();
+        final slack = dist.slackConfig ?? const SlackConfig();
         final ios = dist.appstore ?? const IosConfig();
 
         final canBuildReport = dist.canSendBuildReport;
         final canAppStore = dist.canSendToAppStore;
+        final canSlack = dist.canSendToSlack;
         final canPlay = dist.canSendToPlayStore;
         final canDrive = dist.canSendToDrive;
         final sectionEnabled = dist.enabled;
@@ -144,6 +148,19 @@ class DistributionConfig extends StatelessWidget {
               ),
               const SizedBox(height: 10),
             ],
+            if (canDrive && drive.enabled)
+              SwitchLabel(
+                label: 'Slack Notification',
+                value: canSlack && slack.enabled,
+                disabled: !sectionEnabled || !canSlack,
+                error: canSlack ? null : _slackCredError,
+                onChange: (value) => _updateDistribution(
+                  dist.copyWith(
+                    slackConfig: slack.copyWith(enabled: value),
+                  ),
+                  bloc,
+                ),
+              ),
             SwitchLabel(
               label:
                   "Build Report → ${report.reportRecipient ?? 'Set Recipient'}",
