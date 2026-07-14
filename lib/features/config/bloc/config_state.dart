@@ -74,4 +74,26 @@ class ConfigState extends BaseBlocState {
       error: error,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'distribution': distribution.toJson(),
+    'postBuild': postBuild.toJson(),
+    'commonCmd': commonCmd.toJson(),
+    'android': android.toJson(),
+    'postGit': postGit.toJson(),
+    'appInfo': appInfo.toJson(),
+    'preGit': preGit.toJson(),
+    'ios': ios.toJson(),
+  };
+
+  factory ConfigState.fromJson(Map<String, dynamic> json) => ConfigState(
+    distribution: DistributionConfigModel.fromJson(json['distribution']),
+    postBuild: PostBuildConfigModel.fromJson(json['postBuild']),
+    commonCmd: CommonCmdModel.fromJson(json['commonCmd']),
+    android: AndroidConfigModel.fromJson(json['android']),
+    postGit: PostGitModel.fromJson(json['postGit']),
+    appInfo: AppInfoModel.fromJson(json['appInfo']),
+    preGit: PreGitModel.fromJson(json['preGit']),
+    ios: IosConfigModel.fromJson(json['ios']),
+  );
 }

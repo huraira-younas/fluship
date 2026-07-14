@@ -20,9 +20,9 @@ class ConfigBackup extends StatelessWidget {
     final content = encoder.convert(json);
 
     final path = await getIt<FilePickerService>().saveFile(
-      allowedExtensions: ['json'],
       dialogTitle: 'Export Fluship Config',
       fileName: 'fluship-config.json',
+      allowedExtensions: ['json'],
     );
 
     if (path == null) return;

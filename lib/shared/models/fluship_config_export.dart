@@ -1,4 +1,5 @@
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
+import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/shared/models/post_build_config.dart';
 import 'package:fluship/shared/models/android_config.dart';
 import 'package:fluship/shared/models/common_cmd.dart';
@@ -6,7 +7,6 @@ import 'package:fluship/shared/models/ios_config.dart';
 import 'package:fluship/shared/models/app_info.dart';
 import 'package:fluship/shared/models/post_git.dart';
 import 'package:fluship/shared/models/pre_git.dart';
-import 'package:fluship/features/config/bloc/config_bloc.dart';
 
 class FlushipConfigExport {
   const FlushipConfigExport({
