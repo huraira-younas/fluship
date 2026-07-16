@@ -75,10 +75,10 @@ class _ProjectLogo extends StatelessWidget {
     );
     final iconPath = appIconPath;
 
-    return ClipRRect(
-      borderRadius: .circular(ft.radius.input),
-      child: SizedBox.square(
-        dimension: 50,
+    return SizedBox.square(
+      dimension: 50,
+      child: ClipRRect(
+        borderRadius: .circular(ft.radius.input),
         child: iconPath == null
             ? fallback
             : Image.file(
@@ -86,7 +86,7 @@ class _ProjectLogo extends StatelessWidget {
                 errorBuilder: (_, _, _) => fallback,
                 fit: .cover,
               ),
-      ),
+      ).padAll(4),
     );
   }
 }

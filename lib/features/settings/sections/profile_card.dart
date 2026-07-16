@@ -7,6 +7,7 @@ import 'package:fluship/shared/widgets/app_cta_button.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_toast.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
+import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
@@ -15,8 +16,8 @@ class ProfileCard extends StatelessWidget {
 
   void _openForm(
     BuildContext context, {
-    required bool isAdding,
     String? previousProject,
+    required bool isAdding,
   }) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -54,6 +55,48 @@ class ProfileCard extends StatelessWidget {
     );
   }
 
+  Future<void> _deleteProfile(BuildContext context, String projectName) async {
+    final confirmed = await _confirmDeleteProfile(context, projectName);
+    if (!confirmed || !context.mounted) return;
+
+    context.read<ConfigBloc>().add(
+      DeleteProjectProfile(
+        onSuccess: (_) => AppToast.success('Project profile deleted'),
+        onError: (error) => AppToast.error(error.message),
+        projectName: projectName,
+      ),
+    );
+  }
+
+  Future<bool> _confirmDeleteProfile(
+    BuildContext context,
+    String projectName,
+  ) async {
+    final ft = context.flushipTheme;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: ft.colors.cardBg,
+        content: AppText.body(
+          'Delete "$projectName" and its saved pipeline settings?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const AppText.body('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const AppText.danger('Delete'),
+          ),
+        ],
+        title: const AppText.title('Delete project profile?'),
+      ),
+    );
+
+    return confirmed ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ConfigBloc, ConfigState>(
@@ -68,10 +111,10 @@ class ProfileCard extends StatelessWidget {
             children: [
               const SizedBox(height: 12),
               AppCtaButton(
+                text: 'Choose a Flutter project to save its pipeline settings.',
                 onTap: () => _addProfile(context, state),
-                text: "Choose a Flutter project to save its pipeline settings.",
-                title: "No project selected",
-                btnText: "Choose project",
+                title: 'No project selected',
+                btnText: 'Choose project',
                 icon: Icons.add_rounded,
                 iconSize: 60,
               ),
@@ -92,10 +135,8 @@ class ProfileCard extends StatelessWidget {
               projectName: activeProject,
               projectPath: path,
               trailing: _ProjectSwitcher(
-                appIconPath: state.appInfo.appIconPath,
-                activeProject: activeProject,
                 projectNames: state.projectNames,
-                projectPath: path,
+                activeProject: activeProject,
                 onSelected: state.loading
                     ? null
                     : (name) {
@@ -109,6 +150,13 @@ class ProfileCard extends StatelessWidget {
               mainAxisAlignment: .end,
               spacing: 12,
               children: [
+                AppButton.danger(
+                  onPressed: state.loading
+                      ? null
+                      : () => _deleteProfile(context, activeProject),
+                  leading: const Icon(Icons.delete_outline_rounded),
+                  label: 'Delete',
+                ),
                 AppButton.outline(
                   onPressed: () => _openForm(context, isAdding: false),
                   leading: const Icon(Icons.edit_outlined),
@@ -132,8 +180,6 @@ class _ProjectSwitcher extends StatelessWidget {
   const _ProjectSwitcher({
     required this.activeProject,
     required this.projectNames,
-    required this.appIconPath,
-    required this.projectPath,
     required this.onSelected,
     required this.loading,
   });
@@ -141,8 +187,6 @@ class _ProjectSwitcher extends StatelessWidget {
   final ValueChanged<String>? onSelected;
   final List<String> projectNames;
   final String activeProject;
-  final String? appIconPath;
-  final String projectPath;
   final bool loading;
 
   @override
@@ -153,11 +197,15 @@ class _ProjectSwitcher extends StatelessWidget {
       onPressed: loading || onSelected == null
           ? null
           : () async {
+              final profileAppInfo = await context
+                  .read<ConfigBloc>()
+                  .resolveProjectAppInfo();
+              if (!context.mounted) return;
+
               final selected = await ProjectSwitcherSheet.show(
-                activeProjectPath: projectPath,
+                profileAppInfo: profileAppInfo,
                 activeProject: activeProject,
                 projectNames: projectNames,
-                appIconPath: appIconPath,
                 context,
               );
               if (!context.mounted ||

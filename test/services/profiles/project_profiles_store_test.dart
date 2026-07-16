@@ -48,6 +48,28 @@ void main() {
     expect(store.projectNames, ['reelstay']);
   });
 
+  test('deletes a profile and clears it when active', () async {
+    await store.saveProfile('call_it', {'appInfo': {}});
+    await store.saveProfile('reelstay', {'appInfo': {}});
+
+    final deleted = await store.deleteProfile('reelstay');
+
+    expect(deleted, isTrue);
+    expect(store.activeProject, isNull);
+    expect(store.projectNames, ['call_it']);
+    expect(store.getProfile('reelstay'), isNull);
+  });
+
+  test('ignores deletion of a missing profile', () async {
+    await store.saveProfile('reelstay', {'appInfo': {}});
+
+    final deleted = await store.deleteProfile('missing');
+
+    expect(deleted, isFalse);
+    expect(store.activeProject, 'reelstay');
+    expect(store.projectNames, ['reelstay']);
+  });
+
   test('does not overwrite another profile while renaming', () async {
     await store.saveProfile('reelstay', {'appInfo': {}});
     await store.saveProfile('call_it', {'appInfo': {}});

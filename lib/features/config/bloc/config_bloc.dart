@@ -23,6 +23,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
   ConfigBloc(this._profilesStore) : super(ConfigState.empty()) {
     on<SyncProjectAppInfo>(handler(_syncProjectAppInfo));
 
+    on<DeleteProjectProfile>(handler(_deleteProjectProfile));
     on<SwitchProjectProfile>(handler(_switchProjectProfile));
     on<StartNewProfile>(handler(_startNewProfile));
 
@@ -35,6 +36,36 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
 
   Map<String, dynamic> exportConfig() => state.toJson();
   Future<void> persistActiveProfile() => _persist(state);
+
+  Future<Map<String, AppInfoModel>> resolveProjectAppInfo() async {
+    final entries = await Future.wait(
+      _profilesStore.projectNames.map((projectName) async {
+        final profile = _profilesStore.getProfile(projectName);
+        final rawAppInfo = profile?['appInfo'];
+        final appInfo = AppInfoModel.fromJson(
+          rawAppInfo is Map ? Map<String, dynamic>.from(rawAppInfo) : null,
+        );
+        final projectPath = appInfo.flutterProjectPath;
+        if (projectPath == null || projectPath.isEmpty) {
+          return MapEntry(projectName, appInfo);
+        }
+
+        try {
+          final appIconPath = await _projectService.resolveAppIconPath(
+            projectPath,
+          );
+          return MapEntry(
+            projectName,
+            appInfo.copyWith(appIconPath: appIconPath),
+          );
+        } on FlutterProjectException {
+          return MapEntry(projectName, appInfo);
+        }
+      }),
+    );
+
+    return Map.fromEntries(entries);
+  }
 
   ConfigState _applyConfig(ConfigState current, BaseConfig config) {
     return switch (config) {
@@ -109,6 +140,47 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     );
   }
 
+  Future<bool> _deleteProjectProfile(
+    Emitter<ConfigState> emit,
+    DeleteProjectProfile event,
+  ) async {
+    final storedProjects = _profilesStore.projectNames;
+    if (!storedProjects.contains(event.projectName)) {
+      throw StateError('Profile not found: ${event.projectName}');
+    }
+
+    final deletingActive = state.activeProject == event.projectName;
+    if (!deletingActive) {
+      await _profilesStore.deleteProfile(event.projectName);
+      emit(state.copyWith(projectNames: _profilesStore.projectNames));
+      return true;
+    }
+
+    if (storedProjects.length == 1) {
+      await _profilesStore.deleteProfile(event.projectName);
+      emit(ConfigState.empty());
+      return true;
+    }
+
+    final fallbackProject = storedProjects
+        .where((projectName) => projectName != event.projectName)
+        .first;
+
+    final fallbackProfile = _profilesStore.getProfile(fallbackProject);
+    if (fallbackProfile == null) {
+      throw StateError('Profile not found: $fallbackProject');
+    }
+
+    emit(state.copyWith(loading: true));
+    final loaded = await _loadProjectProfile(fallbackProject, fallbackProfile);
+    await _profilesStore.deleteProfile(event.projectName);
+
+    final updated = loaded.copyWith(projectNames: _profilesStore.projectNames);
+    emit(updated);
+    await _persist(updated);
+    return true;
+  }
+
   Future<void> _switchProjectProfile(
     Emitter<ConfigState> emit,
     SwitchProjectProfile event,
@@ -148,7 +220,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
         flutterProjectPath: event.flutterProjectPath,
         base: savedState.appInfo,
       );
-      
+
       target = savedState.copyWith(appInfo: refreshedAppInfo);
     }
 

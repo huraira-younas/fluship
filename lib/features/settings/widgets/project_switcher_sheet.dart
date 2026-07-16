@@ -2,41 +2,38 @@ import 'package:fluship/features/settings/widgets/project_profile_tile.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
+import 'package:fluship/shared/models/app_info.dart';
 import 'package:flutter/material.dart';
 
 class ProjectSwitcherSheet extends StatelessWidget {
   const ProjectSwitcherSheet({
-    required this.activeProjectPath,
+    required this.profileAppInfo,
     required this.activeProject,
     required this.projectNames,
-    required this.appIconPath,
     super.key,
   });
 
+  final Map<String, AppInfoModel> profileAppInfo;
   final List<String> projectNames;
-  final String activeProjectPath;
-  final String? appIconPath;
   final String activeProject;
 
   static Future<String?> show(
     BuildContext context, {
-    required String activeProjectPath,
-    required List<String> projectNames,
+    required Map<String, AppInfoModel> profileAppInfo,
     required String activeProject,
-    required String? appIconPath,
+    required List<String> projectNames,
   }) {
     return showModalBottomSheet<String>(
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       context: context,
       builder: (_) => ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
         child: ProjectSwitcherSheet(
-          activeProjectPath: activeProjectPath,
+          profileAppInfo: profileAppInfo,
           activeProject: activeProject,
           projectNames: projectNames,
-          appIconPath: appIconPath,
         ),
       ).align(align: .bottomCenter),
     );
@@ -84,16 +81,14 @@ class ProjectSwitcherSheet extends StatelessWidget {
               shrinkWrap: true,
               itemBuilder: (_, index) {
                 final projectName = projectNames[index];
+                final appInfo = profileAppInfo[projectName];
                 final selected = projectName == activeProject;
 
                 return ProjectProfileTile(
-                  projectPath: selected ? activeProjectPath : null,
-                  appIconPath: selected ? appIconPath : null,
-                  projectName: projectName,
-                  onTap: selected
-                      ? null
-                      : () => Navigator.of(context).pop(projectName),
                   contentPadding: .symmetric(horizontal: ft.spacing.md),
+                  projectPath: appInfo?.flutterProjectPath,
+                  appIconPath: appInfo?.appIconPath,
+                  projectName: projectName,
                   selected: selected,
                   trailing: selected
                       ? Icon(
@@ -106,6 +101,9 @@ class ProjectSwitcherSheet extends StatelessWidget {
                           color: ft.colors.textDim,
                           size: 20,
                         ),
+                  onTap: selected
+                      ? null
+                      : () => Navigator.of(context).pop(projectName),
                 );
               },
             ).flexible(),

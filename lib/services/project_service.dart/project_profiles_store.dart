@@ -32,6 +32,16 @@ class ProjectProfilesStore {
     await setActiveProject(projectName);
   }
 
+  Future<bool> deleteProfile(String projectName) async {
+    final profiles = _profiles;
+    if (!profiles.containsKey(projectName)) return false;
+
+    profiles.remove(projectName);
+    await _sharedPrefs.setObject(.projectProfiles, profiles);
+    if (activeProject == projectName) await clearActiveProject();
+    return true;
+  }
+
   Future<void> renameProfile({
     required String newProjectName,
     required String oldProjectName,

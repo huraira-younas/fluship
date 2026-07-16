@@ -28,6 +28,19 @@ class StartNewProfile extends ConfigEvent {
   Map<String, dynamic> toJson() => {};
 }
 
+class DeleteProjectProfile extends ConfigEvent {
+  const DeleteProjectProfile({
+    required this.projectName,
+    super.onSuccess,
+    super.onError,
+  }) : super(name: 'Delete_Project_Profile');
+
+  final String projectName;
+
+  @override
+  Map<String, dynamic> toJson() => {'project_name': projectName};
+}
+
 class SwitchProjectProfile extends ConfigEvent {
   const SwitchProjectProfile({
     required this.projectName,

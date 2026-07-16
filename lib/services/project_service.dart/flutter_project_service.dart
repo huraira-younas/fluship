@@ -52,7 +52,7 @@ class FlutterProjectService {
     final pubspec = await readPubspec(flutterProjectPath);
 
     final appName = await _extractAppName(flutterProjectPath, pubspec);
-    final appIconPath = await _resolveAppIconPath(flutterProjectPath);
+    final appIconPath = await resolveAppIconPath(flutterProjectPath);
 
     final current = base ?? const AppInfoModel();
     return AppInfoModel(
@@ -197,7 +197,7 @@ class FlutterProjectService {
     return null;
   }
 
-  Future<String?> _resolveAppIconPath(String projectPath) async {
+  Future<String?> resolveAppIconPath(String projectPath) async {
     final candidates = [
       p.join(projectPath, 'assets', 'icons', 'app_icon.png'),
       p.join(projectPath, 'assets', 'icon', 'app_icon.png'),
