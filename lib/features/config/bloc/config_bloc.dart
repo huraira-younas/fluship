@@ -24,8 +24,8 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
 
   ConfigBloc() : super(ConfigState.empty()) {
     on<SyncProjectAppInfo>(handler(_syncProjectAppInfo));
-    on<ImportConfig>(handler(_importConfig));
     on<UpdateConfigs>(handler(_updateConfigs));
+    on<ImportConfig>(handler(_importConfig));
     on<UpdateConfig>(handler(_updateConfig));
     on<LoadConfig>(handler(_loadConfig));
     on<SaveConfig>(handler(_saveConfig));
