@@ -173,9 +173,10 @@ void main() {
       final config = FakePipelineConfigSource(_configWithSteps());
       final console = FakePipelineConsolePort();
       final bloc = PipelineBloc(
-        executor: const _StubPipelineExecutor(),
+        FakePipelineLogWriter(),
         configSource: config,
         consolePort: console,
+        executor: const _StubPipelineExecutor(),
       );
 
       bloc.add(const RunPipeline());
@@ -213,7 +214,11 @@ void main() {
     test('fails when no project path is set', () async {
       final config = FakePipelineConfigSource(ConfigState.empty());
       final console = FakePipelineConsolePort();
-      final bloc = PipelineBloc(configSource: config, consolePort: console);
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+      );
 
       bloc.add(const RunPipeline());
       await _pumpBloc(bloc);
@@ -235,7 +240,11 @@ void main() {
         ),
       );
       final console = FakePipelineConsolePort();
-      final bloc = PipelineBloc(configSource: config, consolePort: console);
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+      );
 
       bloc.add(const RunPipeline());
       await _pumpBloc(bloc);
@@ -254,9 +263,10 @@ void main() {
         failCommand: 'flutter clean',
       );
       final bloc = PipelineBloc(
-        executor: const _StubPipelineExecutor(),
+        FakePipelineLogWriter(),
         configSource: config,
         consolePort: console,
+        executor: const _StubPipelineExecutor(),
       );
 
       bloc.add(const RunPipeline());
@@ -287,7 +297,11 @@ void main() {
     test('cancel marks pipeline as cancelled', () async {
       final config = FakePipelineConfigSource(_configWithSteps());
       final console = FakePipelineConsolePort(delayStep: true);
-      final bloc = PipelineBloc(configSource: config, consolePort: console);
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+      );
 
       bloc.add(const RunPipeline());
       await _pumpBloc(bloc);
@@ -317,7 +331,11 @@ void main() {
         ),
       );
       final console = FakePipelineConsolePort();
-      final bloc = PipelineBloc(configSource: config, consolePort: console);
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+      );
 
       bloc.add(const RunPipeline());
       await _pumpBloc(bloc);
@@ -346,9 +364,10 @@ void main() {
       );
       final console = FakePipelineConsolePort();
       final bloc = PipelineBloc(
-        executor: const _StubPipelineExecutor(),
+        FakePipelineLogWriter(),
         configSource: config,
         consolePort: console,
+        executor: const _StubPipelineExecutor(),
       );
 
       bloc.add(const RunPipeline());
@@ -381,10 +400,10 @@ void main() {
       final console = FakePipelineConsolePort();
       final logWriter = FakePipelineLogWriter();
       final bloc = PipelineBloc(
-        executor: const _StubPipelineExecutor(),
+        logWriter,
         configSource: config,
         consolePort: console,
-        logWriter: logWriter,
+        executor: const _StubPipelineExecutor(),
       );
 
       bloc.add(const RunPipeline());

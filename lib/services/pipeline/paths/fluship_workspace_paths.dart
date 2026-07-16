@@ -5,10 +5,7 @@ import 'package:path/path.dart' as p;
 import '../utils/pipeline_utils.dart';
 
 class FlushipWorkspacePaths {
-  FlushipWorkspacePaths({
-    ProjectProfilesStore? profilesStore,
-    this.overrideRoot,
-  }) : _profilesStore = profilesStore ?? ProjectProfilesStore();
+  FlushipWorkspacePaths(this._profilesStore, {this.overrideRoot});
 
   final ProjectProfilesStore _profilesStore;
   final String? overrideRoot;

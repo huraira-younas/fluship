@@ -14,6 +14,7 @@ import 'package:fluship/services/distribution/distribution.dart';
 import 'package:fluship/features/console/bloc/console_bloc.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/services/file_picker_service.dart';
+import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:get_it/get_it.dart';
 
 final getIt = GetIt.instance;
@@ -22,10 +23,15 @@ class AppLocator {
   static void initialize() {
     getIt.registerSingleton(const FilePickerService());
     getIt.registerSingleton(ProjectProfilesStore());
+    getIt.registerSingleton(
+      FlushipWorkspacePaths(getIt<ProjectProfilesStore>()),
+    );
 
     getIt.registerSingleton(ConfigBloc(getIt<ProjectProfilesStore>()));
 
-    getIt.registerLazySingleton(FileManagerRepository.new);
+    getIt.registerLazySingleton(
+      () => FileManagerRepository(getIt<FlushipWorkspacePaths>()),
+    );
 
     getIt.registerFactory(
       () => FileManagerBloc(repository: getIt<FileManagerRepository>()),
@@ -47,6 +53,7 @@ class AppLocator {
       PipelineBloc(
         configSource: ConfigBlocPipelineSource(getIt<ConfigBloc>()),
         consolePort: ConsoleBlocPipelinePort(getIt<ConsoleBloc>()),
+        FilePipelineLogWriter(getIt<FlushipWorkspacePaths>()),
         distributions: DistributionModule.createHandlerMap(),
       ),
     );

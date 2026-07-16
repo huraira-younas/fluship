@@ -21,7 +21,7 @@ class ConfigState extends BaseBlocState {
     required this.appInfo,
     required this.preGit,
     required this.ios,
-    
+
     this.projectNames = const [],
     super.loading = false,
     this.activeProject,
@@ -88,7 +88,9 @@ class ConfigState extends BaseBlocState {
   }
 
   Map<String, dynamic> toJson() => {
+    'activeProject': activeProject,
     'distribution': distribution.toJson(),
+    'projectNames': projectNames,
     'postBuild': postBuild.toJson(),
     'commonCmd': commonCmd.toJson(),
     'android': android.toJson(),
@@ -99,10 +101,12 @@ class ConfigState extends BaseBlocState {
   };
 
   factory ConfigState.fromJson(Map<String, dynamic> json) => ConfigState(
+    projectNames: List<String>.from(json['projectNames'] as List? ?? const []),
     distribution: DistributionConfigModel.fromJson(json['distribution']),
     postBuild: PostBuildConfigModel.fromJson(json['postBuild']),
     commonCmd: CommonCmdModel.fromJson(json['commonCmd']),
     android: AndroidConfigModel.fromJson(json['android']),
+    activeProject: json['activeProject'] as String?,
     postGit: PostGitModel.fromJson(json['postGit']),
     appInfo: AppInfoModel.fromJson(json['appInfo']),
     preGit: PreGitModel.fromJson(json['preGit']),

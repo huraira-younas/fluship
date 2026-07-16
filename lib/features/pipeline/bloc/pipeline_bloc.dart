@@ -13,14 +13,13 @@ part 'pipeline_event.dart';
 part 'pipeline_state.dart';
 
 class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
-  PipelineBloc({
+  PipelineBloc(
+    this._logWriter, {
     Map<DistributionStepKind, DistributionHandler>? distributions,
-    PipelineLogWriter? logWriter,
     required this._configSource,
     required this._consolePort,
     PipelineExecutor? executor,
   }) : _distributions = distributions ?? DistributionModule.createHandlerMap(),
-       _logWriter = logWriter ?? FilePipelineLogWriter(),
        _executor = executor ?? const PipelineExecutor(),
        super(PipelineState.idle()) {
     on<DismissPipelinePanel>(handler(_onDismissPipelinePanel));

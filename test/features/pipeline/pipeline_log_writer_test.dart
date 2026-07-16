@@ -1,6 +1,7 @@
 import 'dart:io' show Directory, File, Platform;
 
 import 'package:fluship/services/pipeline/pipeline.dart';
+import 'package:fluship/services/project_service.dart/project_profiles_store.dart';
 import 'package:fluship/features/console/models/console_line.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -65,7 +66,10 @@ void main() {
       'writes logs under fluship outputs/project/version/build folder',
       () async {
         final writer = FilePipelineLogWriter(
-          workspacePaths: FlushipWorkspacePaths(overrideRoot: tempDir.path),
+          FlushipWorkspacePaths(
+            ProjectProfilesStore(),
+            overrideRoot: tempDir.path,
+          ),
         );
         final savedPath = await writer.save(
           projectName: 'ReelStay',
