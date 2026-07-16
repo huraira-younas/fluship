@@ -5,15 +5,17 @@ final class AppInfoModel extends BaseConfig {
   const AppInfoModel({
     this.flushipWorkspacePath,
     this.flutterProjectPath,
+    super.enabled = true,
+    this.appIconPath,
     this.buildNumber,
     this.projectName,
-    super.enabled = true,
     this.version,
     this.appName,
   });
 
   final String? flushipWorkspacePath;
   final String? flutterProjectPath;
+  final String? appIconPath;
   final String? projectName;
   final String? buildNumber;
   final String? version;
@@ -23,6 +25,7 @@ final class AppInfoModel extends BaseConfig {
   AppInfoModel copyWith({
     String? flushipWorkspacePath,
     String? flutterProjectPath,
+    String? appIconPath,
     String? buildNumber,
     String? projectName,
     bool? enabled,
@@ -31,6 +34,7 @@ final class AppInfoModel extends BaseConfig {
   }) => AppInfoModel(
     flushipWorkspacePath: flushipWorkspacePath ?? this.flushipWorkspacePath,
     flutterProjectPath: flutterProjectPath ?? this.flutterProjectPath,
+    appIconPath: appIconPath ?? this.appIconPath,
     buildNumber: buildNumber ?? this.buildNumber,
     projectName: projectName ?? this.projectName,
     enabled: enabled ?? this.enabled,
@@ -45,10 +49,11 @@ final class AppInfoModel extends BaseConfig {
     return AppInfoModel(
       flushipWorkspacePath: data.parse<String?>('fluship_workspace_path'),
       flutterProjectPath: data.parse<String?>('flutter_project_path'),
+      enabled: data.parse<bool>('enabled', defaultValue: true),
+      appIconPath: data.parse<String?>('app_icon_path'),
       buildNumber: data.parse<String?>('build_number'),
       projectName: data.parse<String?>('project_name'),
       appName: data.parse<String?>('app_name'),
-      enabled: data.parse<bool>('enabled', defaultValue: true),
       version: data.parse<String?>('version'),
     );
   }
@@ -57,6 +62,7 @@ final class AppInfoModel extends BaseConfig {
   Map<String, dynamic> toJson() => {
     'fluship_workspace_path': flushipWorkspacePath,
     'flutter_project_path': flutterProjectPath,
+    'app_icon_path': appIconPath,
     'project_name': projectName,
     'build_number': buildNumber,
     'app_name': appName,
@@ -68,6 +74,7 @@ final class AppInfoModel extends BaseConfig {
   List<Object?> get props => [
     flushipWorkspacePath,
     flutterProjectPath,
+    appIconPath,
     projectName,
     buildNumber,
     appName,

@@ -3,6 +3,7 @@ import 'dart:io' show Directory, File;
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
 import 'package:fluship/services/project_service.dart/pubspec_parser.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 void main() {
   const service = FlutterProjectService();
@@ -126,5 +127,38 @@ environment:
       ),
       throwsA(isA<FlutterProjectException>()),
     );
+  });
+
+  test('extractAppInfo resolves the configured launcher icon', () async {
+    final icon = File('${tempDir.path}/assets/branding/logo.png');
+    await icon.parent.create(recursive: true);
+    await icon.writeAsBytes(const [0, 1, 2]);
+    await File('${tempDir.path}/pubspec.yaml').writeAsString('''
+name: test_app
+version: 1.0.0+1
+flutter_launcher_icons:
+  image_path: assets/branding/logo.png
+''');
+
+    final appInfo = await service.extractAppInfo(
+      flutterProjectPath: tempDir.path,
+    );
+
+    expect(appInfo.appIconPath, p.normalize(icon.path));
+  });
+
+  test('extractAppInfo ignores a missing launcher icon', () async {
+    await File('${tempDir.path}/pubspec.yaml').writeAsString('''
+name: test_app
+version: 1.0.0+1
+flutter_launcher_icons:
+  image_path: assets/missing.png
+''');
+
+    final appInfo = await service.extractAppInfo(
+      flutterProjectPath: tempDir.path,
+    );
+
+    expect(appInfo.appIconPath, isNull);
   });
 }

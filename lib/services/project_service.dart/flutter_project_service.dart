@@ -50,13 +50,18 @@ class FlutterProjectService {
     AppInfoModel? base,
   }) async {
     final pubspec = await readPubspec(flutterProjectPath);
-    final current = base ?? const AppInfoModel();
-    final appName = await _extractAppName(flutterProjectPath, pubspec);
 
-    return current.copyWith(
+    final appName = await _extractAppName(flutterProjectPath, pubspec);
+    final appIconPath = await _resolveAppIconPath(flutterProjectPath);
+
+    final current = base ?? const AppInfoModel();
+    return AppInfoModel(
+      flushipWorkspacePath: current.flushipWorkspacePath,
       flutterProjectPath: flutterProjectPath,
       buildNumber: pubspec.buildNumber,
       projectName: pubspec.projectName,
+      appIconPath: appIconPath,
+      enabled: current.enabled,
       version: pubspec.version,
       appName: appName,
     );
@@ -189,6 +194,39 @@ class FlutterProjectService {
         }
       }
     } catch (_) {}
+    return null;
+  }
+
+  Future<String?> _resolveAppIconPath(String projectPath) async {
+    final candidates = [
+      p.join(projectPath, 'assets', 'icons', 'app_icon.png'),
+      p.join(projectPath, 'assets', 'icon', 'app_icon.png'),
+      p.join(projectPath, 'assets', 'app_logo.png'),
+      p.join(
+        projectPath,
+        'android',
+        'app',
+        'src',
+        'main',
+        'res',
+        'mipmap-xxxhdpi',
+        'ic_launcher.png',
+      ),
+      p.join(
+        projectPath,
+        'ios',
+        'Runner',
+        'Assets.xcassets',
+        'AppIcon.appiconset',
+        'Icon-App-1024x1024@1x.png',
+      ),
+    ];
+
+    for (final candidate in candidates) {
+      final normalized = p.normalize(candidate);
+      if (await File(normalized).exists()) return normalized;
+    }
+
     return null;
   }
 

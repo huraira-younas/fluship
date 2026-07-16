@@ -1,10 +1,12 @@
+import 'package:fluship/features/settings/widgets/project_switcher_sheet.dart';
+import 'package:fluship/features/settings/widgets/project_profile_tile.dart';
 import 'package:fluship/features/settings/views/profile_form_screen.dart';
-import 'package:fluship/shared/extensions/widget_extensions.dart';
+import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
+import 'package:fluship/shared/widgets/app_cta_button.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_toast.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
-import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
@@ -45,9 +47,9 @@ class ProfileCard extends StatelessWidget {
   void _switchProfile(BuildContext context, String projectName) {
     context.read<ConfigBloc>().add(
       SwitchProjectProfile(
+        projectName: projectName,
         onSuccess: (_) => AppToast.success('Active profile changed'),
         onError: (error) => AppToast.error(error.message),
-        projectName: projectName,
       ),
     );
   }
@@ -60,57 +62,63 @@ class ProfileCard extends StatelessWidget {
         if (activeProject == null) {
           return AppCard(
             description:
-                'Add a project profile by selecting its Flutter folder or importing a config JSON.',
+                'Connect a Flutter project to save its pipeline settings.',
             spacing: 12,
-            title: 'Project Profile',
+            title: 'Workspace',
             children: [
-              AppButton.primary(
-                onPressed: () => _addProfile(context, state),
-                leading: const Icon(Icons.add),
-                label: 'Add Profile',
+              const SizedBox(height: 12),
+              AppCtaButton(
+                onTap: () => _addProfile(context, state),
+                text: "Choose a Flutter project to save its pipeline settings.",
+                title: "No project selected",
+                btnText: "Choose project",
+                icon: Icons.add_rounded,
+                iconSize: 60,
               ),
+              const SizedBox(height: 12),
             ],
           );
         }
 
-        final appInfo = state.appInfo;
+        final path = state.appInfo.flutterProjectPath ?? 'Not selected';
+
         return AppCard(
-          description: 'Active project profile',
+          description: 'Project-specific pipeline settings.',
+          title: 'Workspace',
           spacing: 12,
-          title: appInfo.appName ?? activeProject,
           children: [
-            _ProfileDetail(value: activeProject, label: 'Project key'),
-            _ProfileDetail(
-              value: appInfo.flutterProjectPath ?? 'Not selected',
-              label: 'Flutter project',
-            ),
-            DropdownButtonFormField<String>(
-              initialValue: activeProject,
-              decoration: const InputDecoration(labelText: 'Switch project'),
-              onChanged: state.loading
-                  ? null
-                  : (name) {
-                      if (name == null || name == activeProject) return;
-                      _switchProfile(context, name);
-                    },
-              items: [
-                for (final name in state.projectNames)
-                  DropdownMenuItem(value: name, child: Text(name)),
-              ],
+            ProjectProfileTile(
+              appIconPath: state.appInfo.appIconPath,
+              projectName: activeProject,
+              projectPath: path,
+              trailing: _ProjectSwitcher(
+                appIconPath: state.appInfo.appIconPath,
+                activeProject: activeProject,
+                projectNames: state.projectNames,
+                projectPath: path,
+                onSelected: state.loading
+                    ? null
+                    : (name) {
+                        if (name == activeProject) return;
+                        _switchProfile(context, name);
+                      },
+                loading: state.loading,
+              ),
             ),
             Row(
+              mainAxisAlignment: .end,
               spacing: 12,
               children: [
                 AppButton.outline(
                   onPressed: () => _openForm(context, isAdding: false),
-                  leading: const Icon(Icons.edit),
-                  label: 'Edit Profile',
-                ).expanded(),
+                  leading: const Icon(Icons.edit_outlined),
+                  label: 'Edit',
+                ),
                 AppButton.primary(
                   onPressed: () => _addProfile(context, state),
-                  leading: const Icon(Icons.add),
-                  label: 'Add Profile',
-                ).expanded(),
+                  leading: const Icon(Icons.add_rounded),
+                  label: 'New project',
+                ),
               ],
             ),
           ],
@@ -120,20 +128,56 @@ class ProfileCard extends StatelessWidget {
   }
 }
 
-class _ProfileDetail extends StatelessWidget {
-  const _ProfileDetail({required this.value, required this.label});
+class _ProjectSwitcher extends StatelessWidget {
+  const _ProjectSwitcher({
+    required this.activeProject,
+    required this.projectNames,
+    required this.appIconPath,
+    required this.projectPath,
+    required this.onSelected,
+    required this.loading,
+  });
 
-  final String value;
-  final String label;
+  final ValueChanged<String>? onSelected;
+  final List<String> projectNames;
+  final String activeProject;
+  final String? appIconPath;
+  final String projectPath;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: .start,
-      children: [
-        AppText.label('$label: '),
-        AppText.body(value, selectable: true).expanded(),
-      ],
+    final ft = context.flushipTheme;
+
+    return AppButton.icon(
+      onPressed: loading || onSelected == null
+          ? null
+          : () async {
+              final selected = await ProjectSwitcherSheet.show(
+                activeProjectPath: projectPath,
+                activeProject: activeProject,
+                projectNames: projectNames,
+                appIconPath: appIconPath,
+                context,
+              );
+              if (!context.mounted ||
+                  selected == null ||
+                  selected == activeProject) {
+                return;
+              }
+              onSelected?.call(selected);
+            },
+      tooltip: 'Switch project',
+      leading: loading
+          ? SizedBox.square(
+              dimension: 18,
+              child: CircularProgressIndicator(
+                color: ft.colors.accent,
+                strokeWidth: 2,
+              ),
+            )
+          : Icon(Icons.swap_horiz_rounded, color: ft.colors.textDim, size: 22),
+      size: .sm,
     );
   }
 }
