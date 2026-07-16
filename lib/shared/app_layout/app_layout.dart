@@ -8,6 +8,7 @@ import 'package:fluship/features/console/views/console_screen.dart';
 import 'package:fluship/core/responsive/responsive_extension.dart';
 import 'package:fluship/features/config/views/config_screen.dart';
 import 'package:fluship/shared/app_layout/navigator_cubit.dart';
+import 'package:fluship/shared/app_layout/developer_card.dart';
 import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
@@ -106,7 +107,7 @@ class _LayoutScreenState extends State<LayoutScreen> {
             spacing: spacing,
           ).padOnly(l: hPad, r: hPad),
           _buildTabBody(state: state, hPad: hPad).expanded(),
-          const AppText.accent("Made with ❤️ by Senpai").center(),
+          const DeveloperCard().padSym(h: hPad),
         ],
       ).padOnly(t: topPad, b: spacing.lg);
     }
@@ -135,9 +136,11 @@ class _LayoutScreenState extends State<LayoutScreen> {
                       sidePanel: true,
                     ),
                   ).expanded(),
-                  const AppText.accent(
-                    "Made with ❤️ by Senpai",
-                  ).padOnly(b: spacing.sm).center(),
+                  const DeveloperCard().padOnly(
+                    l: spacing.sm,
+                    r: spacing.sm,
+                    b: spacing.sm,
+                  ),
                 ],
               ),
             ).expanded(flex: LayoutConstraints.sidePanelFlex),
