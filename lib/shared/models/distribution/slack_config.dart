@@ -4,17 +4,11 @@ class SlackConfig extends Equatable {
   final String? webhookUrl;
   final bool enabled;
 
-  const SlackConfig({
-    this.enabled = false,
-    this.webhookUrl,
-  });
+  const SlackConfig({this.enabled = false, this.webhookUrl});
 
   bool get canSend => hasCreds(webhookUrl);
 
-  SlackConfig copyWith({
-    String? webhookUrl,
-    bool? enabled,
-  }) => SlackConfig(
+  SlackConfig copyWith({String? webhookUrl, bool? enabled}) => SlackConfig(
     webhookUrl: webhookUrl ?? this.webhookUrl,
     enabled: enabled ?? this.enabled,
   );

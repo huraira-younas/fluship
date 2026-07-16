@@ -20,7 +20,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     required this._consolePort,
     PipelineExecutor? executor,
   }) : _distributions = distributions ?? DistributionModule.createHandlerMap(),
-       _logWriter = logWriter ?? const FilePipelineLogWriter(),
+       _logWriter = logWriter ?? FilePipelineLogWriter(),
        _executor = executor ?? const PipelineExecutor(),
        super(PipelineState.idle()) {
     on<DismissPipelinePanel>(handler(_onDismissPipelinePanel));
@@ -52,7 +52,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
     _cancelRequested = false;
 
-    await _configSource.persistCurrentConfig();
+    await _configSource.persistActiveProfile();
 
     final configState = _configSource.state;
     final projectRoot = configState.projectRoot.trim();

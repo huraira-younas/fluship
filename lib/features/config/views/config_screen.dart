@@ -39,10 +39,10 @@ class ConfigScreen extends StatelessWidget {
         if (fp == null || fp.isEmpty) {
           return AppCtaButton(
             onTap: () => context.read<NavigatorCubit>().navigate(.settings),
-            text: "No Flutter project path found",
-            btnText: "Select Project",
+            text: "Add a project profile to configure and run pipelines",
+            title: "No Active Profile",
+            btnText: "Open Settings",
             icon: Icons.folder,
-            title: "Error",
           ).padOnly(t: pad);
         }
 

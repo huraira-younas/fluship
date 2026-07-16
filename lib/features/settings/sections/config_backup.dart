@@ -5,9 +5,9 @@ import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_toast.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
+import 'dart:convert' show JsonEncoder, jsonDecode;
 import 'package:fluship/di/locator.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert' show JsonEncoder, jsonDecode;
 import 'dart:io' show File;
 
 class ConfigBackup extends StatelessWidget {
@@ -34,8 +34,8 @@ class ConfigBackup extends StatelessWidget {
 
   Future<void> _import(BuildContext context) async {
     final path = await getIt<FilePickerService>().pickFile(
-      allowedExtensions: ['json'],
       dialogTitle: 'Import Fluship Config',
+      allowedExtensions: ['json'],
     );
 
     if (path == null) return;
@@ -91,7 +91,8 @@ class ConfigBackup extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       title: 'Config Backup',
-      description: 'Export your pipeline config as JSON or import a previously saved one.',
+      description:
+          'Export your pipeline config as JSON or import a previously saved one.',
       spacing: 15,
       children: [
         Row(

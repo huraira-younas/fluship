@@ -4,7 +4,9 @@ class ConfigState extends BaseBlocState {
   final DistributionConfigModel distribution;
   final PostBuildConfigModel postBuild;
   final AndroidConfigModel android;
+  final List<String> projectNames;
   final CommonCmdModel commonCmd;
+  final String? activeProject;
   final PostGitModel postGit;
   final AppInfoModel appInfo;
   final IosConfigModel ios;
@@ -14,12 +16,15 @@ class ConfigState extends BaseBlocState {
     required this.distribution,
     required this.commonCmd,
     required this.postBuild,
-    super.loading = false,
     required this.android,
     required this.postGit,
     required this.appInfo,
     required this.preGit,
     required this.ios,
+    
+    this.projectNames = const [],
+    super.loading = false,
+    this.activeProject,
     super.error,
   });
 
@@ -31,11 +36,14 @@ class ConfigState extends BaseBlocState {
     postGit: const PostGitModel(),
     appInfo: const AppInfoModel(),
     preGit: const PreGitModel(),
+    projectNames: const [],
     ios: IosConfigModel(),
   );
 
   @override
   List<Object?> get props => [
+    activeProject,
+    projectNames,
     distribution,
     postBuild,
     commonCmd,
@@ -53,22 +61,26 @@ class ConfigState extends BaseBlocState {
     DistributionConfigModel? distribution,
     PostBuildConfigModel? postBuild,
     AndroidConfigModel? android,
+    List<String>? projectNames,
     CommonCmdModel? commonCmd,
+    String? activeProject,
     PostGitModel? postGit,
     AppInfoModel? appInfo,
-    PreGitModel? preGit,
     IosConfigModel? ios,
+    PreGitModel? preGit,
     CustomState? error,
     bool? loading,
   }) {
     return ConfigState(
+      activeProject: activeProject ?? this.activeProject,
       distribution: distribution ?? this.distribution,
+      projectNames: projectNames ?? this.projectNames,
       postBuild: postBuild ?? this.postBuild,
       commonCmd: commonCmd ?? this.commonCmd,
       android: android ?? this.android,
-      loading: loading ?? this.loading,
       postGit: postGit ?? this.postGit,
       appInfo: appInfo ?? this.appInfo,
+      loading: loading ?? this.loading,
       preGit: preGit ?? this.preGit,
       ios: ios ?? this.ios,
       error: error,

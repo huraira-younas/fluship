@@ -5,14 +5,16 @@ final class AppInfoModel extends BaseConfig {
   const AppInfoModel({
     this.flushipWorkspacePath,
     this.flutterProjectPath,
-    super.enabled = true,
     this.buildNumber,
+    this.projectName,
+    super.enabled = true,
     this.version,
     this.appName,
   });
 
   final String? flushipWorkspacePath;
   final String? flutterProjectPath;
+  final String? projectName;
   final String? buildNumber;
   final String? version;
   final String? appName;
@@ -22,13 +24,15 @@ final class AppInfoModel extends BaseConfig {
     String? flushipWorkspacePath,
     String? flutterProjectPath,
     String? buildNumber,
+    String? projectName,
+    bool? enabled,
     String? version,
     String? appName,
-    bool? enabled,
   }) => AppInfoModel(
     flushipWorkspacePath: flushipWorkspacePath ?? this.flushipWorkspacePath,
     flutterProjectPath: flutterProjectPath ?? this.flutterProjectPath,
     buildNumber: buildNumber ?? this.buildNumber,
+    projectName: projectName ?? this.projectName,
     enabled: enabled ?? this.enabled,
     version: version ?? this.version,
     appName: appName ?? this.appName,
@@ -41,9 +45,10 @@ final class AppInfoModel extends BaseConfig {
     return AppInfoModel(
       flushipWorkspacePath: data.parse<String?>('fluship_workspace_path'),
       flutterProjectPath: data.parse<String?>('flutter_project_path'),
-      enabled: data.parse<bool>('enabled', defaultValue: true),
       buildNumber: data.parse<String?>('build_number'),
+      projectName: data.parse<String?>('project_name'),
       appName: data.parse<String?>('app_name'),
+      enabled: data.parse<bool>('enabled', defaultValue: true),
       version: data.parse<String?>('version'),
     );
   }
@@ -52,6 +57,7 @@ final class AppInfoModel extends BaseConfig {
   Map<String, dynamic> toJson() => {
     'fluship_workspace_path': flushipWorkspacePath,
     'flutter_project_path': flutterProjectPath,
+    'project_name': projectName,
     'build_number': buildNumber,
     'app_name': appName,
     'enabled': enabled,
@@ -62,6 +68,7 @@ final class AppInfoModel extends BaseConfig {
   List<Object?> get props => [
     flushipWorkspacePath,
     flutterProjectPath,
+    projectName,
     buildNumber,
     appName,
     enabled,

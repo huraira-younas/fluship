@@ -20,6 +20,27 @@ class SaveConfig extends ConfigEvent {
   Map<String, dynamic> toJson() => {};
 }
 
+class StartNewProfile extends ConfigEvent {
+  const StartNewProfile({super.onError, super.onSuccess})
+    : super(name: 'Start_New_Profile');
+
+  @override
+  Map<String, dynamic> toJson() => {};
+}
+
+class SwitchProjectProfile extends ConfigEvent {
+  const SwitchProjectProfile({
+    required this.projectName,
+    super.onSuccess,
+    super.onError,
+  }) : super(name: 'Switch_Project_Profile');
+
+  final String projectName;
+
+  @override
+  Map<String, dynamic> toJson() => {'project_name': projectName};
+}
+
 class SyncProjectAppInfo extends ConfigEvent {
   const SyncProjectAppInfo({
     required this.flutterProjectPath,

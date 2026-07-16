@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('FlushipWorkspacePaths.resolveRoot', () {
     test('uses overrideRoot when provided', () async {
-      final paths = const FlushipWorkspacePaths(overrideRoot: '/tmp/fluship');
+      final paths = FlushipWorkspacePaths(overrideRoot: '/tmp/fluship');
 
       expect(await paths.resolveRoot(), '/tmp/fluship');
     });

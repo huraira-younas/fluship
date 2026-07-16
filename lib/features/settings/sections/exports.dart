@@ -5,4 +5,5 @@ export 'theme_selector.dart';
 export 'config_backup.dart';
 export 'slack_webhook.dart';
 export 'project_paths.dart';
+export 'profile_card.dart';
 export 'google_drive.dart';

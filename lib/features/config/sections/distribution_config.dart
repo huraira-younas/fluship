@@ -155,9 +155,7 @@ class DistributionConfig extends StatelessWidget {
                 disabled: !sectionEnabled || !canSlack,
                 error: canSlack ? null : _slackCredError,
                 onChange: (value) => _updateDistribution(
-                  dist.copyWith(
-                    slackConfig: slack.copyWith(enabled: value),
-                  ),
+                  dist.copyWith(slackConfig: slack.copyWith(enabled: value)),
                   bloc,
                 ),
               ),

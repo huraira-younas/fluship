@@ -1,18 +1,26 @@
-import 'package:fluship/core/shared_prefs/shared_prefs.dart';
+import 'package:fluship/services/project_service.dart/project_profiles_store.dart';
 import 'package:fluship/shared/models/app_info.dart';
 import 'package:path/path.dart' as p;
 
 import '../utils/pipeline_utils.dart';
 
 class FlushipWorkspacePaths {
-  const FlushipWorkspacePaths({this.overrideRoot});
+  FlushipWorkspacePaths({
+    ProjectProfilesStore? profilesStore,
+    this.overrideRoot,
+  }) : _profilesStore = profilesStore ?? ProjectProfilesStore();
+
+  final ProjectProfilesStore _profilesStore;
   final String? overrideRoot;
 
   Future<String> resolveRoot() async {
     final override = overrideRoot;
     if (override != null && override.isNotEmpty) return override;
 
-    final raw = SharedPrefs.i.getObject(SharedPrefsKeys.appInfo);
+    final activeProject = _profilesStore.activeProject;
+    final raw = activeProject == null
+        ? null
+        : _profilesStore.getProfile(activeProject)?['appInfo'];
     final appInfo = AppInfoModel.fromJson(raw as Map<String, dynamic>?);
     final saved = appInfo.flushipWorkspacePath;
 

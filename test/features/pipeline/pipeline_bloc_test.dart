@@ -24,7 +24,7 @@ class FakePipelineConfigSource implements PipelineConfigSource {
   set state(ConfigState value) => _state = value;
 
   @override
-  Future<void> persistCurrentConfig() async {
+  Future<void> persistActiveProfile() async {
     persistCalls++;
   }
 }

@@ -4,6 +4,7 @@ import 'package:fluship/services/console/runners/shell_runner_factory.dart';
 import 'package:fluship/services/console/console_session_pool.dart';
 
 import 'package:fluship/features/file_manager/repository/file_manager_repository.dart';
+import 'package:fluship/services/project_service.dart/project_profiles_store.dart';
 import 'package:fluship/features/process_manager/bloc/process_manager_bloc.dart';
 import 'package:fluship/features/pipeline/contracts/pipeline_config_source.dart';
 import 'package:fluship/features/pipeline/contracts/pipeline_console_port.dart';
@@ -20,10 +21,11 @@ final getIt = GetIt.instance;
 class AppLocator {
   static void initialize() {
     getIt.registerSingleton(const FilePickerService());
+    getIt.registerSingleton(ProjectProfilesStore());
 
-    getIt.registerSingleton(ConfigBloc());
+    getIt.registerSingleton(ConfigBloc(getIt<ProjectProfilesStore>()));
 
-    getIt.registerLazySingleton(() => const FileManagerRepository());
+    getIt.registerLazySingleton(FileManagerRepository.new);
 
     getIt.registerFactory(
       () => FileManagerBloc(repository: getIt<FileManagerRepository>()),

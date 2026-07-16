@@ -56,6 +56,7 @@ class FlutterProjectService {
     return current.copyWith(
       flutterProjectPath: flutterProjectPath,
       buildNumber: pubspec.buildNumber,
+      projectName: pubspec.projectName,
       version: pubspec.version,
       appName: appName,
     );

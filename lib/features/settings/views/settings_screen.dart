@@ -13,13 +13,7 @@ class SettingsScreen extends StatelessWidget {
     return Column(
       spacing: spacing.md,
       children: [
-        const ConfigBackup(),
-        const ProjectPaths(),
-        const GooglePlayConsole(),
-        const IosCredentials(),
-        const GoogleDrive(),
-        const SlackWebhook(),
-        const ReportsRecipients(),
+        const ProfileCard(),
         ThemeSelector(spacing: spacing.md),
       ],
     );

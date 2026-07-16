@@ -1,9 +1,7 @@
-import 'package:fluship/core/shared_prefs/shared_prefs.dart';
-import 'package:fluship/core/base_bloc/base_bloc.dart';
-
 import 'package:fluship/services/project_service.dart/flutter_project_service.dart';
-import 'package:fluship/shared/models/fluship_config_export.dart';
+import 'package:fluship/services/project_service.dart/project_profiles_store.dart';
 import 'package:fluship/shared/models/post_build_config.dart';
+import 'package:fluship/core/base_bloc/base_bloc.dart';
 import 'package:fluship/shared/models/post_git.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,10 +18,14 @@ part 'config_state.dart';
 
 class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
   final _projectService = const FlutterProjectService();
-  final _sharedPrefs = SharedPrefs.i;
+  final ProjectProfilesStore _profilesStore;
 
-  ConfigBloc() : super(ConfigState.empty()) {
+  ConfigBloc(this._profilesStore) : super(ConfigState.empty()) {
     on<SyncProjectAppInfo>(handler(_syncProjectAppInfo));
+
+    on<SwitchProjectProfile>(handler(_switchProjectProfile));
+    on<StartNewProfile>(handler(_startNewProfile));
+
     on<UpdateConfigs>(handler(_updateConfigs));
     on<ImportConfig>(handler(_importConfig));
     on<UpdateConfig>(handler(_updateConfig));
@@ -31,8 +33,8 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     on<SaveConfig>(handler(_saveConfig));
   }
 
-  Map<String, dynamic> exportConfig() =>
-      FlushipConfigExport.fromState(state).toJson();
+  Map<String, dynamic> exportConfig() => state.toJson();
+  Future<void> persistActiveProfile() => _persist(state);
 
   ConfigState _applyConfig(ConfigState current, BaseConfig config) {
     return switch (config) {
@@ -51,44 +53,13 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     };
   }
 
-  Future<void> _persistConfig(BaseConfig config) async {
-    switch (config) {
-      case AppInfoModel appInfo:
-        await _sharedPrefs.setObject(.appInfo, appInfo.toJson());
-
-      case PreGitModel preGit:
-        await _sharedPrefs.setObject(.preGit, preGit.toJson());
-
-      case CommonCmdModel commonCmd:
-        await _sharedPrefs.setObject(.commonCmd, commonCmd.toJson());
-
-      case AndroidConfigModel android:
-        await _sharedPrefs.setObject(.android, android.toJson());
-
-      case IosConfigModel ios:
-        await _sharedPrefs.setObject(.ios, ios.toJson());
-
-      case PostGitModel postGit:
-        await _sharedPrefs.setObject(.postGit, postGit.toJson());
-
-      case DistributionConfigModel distribution:
-        await _sharedPrefs.setObject(.distribution, distribution.toJson());
-
-      case PostBuildConfigModel postBuild:
-        await _sharedPrefs.setObject(.postBuild, postBuild.toJson());
-
-      default:
-        throw UnsupportedError('Invalid config type: ${config.runtimeType}');
-    }
-  }
-
   Future<void> _updateConfig(
     Emitter<ConfigState> emit,
     UpdateConfig event,
   ) async {
     final updated = _applyConfig(state, event.config);
     emit(updated);
-    await _persistConfig(event.config);
+    await _persist(updated);
   }
 
   Future<void> _updateConfigs(
@@ -101,50 +72,58 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     }
 
     emit(updated);
-    await Future.wait([
-      for (final config in event.configs) _persistConfig(config),
-    ]);
+    await _persist(updated);
   }
 
   Future<void> _loadConfig(Emitter<ConfigState> emit, LoadConfig event) async {
     emit(state.copyWith(loading: true));
 
-    final distribution = _sharedPrefs.getObject(.distribution);
-    final savedAppInfo = _sharedPrefs.getObject(.appInfo);
-    final postBuild = _sharedPrefs.getObject(.postBuild);
-    final commonCmd = _sharedPrefs.getObject(.commonCmd);
-    final android = _sharedPrefs.getObject(.android);
-    final postGit = _sharedPrefs.getObject(.postGit);
-    final preGit = _sharedPrefs.getObject(.preGit);
-    final ios = _sharedPrefs.getObject(.ios);
+    final activeProject = _profilesStore.activeProject;
+    final profile = activeProject == null
+        ? null
+        : _profilesStore.getProfile(activeProject);
 
-    var appInfo = savedAppInfo != null
-        ? AppInfoModel.fromJson(savedAppInfo)
-        : const AppInfoModel();
-
-    final path = appInfo.flutterProjectPath ?? '';
-    if (path.isNotEmpty) {
-      appInfo = await _projectService.extractAppInfo(
-        flutterProjectPath: path,
-        base: appInfo,
+    if (activeProject == null || profile == null) {
+      if (activeProject != null) await _profilesStore.clearActiveProject();
+      emit(
+        ConfigState.empty().copyWith(
+          projectNames: _profilesStore.projectNames,
+          loading: false,
+        ),
       );
-
-      await _sharedPrefs.setObject(.appInfo, appInfo.toJson());
+      return;
     }
 
+    final loaded = await _loadProjectProfile(activeProject, profile);
+    emit(loaded);
+    await _persist(loaded);
+  }
+
+  Future<void> _startNewProfile(
+    Emitter<ConfigState> emit,
+    StartNewProfile event,
+  ) async {
+    await _persist(state);
     emit(
-      state.copyWith(
-        distribution: .fromJson(distribution),
-        commonCmd: .fromJson(commonCmd),
-        postBuild: .fromJson(postBuild),
-        postGit: .fromJson(postGit),
-        android: .fromJson(android),
-        preGit: .fromJson(preGit),
-        ios: .fromJson(ios),
-        appInfo: appInfo,
-        loading: false,
-      ),
+      ConfigState.empty().copyWith(projectNames: _profilesStore.projectNames),
     );
+  }
+
+  Future<void> _switchProjectProfile(
+    Emitter<ConfigState> emit,
+    SwitchProjectProfile event,
+  ) async {
+    await _persist(state);
+
+    final profile = _profilesStore.getProfile(event.projectName);
+    if (profile == null) {
+      throw StateError('Profile not found: ${event.projectName}');
+    }
+
+    emit(state.copyWith(loading: true));
+    final loaded = await _loadProjectProfile(event.projectName, profile);
+    emit(loaded);
+    await _persist(loaded);
   }
 
   Future<void> _syncProjectAppInfo(
@@ -156,44 +135,117 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
       base: state.appInfo,
     );
 
-    await _sharedPrefs.setObject(.appInfo, appInfo.toJson());
-    emit(state.copyWith(appInfo: appInfo));
-  }
+    final projectName = appInfo.projectName;
+    final savedProfile = state.activeProject == null && projectName != null
+        ? _profilesStore.getProfile(projectName)
+        : null;
 
-  Future<void> persistCurrentConfig() async {
-    await Future.wait([
-      _sharedPrefs.setObject(.distribution, state.distribution.toJson()),
-      _sharedPrefs.setObject(.commonCmd, state.commonCmd.toJson()),
-      _sharedPrefs.setObject(.postBuild, state.postBuild.toJson()),
-      _sharedPrefs.setObject(.android, state.android.toJson()),
-      _sharedPrefs.setObject(.appInfo, state.appInfo.toJson()),
-      _sharedPrefs.setObject(.postGit, state.postGit.toJson()),
-      _sharedPrefs.setObject(.preGit, state.preGit.toJson()),
-      _sharedPrefs.setObject(.ios, state.ios.toJson()),
-    ]);
+    var target = state.copyWith(appInfo: appInfo);
+    if (savedProfile != null) {
+      final savedState = ConfigState.fromJson(savedProfile);
+
+      final refreshedAppInfo = await _projectService.extractAppInfo(
+        flutterProjectPath: event.flutterProjectPath,
+        base: savedState.appInfo,
+      );
+      
+      target = savedState.copyWith(appInfo: refreshedAppInfo);
+    }
+
+    final updated = await _activateProfile(
+      target,
+      missingProjectMessage: 'Project name is missing from pubspec.yaml',
+    );
+    emit(updated);
+    await _persist(updated);
   }
 
   Future<void> _importConfig(
     Emitter<ConfigState> emit,
     ImportConfig event,
   ) async {
-    final export = FlushipConfigExport.fromJson(event.data);
-    var imported = export.toState();
+    final export = ConfigState.fromJson(event.data);
+    var imported = export;
 
-    final path = imported.appInfo.flutterProjectPath ?? '';
-    if (path.isNotEmpty) {
-      final appInfo = await _projectService.extractAppInfo(
-        flutterProjectPath: path,
-        base: imported.appInfo,
-      );
-      imported = imported.copyWith(appInfo: appInfo);
-    }
+    imported = await _refreshProjectInfo(imported);
 
+    imported = await _activateProfile(
+      imported,
+      missingProjectMessage:
+          'Imported config must contain a valid Flutter project path',
+    );
     emit(imported);
-    await persistCurrentConfig();
+    await _persist(imported);
   }
 
   Future<void> _saveConfig(Emitter<ConfigState> emit, SaveConfig event) async {
-    await persistCurrentConfig();
+    if (state.activeProject == null) {
+      throw StateError('Select or import a Flutter project before saving');
+    }
+    await _persist(state);
+  }
+
+  Future<ConfigState> _refreshProjectInfo(ConfigState config) async {
+    final path = config.appInfo.flutterProjectPath ?? '';
+    if (path.isEmpty) return config;
+
+    final appInfo = await _projectService.extractAppInfo(
+      flutterProjectPath: path,
+      base: config.appInfo,
+    );
+    return config.copyWith(appInfo: appInfo);
+  }
+
+  Future<ConfigState> _loadProjectProfile(
+    String projectName,
+    Map<String, dynamic> profile,
+  ) async {
+    var loaded = ConfigState.fromJson(profile);
+    loaded = await _refreshProjectInfo(loaded);
+
+    final resolvedProject = loaded.appInfo.projectName ?? projectName;
+    if (resolvedProject != projectName) {
+      await _profilesStore.renameProfile(
+        newProjectName: resolvedProject,
+        oldProjectName: projectName,
+      );
+    }
+
+    return loaded.copyWith(
+      projectNames: _profilesStore.projectNames,
+      activeProject: resolvedProject,
+      loading: false,
+    );
+  }
+
+  Future<ConfigState> _activateProfile(
+    ConfigState config, {
+    required String missingProjectMessage,
+  }) async {
+    final projectName = config.appInfo.projectName;
+    if (projectName == null || projectName.isEmpty) {
+      throw StateError(missingProjectMessage);
+    }
+
+    final previousProject = state.activeProject;
+    if (previousProject != null && previousProject != projectName) {
+      await _profilesStore.renameProfile(
+        oldProjectName: previousProject,
+        newProjectName: projectName,
+      );
+    }
+
+    return config.copyWith(
+      activeProject: projectName,
+      projectNames: {..._profilesStore.projectNames, projectName}.toList()
+        ..sort(),
+    );
+  }
+
+  Future<void> _persist(ConfigState config) async {
+    final projectName = config.activeProject;
+    if (projectName == null) return;
+
+    await _profilesStore.saveProfile(projectName, config.toJson());
   }
 }

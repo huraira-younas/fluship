@@ -16,8 +16,8 @@ abstract interface class PipelineLogWriter {
 }
 
 class FilePipelineLogWriter implements PipelineLogWriter {
-  const FilePipelineLogWriter({FlushipWorkspacePaths? workspacePaths})
-    : _workspacePaths = workspacePaths ?? const FlushipWorkspacePaths();
+  FilePipelineLogWriter({FlushipWorkspacePaths? workspacePaths})
+    : _workspacePaths = workspacePaths ?? FlushipWorkspacePaths();
 
   static const pipelineLogFileName = 'logs.txt';
 

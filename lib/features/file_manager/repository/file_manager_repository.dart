@@ -5,8 +5,8 @@ import 'package:path/path.dart' as p;
 import '../models/file_entry.dart';
 
 class FileManagerRepository {
-  const FileManagerRepository({FlushipWorkspacePaths? workspacePaths})
-    : _workspacePaths = workspacePaths ?? const FlushipWorkspacePaths();
+  FileManagerRepository({FlushipWorkspacePaths? workspacePaths})
+    : _workspacePaths = workspacePaths ?? FlushipWorkspacePaths();
 
   final FlushipWorkspacePaths _workspacePaths;
 
