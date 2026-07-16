@@ -150,17 +150,20 @@ class ProfileCard extends StatelessWidget {
               mainAxisAlignment: .end,
               spacing: 12,
               children: [
-                AppButton.danger(
+                AppButton.icon(
                   onPressed: state.loading
                       ? null
                       : () => _deleteProfile(context, activeProject),
-                  leading: const Icon(Icons.delete_outline_rounded),
-                  label: 'Delete',
+                  leading: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Colors.red,
+                  ),
+                  variant: .secondary,
                 ),
-                AppButton.outline(
+                AppButton.icon(
                   onPressed: () => _openForm(context, isAdding: false),
                   leading: const Icon(Icons.edit_outlined),
-                  label: 'Edit',
+                  variant: .secondary,
                 ),
                 AppButton.primary(
                   onPressed: () => _addProfile(context, state),
