@@ -41,48 +41,73 @@ class DeveloperCard extends StatelessWidget {
     final ft = context.flushipTheme;
 
     return Container(
-      padding: .all(ft.spacing.md),
+      padding: .all(ft.spacing.lg),
       decoration: BoxDecoration(
         border: .all(color: ft.colors.cardBorder),
         borderRadius: .circular(ft.radius.card),
-        color: ft.colors.codeBg,
+        gradient: LinearGradient(
+          begin: .topLeft,
+          end: .bottomRight,
+          colors: [ft.colors.accent.withValues(alpha: 0.1), ft.colors.codeBg],
+        ),
       ),
       child: Column(
         crossAxisAlignment: .stretch,
-        spacing: ft.spacing.md,
+        spacing: ft.spacing.lg,
         children: [
           Row(
+            crossAxisAlignment: .center,
             children: [
-              DecoratedBox(
+              Container(
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   borderRadius: .circular(ft.radius.input),
                   color: ft.colors.accent.withValues(alpha: 0.14),
+                  border: .all(color: ft.colors.accent.withValues(alpha: 0.3)),
                 ),
                 child: Icon(
-                  Icons.favorite_rounded,
+                  Icons.code_rounded,
                   color: ft.colors.accent,
-                  size: 20,
-                ).padAll(ft.spacing.md),
+                  size: 24,
+                ),
               ).padOnly(r: ft.spacing.md),
-              const Column(
+              Column(
                 crossAxisAlignment: .start,
                 children: [
-                  AppText.subtitle('Made by Senpai', weight: .w700),
-                  AppText.label('Developer of Fluship'),
+                  const AppText.subtitle('Senpai', weight: .w700),
+                  AppText.custom(
+                    'Creator of Fluship',
+                    color: ft.colors.textDim,
+                    size: .caption,
+                  ),
                 ],
               ).expanded(),
+              Icon(
+                Icons.auto_awesome_rounded,
+                color: ft.colors.accent.withValues(alpha: 0.75),
+                size: 18,
+              ),
             ],
           ),
-          Row(
+          Container(
+            height: 1,
+            color: ft.colors.cardBorder.withValues(alpha: 0.7),
+          ),
+          Wrap(
+            alignment: .end,
             spacing: ft.spacing.sm,
+            runSpacing: ft.spacing.sm,
             children: [
               for (final social in _socials)
-                AppButton.secondary(
+                AppButton.icon(
                   onPressed: () => _openSocial(social.url),
+                  semanticLabel: social.label,
+                  tooltip: social.label,
                   leading: Icon(social.icon),
-                  label: social.label,
+                  variant: .outline,
                   size: .sm,
-                ).expanded(),
+                ),
             ],
           ),
         ],

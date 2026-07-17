@@ -85,7 +85,6 @@ class ProjectSwitcherSheet extends StatelessWidget {
                 final selected = projectName == activeProject;
 
                 return ProjectProfileTile(
-                  contentPadding: .symmetric(horizontal: ft.spacing.md),
                   projectPath: appInfo?.flutterProjectPath,
                   appIconPath: appInfo?.appIconPath,
                   projectName: projectName,

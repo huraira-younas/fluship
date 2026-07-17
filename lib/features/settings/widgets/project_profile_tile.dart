@@ -6,7 +6,6 @@ import 'dart:io' show File;
 
 class ProjectProfileTile extends StatelessWidget {
   const ProjectProfileTile({
-    this.contentPadding = .zero,
     required this.projectName,
     this.selected = false,
     this.appIconPath,
@@ -16,7 +15,6 @@ class ProjectProfileTile extends StatelessWidget {
     super.key,
   });
 
-  final EdgeInsetsGeometry contentPadding;
   final String? appIconPath;
   final String? projectPath;
   final VoidCallback? onTap;
@@ -42,7 +40,6 @@ class ProjectProfileTile extends StatelessWidget {
       clipBehavior: .antiAlias,
       shape: shape,
       child: ListTile(
-        contentPadding: contentPadding,
         shape: shape,
         leading: _ProjectLogo(
           appIconPath: appIconPath,
