@@ -172,8 +172,8 @@ class AppTextField extends StatelessWidget {
   final bool autofocus;
   final bool readOnly;
   final int? maxLines;
-  final bool enabled;
   final String? label;
+  final bool enabled;
   final String? hint;
 
   @override
@@ -194,8 +194,8 @@ class AppTextField extends StatelessWidget {
         _AppTextFieldDecoration.floatingLabel(
           suffixIcon: suffixIcon,
           prefixIcon: prefixIcon,
-          theme: theme,
           label: label!,
+          theme: theme,
           hint: hint!,
         ),
       ),
@@ -250,25 +250,83 @@ class AppTextField extends StatelessWidget {
     final inputTheme = Theme.of(context).inputDecorationTheme;
     final colors = context.flushipTheme.colors;
 
-    return TextFormField(
-      autovalidateMode:
-          autovalidateMode ??
-          (validator != null ? .onUserInteraction : .disabled),
-      initialValue: controller == null ? initialValue : null,
+    return _SyncedTextFormField(
       decoration: fieldDecoration.applyDefaults(inputTheme),
       style: _AppTextFieldDecoration.textStyle(colors),
-      textInputAction: textInputAction,
-      onFieldSubmitted: onSubmitted,
-      cursorColor: colors.accent,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      controller: controller,
-      onChanged: onChanged,
-      validator: validator,
-      autofocus: autofocus,
-      readOnly: readOnly,
-      maxLines: maxLines,
-      enabled: enabled,
+      field: this,
+    );
+  }
+}
+
+class _SyncedTextFormField extends StatefulWidget {
+  const _SyncedTextFormField({
+    required this.decoration,
+    required this.field,
+    required this.style,
+  });
+
+  final InputDecoration decoration;
+  final AppTextField field;
+  final TextStyle style;
+
+  @override
+  State<_SyncedTextFormField> createState() => _SyncedTextFormFieldState();
+}
+
+class _SyncedTextFormFieldState extends State<_SyncedTextFormField> {
+  late final TextEditingController _controller;
+
+  TextEditingController get _effectiveController =>
+      widget.field.controller ?? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.field.initialValue);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SyncedTextFormField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.field.controller != null) return;
+
+    final nextText = widget.field.initialValue ?? '';
+    if (_controller.text == nextText) return;
+
+    _controller.value = TextEditingValue(
+      selection: TextSelection.collapsed(offset: nextText.length),
+      text: nextText,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final field = widget.field;
+
+    return TextFormField(
+      autovalidateMode:
+          field.autovalidateMode ??
+          (field.validator != null ? .onUserInteraction : .disabled),
+      cursorColor: context.flushipTheme.colors.accent,
+      textInputAction: field.textInputAction,
+      onFieldSubmitted: field.onSubmitted,
+      keyboardType: field.keyboardType,
+      controller: _effectiveController,
+      obscureText: field.obscureText,
+      decoration: widget.decoration,
+      onChanged: field.onChanged,
+      validator: field.validator,
+      autofocus: field.autofocus,
+      readOnly: field.readOnly,
+      maxLines: field.maxLines,
+      enabled: field.enabled,
+      style: widget.style,
     );
   }
 }

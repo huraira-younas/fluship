@@ -67,6 +67,84 @@ version: 1.0.0+1
     await completer.future;
   }
 
+  Future<void> importConfig(ConfigBloc bloc, Map<String, dynamic> data) async {
+    final completer = Completer<void>();
+    bloc.add(
+      ImportConfig(
+        data: data,
+        onSuccess: (_) => completer.complete(),
+        onError: (error) => completer.completeError(error.message),
+      ),
+    );
+    await completer.future;
+  }
+
+  test('imports every legacy snake case config section', () async {
+    final projectDir = Directory('${tempDir.path}/reelstay');
+    await projectDir.create();
+    await File('${projectDir.path}/pubspec.yaml').writeAsString('''
+name: reelstay
+version: 1.5.7+5795
+''');
+
+    final bloc = ConfigBloc(store);
+    addTearDown(bloc.close);
+
+    await importConfig(bloc, {
+      'distribution': {
+        'releaseNotes': 'Legacy release notes',
+        'enabled': false,
+      },
+      'post_build': {'openOutputs': true, 'enabled': false},
+      'common_cmd': {'type': 'upgrade', 'clean': true, 'enabled': false},
+      'app_info': {
+        'flutter_project_path': projectDir.path,
+        'fluship_workspace_path': tempDir.path,
+        'enabled': false,
+      },
+      'post_git': {
+        'commit_message': 'Release {version}',
+        'target_branch': 'main',
+        'post_commit': true,
+        'post_push': true,
+        'enabled': false,
+      },
+      'pre_git': {
+        'commit_message': 'Pre-release',
+        'target_branch': 'main',
+        'pre_commit': true,
+        'pre_pull': true,
+        'enabled': false,
+      },
+      'android': {'buildType': 'splits', 'buildAab': true, 'enabled': false},
+      'ios': {'podClean': true, 'buildIpa': true, 'enabled': false},
+    });
+
+    expect(bloc.state.activeProject, 'reelstay');
+    expect(bloc.state.distribution.releaseNotes, 'Legacy release notes');
+    expect(bloc.state.distribution.enabled, isFalse);
+    expect(bloc.state.postBuild.openOutputs, isTrue);
+    expect(bloc.state.postBuild.enabled, isFalse);
+    expect(bloc.state.commonCmd.type?.name, 'upgrade');
+    expect(bloc.state.commonCmd.clean, isTrue);
+    expect(bloc.state.commonCmd.enabled, isFalse);
+    expect(bloc.state.appInfo.flutterProjectPath, projectDir.path);
+    expect(bloc.state.appInfo.flushipWorkspacePath, tempDir.path);
+    expect(bloc.state.appInfo.enabled, isFalse);
+    expect(bloc.state.postGit.postCommit, isTrue);
+    expect(bloc.state.postGit.postPush, isTrue);
+    expect(bloc.state.postGit.enabled, isFalse);
+    expect(bloc.state.preGit.preCommit, isTrue);
+    expect(bloc.state.preGit.prePull, isTrue);
+    expect(bloc.state.preGit.enabled, isFalse);
+    expect(bloc.state.android.buildType?.name, 'splits');
+    expect(bloc.state.android.buildAab, isTrue);
+    expect(bloc.state.android.enabled, isFalse);
+    expect(bloc.state.ios.podClean, isTrue);
+    expect(bloc.state.ios.buildIpa, isTrue);
+    expect(bloc.state.ios.enabled, isFalse);
+  });
+
   test('deleting active profile selects first remaining profile', () async {
     await saveProfile('call_it');
     await saveProfile('reelstay');

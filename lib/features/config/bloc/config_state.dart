@@ -101,15 +101,17 @@ class ConfigState extends BaseBlocState {
   };
 
   factory ConfigState.fromJson(Map<String, dynamic> json) => ConfigState(
+    commonCmd: CommonCmdModel.fromJson(json['commonCmd'] ?? json['common_cmd']),
     projectNames: List<String>.from(json['projectNames'] as List? ?? const []),
     distribution: DistributionConfigModel.fromJson(json['distribution']),
-    postBuild: PostBuildConfigModel.fromJson(json['postBuild']),
-    commonCmd: CommonCmdModel.fromJson(json['commonCmd']),
+    postGit: PostGitModel.fromJson(json['postGit'] ?? json['post_git']),
+    appInfo: AppInfoModel.fromJson(json['appInfo'] ?? json['app_info']),
+    preGit: PreGitModel.fromJson(json['preGit'] ?? json['pre_git']),
     android: AndroidConfigModel.fromJson(json['android']),
     activeProject: json['activeProject'] as String?,
-    postGit: PostGitModel.fromJson(json['postGit']),
-    appInfo: AppInfoModel.fromJson(json['appInfo']),
-    preGit: PreGitModel.fromJson(json['preGit']),
     ios: IosConfigModel.fromJson(json['ios']),
+    postBuild: PostBuildConfigModel.fromJson(
+      json['postBuild'] ?? json['post_build'],
+    ),
   );
 }

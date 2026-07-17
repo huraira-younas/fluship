@@ -36,5 +36,36 @@ void main() {
       expect(restored.projectNames, isEmpty);
       expect(restored.appInfo.appIconPath, isNull);
     });
+
+    test('imports legacy snake case config sections', () {
+      final json = ConfigState.empty().toJson();
+      final legacyJson =
+          <String, dynamic>{
+              ...json,
+              'post_build': json['postBuild'],
+              'common_cmd': json['commonCmd'],
+              'post_git': json['postGit'],
+              'app_info': {
+                'flutter_project_path': '/projects/reelstay',
+                'app_name': 'Reel Stay',
+                'enabled': true,
+              },
+              'pre_git': json['preGit'],
+            }
+            ..remove('postBuild')
+            ..remove('commonCmd')
+            ..remove('postGit')
+            ..remove('appInfo')
+            ..remove('preGit');
+
+      final restored = ConfigState.fromJson(legacyJson);
+
+      expect(restored.appInfo.flutterProjectPath, '/projects/reelstay');
+      expect(restored.appInfo.appName, 'Reel Stay');
+      expect(restored.postBuild, ConfigState.empty().postBuild);
+      expect(restored.commonCmd, ConfigState.empty().commonCmd);
+      expect(restored.postGit, ConfigState.empty().postGit);
+      expect(restored.preGit, ConfigState.empty().preGit);
+    });
   });
 }
