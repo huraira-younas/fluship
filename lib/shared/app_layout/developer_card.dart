@@ -45,11 +45,7 @@ class DeveloperCard extends StatelessWidget {
       decoration: BoxDecoration(
         border: .all(color: ft.colors.cardBorder),
         borderRadius: .circular(ft.radius.card),
-        gradient: LinearGradient(
-          begin: .topLeft,
-          end: .bottomRight,
-          colors: [ft.colors.accent.withValues(alpha: 0.1), ft.colors.codeBg],
-        ),
+        color: ft.colors.codeBg,
       ),
       child: Column(
         crossAxisAlignment: .stretch,
