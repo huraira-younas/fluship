@@ -28,30 +28,38 @@ class ProjectProfileTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
     final path = projectPath;
-
-    return ListTile(
-      contentPadding: contentPadding,
-      shape: RoundedRectangleBorder(
-        borderRadius: .circular(ft.radius.input),
-        side: BorderSide(
-          color: selected ? ft.colors.accent : ft.colors.cardBorder,
-        ),
+    final shape = RoundedRectangleBorder(
+      borderRadius: .circular(ft.radius.input),
+      side: BorderSide(
+        color: selected ? ft.colors.accent : ft.colors.cardBorder,
       ),
-      tileColor: selected
+    );
+
+    return Material(
+      color: selected
           ? ft.colors.accent.withValues(alpha: 0.08)
           : ft.colors.cardBg,
-      leading: _ProjectLogo(appIconPath: appIconPath, projectName: projectName),
-      title: AppText.subtitle(projectName, weight: .w600),
-      subtitle: path == null
-          ? null
-          : AppText.label(
-              overflow: .ellipsis,
-              selectable: true,
-              maxLines: 1,
-              path,
-            ).padOnly(t: 7),
-      trailing: trailing,
-      onTap: onTap,
+      clipBehavior: .antiAlias,
+      shape: shape,
+      child: ListTile(
+        contentPadding: contentPadding,
+        shape: shape,
+        leading: _ProjectLogo(
+          appIconPath: appIconPath,
+          projectName: projectName,
+        ),
+        title: AppText.subtitle(projectName, weight: .w600),
+        subtitle: path == null
+            ? null
+            : AppText.label(
+                overflow: .ellipsis,
+                selectable: true,
+                maxLines: 1,
+                path,
+              ).padOnly(t: 7),
+        trailing: trailing,
+        onTap: onTap,
+      ),
     );
   }
 }
