@@ -25,7 +25,31 @@ class ShellEnvironmentResolver {
       );
     }
 
+    // GUI-launched Flutter apps often inherit no UTF-8 locale. CocoaPods and
+    // system Ruby then fail with Encoding::CompatibilityError / ASCII-8BIT.
+    ensureUtf8Locale(env);
+
     return env;
+  }
+
+  /// Ensures [env] has a UTF-8 locale so tools like CocoaPods can run.
+  static void ensureUtf8Locale(Map<String, String> env) {
+    if (Platform.isWindows) return;
+
+    const preferred = 'en_US.UTF-8';
+    if (!isUtf8Locale(env['LANG'])) {
+      env['LANG'] = preferred;
+    }
+    // LC_ALL overrides LANG when set; keep it UTF-8 or unset becomes preferred.
+    if (!isUtf8Locale(env['LC_ALL'])) {
+      env['LC_ALL'] = preferred;
+    }
+  }
+
+  static bool isUtf8Locale(String? value) {
+    if (value == null || value.isEmpty) return false;
+    final upper = value.toUpperCase();
+    return upper.contains('UTF-8') || upper.contains('UTF8');
   }
 
   static String prependPathSegment({
