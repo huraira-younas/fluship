@@ -130,7 +130,24 @@ class GooglePlayPublisherUploader implements PlayStoreUploader {
       );
 
       await _log(logger, '[play] committing edit');
-      await api.edits.commit(packageName, editId);
+      try {
+        await api.edits.commit(packageName, editId);
+      } on androidpublisher.DetailedApiRequestError catch (ce) {
+        final needsFlag =
+            ce.status == 400 &&
+            (ce.message?.contains('changesNotSentForReview') ?? false);
+        if (!needsFlag) rethrow;
+
+        await _log(
+          logger,
+          '[play] retrying commit with changesNotSentForReview=true',
+        );
+        await api.edits.commit(
+          changesNotSentForReview: true,
+          packageName,
+          editId,
+        );
+      }
 
       return aabName;
     } on androidpublisher.DetailedApiRequestError catch (error) {

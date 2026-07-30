@@ -16,7 +16,7 @@ class ConfigBackup extends StatelessWidget {
   Future<void> _export() async {
     final bloc = getIt<ConfigBloc>();
     final json = bloc.exportConfig();
-    
+
     final projectName = bloc.state.activeProject ?? 'fluship';
     const encoder = JsonEncoder.withIndent('  ');
     final content = encoder.convert(json);
