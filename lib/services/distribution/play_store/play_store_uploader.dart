@@ -1,15 +1,13 @@
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:googleapis/androidpublisher/v3.dart' as androidpublisher;
 import 'package:path/path.dart' as p;
-import 'dart:io' show Directory, File;
+import 'dart:io' show File;
 
 import '../contracts/distribution_logger.dart';
 import '../models/distribution_result.dart';
 import 'play_store_auth.dart';
 
 abstract interface class PlayStoreUploader {
-  Future<String?> findAab(String artifactsDir);
-
   Future<String> upload({
     required PlayStoreDistribution distribution,
     required String packageName,
@@ -25,24 +23,6 @@ class GooglePlayPublisherUploader implements PlayStoreUploader {
     : _authFactory = authFactory ?? const GooglePlayAuthClientFactory();
 
   final PlayStoreAuthClientFactory _authFactory;
-
-  @override
-  Future<String?> findAab(String artifactsDir) async {
-    final dir = Directory(artifactsDir);
-    if (!await dir.exists()) return null;
-
-    final aabs = <File>[];
-    await for (final entity in dir.list()) {
-      if (entity is File && entity.path.endsWith('.aab')) {
-        aabs.add(entity);
-      }
-    }
-
-    if (aabs.isEmpty) return null;
-
-    aabs.sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
-    return aabs.first.path;
-  }
 
   @override
   Future<String> upload({

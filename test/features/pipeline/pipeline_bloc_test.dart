@@ -1,4 +1,6 @@
 import 'package:fluship/services/pipeline/pipeline.dart';
+import 'package:fluship/services/distribution/distribution.dart';
+import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/features/console/models/console_line.dart';
 import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
@@ -8,9 +10,11 @@ import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
 import 'package:fluship/features/pipeline/contracts/pipeline_executor.dart';
 import 'package:fluship/services/console/models/shell_run_result.dart';
 import 'package:fluship/shared/models/android_config.dart';
+import 'package:fluship/shared/models/ios_config.dart';
 import 'package:fluship/shared/models/app_info.dart';
 import 'package:fluship/shared/models/common_cmd.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'dart:io' show Platform;
 
 class FakePipelineConfigSource implements PipelineConfigSource {
   FakePipelineConfigSource(this._state);
@@ -31,14 +35,17 @@ class FakePipelineConfigSource implements PipelineConfigSource {
 
 class FakePipelineConsolePort implements PipelineConsolePort {
   FakePipelineConsolePort({
-    this.exitCode = 0,
+    this.exitCode = 1,
     this.failCommand,
     this.delayStep = false,
+    this.failAll = false,
   });
 
+  /// Exit code reported for [failCommand]. Every other command exits 0.
   final int exitCode;
   final String? failCommand;
   final bool delayStep;
+  final bool failAll;
 
   final commands = <String>[];
   final logLines = <String>[];
@@ -76,17 +83,13 @@ class FakePipelineConsolePort implements PipelineConsolePort {
       return const ShellRunResult(exitCode: 1, wasCancelled: true);
     }
 
-    if (failCommand != null && command == failCommand) {
-      capturedLines.add(
-        ConsoleLine(stream: ConsoleStream.system, text: '[exit $exitCode]'),
-      );
-      return ShellRunResult(exitCode: exitCode);
-    }
+    final failed = failAll || (failCommand != null && command == failCommand);
+    final resultCode = failed ? exitCode : 0;
 
     capturedLines.add(
-      const ConsoleLine(stream: ConsoleStream.system, text: '[exit 0]'),
+      ConsoleLine(stream: ConsoleStream.system, text: '[exit $resultCode]'),
     );
-    return ShellRunResult(exitCode: exitCode);
+    return ShellRunResult(exitCode: resultCode);
   }
 
   @override
@@ -151,6 +154,39 @@ ConfigState _configWithSteps() {
   );
 }
 
+/// Clean, Build App Bundle, Collect App Bundle, Build APK, Collect APK.
+ConfigState _configWithBothAndroidBuilds() {
+  return _configWithSteps().copyWith(
+    android: const AndroidConfigModel(
+      buildType: AndroidBuildType.apk,
+      buildAab: true,
+      enabled: true,
+    ),
+  );
+}
+
+ConfigState _configWithPodInstall() {
+  return _configWithSteps().copyWith(
+    commonCmd: const CommonCmdModel(enabled: false),
+    android: const AndroidConfigModel(enabled: false),
+    ios: IosConfigModel(enabled: true, podClean: true),
+  );
+}
+
+ConfigState _configWithReport() {
+  return _configWithSteps().copyWith(
+    distribution: const DistributionConfigModel(
+      enabled: true,
+      reportRecipient: ReportRecipientConfig(
+        reportRecipient: 'dev@example.com',
+        gmailAddress: 'sender@gmail.com',
+        buildReport: true,
+        appPassword: 'secret',
+      ),
+    ),
+  );
+}
+
 ConfigState _configWithStepsAndAppInfo() {
   return _configWithSteps().copyWith(
     appInfo: const AppInfoModel(
@@ -166,6 +202,17 @@ ConfigState _configWithStepsAndAppInfo() {
 Future<void> _pumpBloc(PipelineBloc bloc) async {
   await Future<void>.delayed(Duration.zero);
 }
+
+Future<void> _runToCompletion(PipelineBloc bloc) async {
+  await _pumpBloc(bloc);
+  while (bloc.state.isRunning) {
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+}
+
+Map<String, PipelineStepStatus> _statusByName(PipelineBloc bloc) => {
+  for (final step in bloc.state.steps) step.name: step.status,
+};
 
 void main() {
   group('PipelineBloc', () {
@@ -256,12 +303,90 @@ void main() {
       await bloc.close();
     });
 
-    test('continues pipeline after a step failure', () async {
-      final config = FakePipelineConfigSource(_configWithSteps());
+    test('skips the collect step when its build fails', () async {
+      final config = FakePipelineConfigSource(_configWithBothAndroidBuilds());
       final console = FakePipelineConsolePort(
-        exitCode: 1,
-        failCommand: 'flutter clean',
+        failCommand: 'flutter build aab --release',
       );
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+        executor: const _StubPipelineExecutor(),
+      );
+
+      bloc.add(const RunPipeline());
+      await _runToCompletion(bloc);
+
+      expect(_statusByName(bloc), {
+        'Clean': PipelineStepStatus.completed,
+        'Build App Bundle': PipelineStepStatus.failed,
+        'Collect App Bundle': PipelineStepStatus.skipped,
+        'Build APK': PipelineStepStatus.completed,
+        'Collect APK': PipelineStepStatus.completed,
+      });
+      expect(bloc.state.runStatus, PipelineRunStatus.failed);
+      expect(bloc.state.summaryMessage, contains('finished with failed steps'));
+      expect(console.disposeCalls, 0);
+
+      await bloc.close();
+      expect(console.disposeCalls, 1);
+    });
+
+    test('skips every remaining step when a critical step fails', () async {
+      final config = FakePipelineConfigSource(_configWithBothAndroidBuilds());
+      final console = FakePipelineConsolePort(failCommand: 'flutter clean');
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+        executor: const _StubPipelineExecutor(),
+      );
+
+      bloc.add(const RunPipeline());
+      await _runToCompletion(bloc);
+
+      expect(bloc.state.steps.first.status, PipelineStepStatus.failed);
+      expect(
+        bloc.state.steps.skip(1).every((step) => step.status == .skipped),
+        isTrue,
+      );
+      expect(console.commands, ['flutter clean']);
+      expect(bloc.state.runStatus, PipelineRunStatus.failed);
+
+      await bloc.close();
+    });
+
+    test('still sends the build report after an aborting failure', () async {
+      final config = FakePipelineConfigSource(_configWithReport());
+      final console = FakePipelineConsolePort(failCommand: 'flutter clean');
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+        executor: const _StubPipelineExecutor(),
+        distributions: {
+          DistributionStepKind.report: const _FakeDistributionHandler(),
+        },
+      );
+
+      bloc.add(const RunPipeline());
+      await _runToCompletion(bloc);
+
+      expect(_statusByName(bloc), {
+        'Clean': PipelineStepStatus.failed,
+        'Build App Bundle': PipelineStepStatus.skipped,
+        'Collect App Bundle': PipelineStepStatus.skipped,
+        'Send Build Report': PipelineStepStatus.completed,
+      });
+      expect(bloc.state.runStatus, PipelineRunStatus.failed);
+
+      await bloc.close();
+    });
+
+    test('removing a pending step also drops what depends on it', () async {
+      final config = FakePipelineConfigSource(_configWithBothAndroidBuilds());
+      final console = FakePipelineConsolePort(delayStep: true);
       final bloc = PipelineBloc(
         FakePipelineLogWriter(),
         configSource: config,
@@ -272,27 +397,103 @@ void main() {
       bloc.add(const RunPipeline());
       await _pumpBloc(bloc);
 
-      while (bloc.state.isRunning) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-      }
-
-      expect(bloc.state.runStatus, PipelineRunStatus.failed);
-      expect(bloc.state.steps.first.status, PipelineStepStatus.failed);
-      expect(bloc.state.steps.first.name, 'Clean');
-      expect(
-        bloc.state.steps.skip(1).every((step) => step.status != .skipped),
-        isTrue,
+      final apkIndex = bloc.state.steps.indexWhere(
+        (step) => step.name == 'Build APK',
       );
-      expect(console.commands, [
-        'flutter clean',
-        'flutter build aab --release',
-      ]);
-      expect(bloc.state.summaryMessage, contains('finished with failed steps'));
-      expect(console.disposeCalls, 0);
+      bloc.add(RemovePipelineStep(apkIndex));
+      await _runToCompletion(bloc);
+
+      expect(_statusByName(bloc), {
+        'Clean': PipelineStepStatus.completed,
+        'Build App Bundle': PipelineStepStatus.completed,
+        'Collect App Bundle': PipelineStepStatus.completed,
+        'Build APK': PipelineStepStatus.skipped,
+        'Collect APK': PipelineStepStatus.skipped,
+      });
+      expect(console.commands, isNot(contains('flutter build apk --release')));
+      expect(bloc.state.runStatus, PipelineRunStatus.completed);
 
       await bloc.close();
-      expect(console.disposeCalls, 1);
     });
+
+    test('ignores removal of a step that already ran', () async {
+      final config = FakePipelineConfigSource(_configWithSteps());
+      final console = FakePipelineConsolePort(delayStep: true);
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+        executor: const _StubPipelineExecutor(),
+      );
+
+      bloc.add(const RunPipeline());
+      await _pumpBloc(bloc);
+
+      bloc.add(const RemovePipelineStep(0));
+      await _runToCompletion(bloc);
+
+      expect(bloc.state.steps.first.status, PipelineStepStatus.completed);
+      expect(bloc.state.runStatus, PipelineRunStatus.completed);
+
+      await bloc.close();
+    });
+
+    test(
+      'retries a failed step with its recovery command',
+      () async {
+        final config = FakePipelineConfigSource(_configWithPodInstall());
+        final console = FakePipelineConsolePort(
+          failCommand: '(cd ios && pod install --repo-update)',
+        );
+        final bloc = PipelineBloc(
+          FakePipelineLogWriter(),
+          configSource: config,
+          consolePort: console,
+          executor: const _StubPipelineExecutor(),
+        );
+
+        bloc.add(const RunPipeline());
+        await _runToCompletion(bloc);
+
+        expect(console.commands, [
+          '(cd ios && pod install --repo-update)',
+          '(cd ios && pod deintegrate && pod repo update && sleep 3 && pod install)',
+        ]);
+        expect(
+          console.logLines.any((line) => line.contains('retrying with')),
+          isTrue,
+        );
+        expect(bloc.state.steps.single.status, PipelineStepStatus.completed);
+        expect(bloc.state.runStatus, PipelineRunStatus.completed);
+
+        await bloc.close();
+      },
+      skip: Platform.isMacOS ? null : 'iOS steps only resolve on macOS',
+    );
+
+    test(
+      'fails the step when the recovery command also fails',
+      () async {
+        final config = FakePipelineConfigSource(_configWithPodInstall());
+        final console = FakePipelineConsolePort(failAll: true);
+        final bloc = PipelineBloc(
+          FakePipelineLogWriter(),
+          configSource: config,
+          consolePort: console,
+          executor: const _StubPipelineExecutor(),
+        );
+
+        bloc.add(const RunPipeline());
+        await _runToCompletion(bloc);
+
+        expect(console.commands, hasLength(2));
+        expect(bloc.state.steps.single.status, PipelineStepStatus.failed);
+        expect(bloc.state.runStatus, PipelineRunStatus.failed);
+
+        await bloc.close();
+      },
+      skip: Platform.isMacOS ? null : 'iOS steps only resolve on macOS',
+    );
 
     test('cancel marks pipeline as cancelled', () async {
       final config = FakePipelineConfigSource(_configWithSteps());
@@ -439,4 +640,15 @@ class _StubPipelineExecutor extends PipelineExecutor {
   Future<PipelineStepResult> executeInternal(CommandStep step) async {
     return const PipelineStepResult(success: true);
   }
+}
+
+class _FakeDistributionHandler implements DistributionHandler {
+  const _FakeDistributionHandler();
+
+  @override
+  String get name => 'Fake';
+
+  @override
+  Future<DistributionResult> run(DistributionContext context) async =>
+      DistributionResult.success('ok');
 }

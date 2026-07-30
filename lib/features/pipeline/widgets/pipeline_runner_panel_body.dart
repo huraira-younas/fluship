@@ -50,11 +50,17 @@ class PipelineRunnerPanelBody extends StatelessWidget {
           ListView.separated(
             physics: const ClampingScrollPhysics(),
             itemCount: steps.length,
-            itemBuilder: (_, index) {
+            itemBuilder: (context, index) {
+              final step = steps[index];
               return PipelineStepRow(
+                onRemove: isRunning && step.status == .pending
+                    ? () => context.read<PipelineBloc>().add(
+                        RemovePipelineStep(index),
+                      )
+                    : null,
                 isActive: state.activeStepIndex == index,
-                step: steps[index],
                 index: index,
+                step: step,
               );
             },
             separatorBuilder: (context, index) {

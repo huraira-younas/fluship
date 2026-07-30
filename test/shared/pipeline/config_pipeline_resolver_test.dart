@@ -47,11 +47,15 @@ class _FakeDistributionHandler implements DistributionHandler {
   }
 }
 
+PipelineRunArtifacts _artifacts() =>
+    PipelineRunArtifacts(startedAt: DateTime.now());
+
 List<CommandStep> _resolve(ConfigState state) => ConfigPipelineResolver.resolve(
-  state,
-  contextProvider: () => throw UnimplementedError(),
   reportContextProvider: () => throw UnimplementedError(),
+  contextProvider: () => throw UnimplementedError(),
+  artifacts: _artifacts(),
   handlers: const {},
+  state,
 );
 
 void main() {
@@ -175,6 +179,7 @@ void main() {
         },
         contextProvider: () => throw UnimplementedError(),
         reportContextProvider: () => throw UnimplementedError(),
+        artifacts: _artifacts(),
       );
 
       final names = steps.map((step) => step.name).toList();
@@ -211,6 +216,7 @@ void main() {
         },
         contextProvider: () => throw UnimplementedError(),
         reportContextProvider: () => throw UnimplementedError(),
+        artifacts: _artifacts(),
       );
 
       final names = steps.map((step) => step.name).toList();

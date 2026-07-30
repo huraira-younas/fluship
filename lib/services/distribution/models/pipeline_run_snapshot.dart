@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 
 class PipelineRunSnapshot extends Equatable {
   const PipelineRunSnapshot({
+    this.collectedArtifacts = const [],
     required this.totalElapsed,
     required this.artifactsDir,
     required this.buildNumber,
@@ -15,6 +16,11 @@ class PipelineRunSnapshot extends Equatable {
     required this.version,
     required this.steps,
   });
+
+  /// Artifacts collected by this run only. Distribution uses these instead of
+  /// listing [artifactsDir], which also holds output from earlier runs of the
+  /// same version and build number.
+  final List<String> collectedArtifacts;
 
   final List<PipelineStepView> steps;
   final PipelineRunStatus runStatus;
@@ -30,8 +36,18 @@ class PipelineRunSnapshot extends Equatable {
 
   bool get success => runStatus == .completed;
 
+  String? artifactWithExtension(String extension) {
+    final matches = [
+      for (final path in collectedArtifacts)
+        if (path.endsWith(extension)) path,
+    ]..sort();
+
+    return matches.isEmpty ? null : matches.first;
+  }
+
   @override
   List<Object?> get props => [
+    collectedArtifacts,
     totalElapsed,
     artifactsDir,
     logFilePath,

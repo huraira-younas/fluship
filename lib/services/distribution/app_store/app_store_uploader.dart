@@ -1,6 +1,6 @@
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:path/path.dart' as p;
-import 'dart:io' show Directory, File, Process;
+import 'dart:io' show File, Process;
 
 import '../contracts/distribution_logger.dart';
 import '../models/distribution_result.dart';
@@ -11,30 +11,10 @@ abstract interface class AppStoreUploader {
     DistributionLogger? logger,
     required String ipaPath,
   });
-
-  Future<String?> findIpa(String artifactsDir);
 }
 
 class ITmsTransporterUploader implements AppStoreUploader {
   const ITmsTransporterUploader();
-
-  @override
-  Future<String?> findIpa(String artifactsDir) async {
-    final dir = Directory(artifactsDir);
-    if (!await dir.exists()) return null;
-
-    final ipas = <File>[];
-    await for (final entity in dir.list()) {
-      if (entity is File && entity.path.endsWith('.ipa')) {
-        ipas.add(entity);
-      }
-    }
-
-    if (ipas.isEmpty) return null;
-
-    ipas.sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
-    return ipas.first.path;
-  }
 
   @override
   Future<String> upload({

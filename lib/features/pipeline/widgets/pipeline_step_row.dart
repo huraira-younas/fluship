@@ -1,6 +1,7 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/services/pipeline/utils/pipeline_utils.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
+import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter/material.dart';
 
@@ -13,8 +14,13 @@ class PipelineStepRow extends StatelessWidget {
     required this.isActive,
     required this.index,
     required this.step,
+    this.onRemove,
     super.key,
   });
+
+  /// Set only while the pipeline is running and this step has not started, so
+  /// upcoming steps can be dropped from the run in progress.
+  final VoidCallback? onRemove;
 
   final PipelineStepView step;
   final bool isActive;
@@ -99,6 +105,13 @@ class PipelineStepRow extends StatelessWidget {
                 ),
             ],
           ).expanded(),
+          if (onRemove != null)
+            AppButton.icon(
+              leading: Icon(Icons.close_rounded, size: 14, color: colors.muted),
+              tooltip: 'Remove from this run',
+              onPressed: onRemove,
+              size: .sm,
+            ),
           Column(
             crossAxisAlignment: .end,
             spacing: 6,

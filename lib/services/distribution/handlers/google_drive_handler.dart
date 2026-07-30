@@ -1,5 +1,4 @@
 import 'package:http/http.dart' as http;
-import 'dart:io' show Directory, File;
 import 'dart:convert' show jsonEncode;
 
 import '../contracts/distribution_context.dart';
@@ -35,24 +34,19 @@ class GoogleDriveHandler implements DistributionHandler {
       return DistributionResult.skipped('OAuth client JSON is not configured.');
     }
 
-    final artifactsDir = context.snapshot.artifactsDir.trim();
-    if (artifactsDir.isEmpty) {
+    final snapshot = context.snapshot;
+    if (snapshot.collectedArtifacts.isEmpty) {
       return DistributionResult.skipped(
-        'Artifact output directory is unavailable.',
+        'No artifacts were collected in this run.',
       );
     }
 
-    if (!await _hasArtifacts(artifactsDir)) {
-      return DistributionResult.skipped('No artifact files found to upload.');
-    }
-
-    final snapshot = context.snapshot;
     DriveUploadOutcome upload;
 
     try {
       upload = await uploader.upload(
+        files: snapshot.collectedArtifacts,
         buildNumber: snapshot.buildNumber,
-        artifactsDir: artifactsDir,
         appName: snapshot.appName,
         version: snapshot.version,
         driveConfig: drive,
@@ -178,16 +172,5 @@ class GoogleDriveHandler implements DistributionHandler {
       body: payload,
       url,
     );
-  }
-
-  Future<bool> _hasArtifacts(String artifactsDir) async {
-    final dir = Directory(artifactsDir);
-    if (!await dir.exists()) return false;
-
-    await for (final entity in dir.list()) {
-      if (entity is File) return true;
-    }
-
-    return false;
   }
 }

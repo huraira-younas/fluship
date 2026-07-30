@@ -50,6 +50,7 @@ class FakeDriveUploader implements DriveUploader {
   });
 
   final DriveUploadOutcome outcome;
+  List<String>? lastFiles;
   Object? throwError;
   var uploadCalls = 0;
 
@@ -57,20 +58,25 @@ class FakeDriveUploader implements DriveUploader {
   Future<DriveUploadOutcome> upload({
     Future<void> Function(String fileName)? onFileUploaded,
     required GoogleDriveConfig driveConfig,
-    required String artifactsDir,
+    required List<String> files,
     required String buildNumber,
     required String appName,
     required String version,
   }) async {
     uploadCalls++;
+    lastFiles = files;
     if (throwError != null) throw throwError!;
     await onFileUploaded?.call('Demo.apk');
     return outcome;
   }
 }
 
-PipelineRunSnapshot _snapshot({required String artifactsDir}) {
+PipelineRunSnapshot _snapshot({
+  required String artifactsDir,
+  List<String> collected = const [],
+}) {
   return PipelineRunSnapshot(
+    collectedArtifacts: collected,
     steps: const [],
     runStatus: PipelineRunStatus.completed,
     totalElapsed: Duration.zero,
@@ -117,6 +123,10 @@ void main() {
   late FakeDriveUploader driveUploader;
   late GoogleDriveHandler handler;
   late Directory artifactsDir;
+  late String apkPath;
+
+  PipelineRunSnapshot withArtifacts() =>
+      _snapshot(artifactsDir: artifactsDir.path, collected: [apkPath]);
 
   setUp(() async {
     emailClient = FakeEmailClient();
@@ -129,7 +139,8 @@ void main() {
     artifactsDir = await Directory.systemTemp.createTemp(
       'fluship_gdrive_test_',
     );
-    await File('${artifactsDir.path}/Demo.apk').writeAsBytes([1, 2, 3]);
+    apkPath = '${artifactsDir.path}/Demo.apk';
+    await File(apkPath).writeAsBytes([1, 2, 3]);
   });
 
   tearDown(() async {
@@ -141,7 +152,7 @@ void main() {
   test('skips when drive is disabled', () async {
     final result = await handler.run(
       _context(
-        snapshot: _snapshot(artifactsDir: artifactsDir.path),
+        snapshot: withArtifacts(),
         config: const DistributionConfigModel(
           enabled: true,
           driveConfig: GoogleDriveConfig(enabled: false),
@@ -154,12 +165,27 @@ void main() {
     expect(emailClient.sendCalls, 0);
   });
 
-  test('returns failed when upload throws', () async {
-    driveUploader.throwError = Exception('auth failed');
-
+  test('skips artifacts left in the folder by an earlier run', () async {
     final result = await handler.run(
       _context(snapshot: _snapshot(artifactsDir: artifactsDir.path)),
     );
+
+    expect(result.isSkipped, isTrue);
+    expect(result.message, contains('No artifacts were collected'));
+    expect(driveUploader.uploadCalls, 0);
+    expect(emailClient.sendCalls, 0);
+  });
+
+  test('uploads exactly the artifacts collected in this run', () async {
+    await handler.run(_context(snapshot: withArtifacts()));
+
+    expect(driveUploader.lastFiles, [apkPath]);
+  });
+
+  test('returns failed when upload throws', () async {
+    driveUploader.throwError = Exception('auth failed');
+
+    final result = await handler.run(_context(snapshot: withArtifacts()));
 
     expect(result.isFailed, isTrue);
     expect(result.message, contains('auth failed'));
@@ -169,7 +195,7 @@ void main() {
   test('uploads only when email is not configured', () async {
     final result = await handler.run(
       _context(
-        snapshot: _snapshot(artifactsDir: artifactsDir.path),
+        snapshot: withArtifacts(),
         config: const DistributionConfigModel(
           enabled: true,
           driveConfig: GoogleDriveConfig(
@@ -187,9 +213,7 @@ void main() {
   });
 
   test('uploads and emails when fully configured', () async {
-    final context = _context(
-      snapshot: _snapshot(artifactsDir: artifactsDir.path),
-    );
+    final context = _context(snapshot: withArtifacts());
     final logger = context.logger as FakeDistributionLogger;
 
     final result = await handler.run(context);
@@ -205,9 +229,7 @@ void main() {
   test('returns failed when email client throws after upload', () async {
     emailClient.throwError = Exception('smtp down');
 
-    final result = await handler.run(
-      _context(snapshot: _snapshot(artifactsDir: artifactsDir.path)),
-    );
+    final result = await handler.run(_context(snapshot: withArtifacts()));
 
     expect(result.isFailed, isTrue);
     expect(result.message, contains('smtp down'));

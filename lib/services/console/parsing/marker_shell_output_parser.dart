@@ -13,11 +13,16 @@ class MarkerShellOutputParser implements IShellOutputParser {
   var _cancelled = false;
   var _inCwd = false;
 
+  /// Kept across feeds because the end marker and the cwd marker that
+  /// completes the command can arrive in separate chunks.
+  int? _exitCode;
+
   @override
   void reset() {
-    _buffer.clear();
     _inCommand = false;
     _cancelled = false;
+    _exitCode = null;
+    _buffer.clear();
     _inCwd = false;
   }
 
@@ -40,7 +45,6 @@ class MarkerShellOutputParser implements IShellOutputParser {
 
     var complete = false;
     var stdout = '';
-    int? exitCode;
     String? cwd;
 
     while (true) {
@@ -84,8 +88,8 @@ class MarkerShellOutputParser implements IShellOutputParser {
         final codeStr = lineEnd == -1
             ? rest.trim()
             : rest.substring(0, lineEnd).trim();
-        exitCode = int.tryParse(codeStr) ?? 1;
         rest = lineEnd == -1 ? '' : rest.substring(lineEnd + 1);
+        _exitCode = int.tryParse(codeStr) ?? 1;
         _inCommand = false;
         content = rest;
         continue;
@@ -111,7 +115,7 @@ class MarkerShellOutputParser implements IShellOutputParser {
     if (complete || (_cancelled && finish)) {
       return ShellParseResult(
         stdoutChunk: stdout.isEmpty ? null : stdout,
-        exitCode: exitCode ?? (_cancelled ? -1 : 0),
+        exitCode: _exitCode ?? (_cancelled ? -1 : 0),
         isCommandComplete: true,
         wasCancelled: _cancelled,
         cwd: cwd,
@@ -120,7 +124,7 @@ class MarkerShellOutputParser implements IShellOutputParser {
 
     return ShellParseResult(
       stdoutChunk: stdout.isEmpty ? null : stdout,
-      exitCode: exitCode,
+      exitCode: _exitCode,
       cwd: cwd,
     );
   }

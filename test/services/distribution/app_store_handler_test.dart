@@ -28,16 +28,12 @@ class FakeDistributionLogger implements DistributionLogger {
 }
 
 class FakeAppStoreUploader implements AppStoreUploader {
-  FakeAppStoreUploader({this.ipaPath, this.uploadedName = 'Demo.ipa'});
+  FakeAppStoreUploader({this.uploadedName = 'Demo.ipa'});
 
-  final String? ipaPath;
   final String uploadedName;
   Object? throwError;
   var uploadCalls = 0;
   String? lastIpaPath;
-
-  @override
-  Future<String?> findIpa(String artifactsDir) async => ipaPath;
 
   @override
   Future<String> upload({
@@ -52,8 +48,12 @@ class FakeAppStoreUploader implements AppStoreUploader {
   }
 }
 
-PipelineRunSnapshot _snapshot({required String artifactsDir}) {
+PipelineRunSnapshot _snapshot({
+  required String artifactsDir,
+  List<String> collected = const [],
+}) {
   return PipelineRunSnapshot(
+    collectedArtifacts: collected,
     steps: const [],
     runStatus: PipelineRunStatus.completed,
     totalElapsed: Duration.zero,
@@ -94,6 +94,7 @@ void main() {
   late FakeAppStoreUploader uploader;
   late AppStoreHandler handler;
   late Directory artifactsDir;
+  late String ipaPath;
 
   setUp(() async {
     uploader = FakeAppStoreUploader();
@@ -101,6 +102,7 @@ void main() {
     artifactsDir = await Directory.systemTemp.createTemp(
       'fluship_appstore_test_',
     );
+    ipaPath = '${artifactsDir.path}/Demo.ipa';
   });
 
   tearDown(() async {
@@ -169,10 +171,7 @@ void main() {
     expect(uploader.uploadCalls, 0);
   });
 
-  test('skips when no ipa artifact is found', () async {
-    uploader = FakeAppStoreUploader(ipaPath: null);
-    handler = AppStoreHandler(uploader: uploader);
-
+  test('skips when this run collected no ipa', () async {
     final result = await handler.run(
       _context(snapshot: _snapshot(artifactsDir: artifactsDir.path)),
     );
@@ -182,14 +181,27 @@ void main() {
     expect(uploader.uploadCalls, 0);
   });
 
-  test('uploads ipa when fully configured', () async {
-    final ipaPath = '${artifactsDir.path}/Demo.ipa';
+  test('skips an ipa left in the folder by an earlier run', () async {
     await File(ipaPath).writeAsBytes([1, 2, 3]);
-    uploader = FakeAppStoreUploader(ipaPath: ipaPath);
-    handler = AppStoreHandler(uploader: uploader);
 
     final result = await handler.run(
       _context(snapshot: _snapshot(artifactsDir: artifactsDir.path)),
+    );
+
+    expect(result.isSkipped, isTrue);
+    expect(uploader.uploadCalls, 0);
+  });
+
+  test('uploads ipa when fully configured', () async {
+    await File(ipaPath).writeAsBytes([1, 2, 3]);
+
+    final result = await handler.run(
+      _context(
+        snapshot: _snapshot(
+          artifactsDir: artifactsDir.path,
+          collected: [ipaPath],
+        ),
+      ),
     );
 
     expect(result.isSuccess, isTrue);
@@ -199,13 +211,15 @@ void main() {
   });
 
   test('returns failed when upload throws', () async {
-    final ipaPath = '${artifactsDir.path}/Demo.ipa';
-    uploader = FakeAppStoreUploader(ipaPath: ipaPath)
-      ..throwError = Exception('transporter failed');
-    handler = AppStoreHandler(uploader: uploader);
+    uploader.throwError = Exception('transporter failed');
 
     final result = await handler.run(
-      _context(snapshot: _snapshot(artifactsDir: artifactsDir.path)),
+      _context(
+        snapshot: _snapshot(
+          artifactsDir: artifactsDir.path,
+          collected: [ipaPath],
+        ),
+      ),
     );
 
     expect(result.isFailed, isTrue);

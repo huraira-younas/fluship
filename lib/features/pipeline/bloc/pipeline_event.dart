@@ -20,6 +20,16 @@ class CancelPipeline extends PipelineEvent {
   Map<String, dynamic> toJson() => {};
 }
 
+class RemovePipelineStep extends PipelineEvent {
+  const RemovePipelineStep(this.index, {super.onError, super.onSuccess})
+    : super(name: 'Remove_Pipeline_Step');
+
+  final int index;
+
+  @override
+  Map<String, dynamic> toJson() => {'index': index};
+}
+
 class DismissPipelinePanel extends PipelineEvent {
   const DismissPipelinePanel({super.onError, super.onSuccess})
     : super(name: 'Dismiss_Pipeline_Panel');

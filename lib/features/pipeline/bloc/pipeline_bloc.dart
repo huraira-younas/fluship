@@ -23,6 +23,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
        _executor = executor ?? const PipelineExecutor(),
        super(PipelineState.idle()) {
     on<DismissPipelinePanel>(handler(_onDismissPipelinePanel));
+    on<RemovePipelineStep>(handler(_onRemovePipelineStep));
     on<CancelPipeline>(handler(_onCancelPipeline));
     on<RunPipeline>(handler(_onRunPipeline));
   }
@@ -32,6 +33,11 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
   final PipelineConsolePort _consolePort;
   final PipelineLogWriter _logWriter;
   final PipelineExecutor _executor;
+
+  /// Owned by the bloc rather than the run loop so that removing a step while
+  /// the pipeline is running is not overwritten by the next step transition.
+  var _commandSteps = const <CommandStep>[];
+  final _stepViews = <PipelineStepView>[];
 
   var _cancelRequested = false;
   String? _sessionId;
@@ -81,12 +87,13 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
     var summaryMessage = 'Pipeline completed successfully.';
     var runStatus = PipelineRunStatus.completed;
-    late List<PipelineStepView> stepViews;
     final startedAt = DateTime.now();
     DistributionContext? cachedDC;
     var hadStepFailures = false;
     String? failureMessage;
     String? savedLogPath;
+
+    final artifacts = PipelineRunArtifacts(startedAt: startedAt);
 
     Future<DistributionContext> buildDistributionContext({
       required String logFilePath,
@@ -104,9 +111,10 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         emailTheme: ReportHtmlTheme.fromCurrentTheme(),
         config: configState.distribution,
         snapshot: PipelineRunSnapshot(
-          platforms: DistributionPlatforms.fromConfig(configState),
+          platforms: DistributionPlatforms.fromArtifacts(artifacts.paths),
           totalElapsed: contextFinishedAt.difference(startedAt),
-          steps: List<PipelineStepView>.of(stepViews),
+          collectedArtifacts: List<String>.of(artifacts.paths),
+          steps: List<PipelineStepView>.of(_stepViews),
           finishedAt: contextFinishedAt,
           artifactsDir: artifactsDir,
           buildNumber: buildNumber,
@@ -152,6 +160,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       contextProvider: distributionContextProvider,
       reportContextProvider: reportContextProvider,
       handlers: _distributions,
+      artifacts: artifacts,
       configState,
     );
 
@@ -170,23 +179,26 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       return;
     }
 
-    stepViews = commandSteps
-        .map(
+    _commandSteps = commandSteps;
+    _stepViews
+      ..clear()
+      ..addAll(
+        commandSteps.map(
           (step) => PipelineStepView(
             description: step.description,
             status: .pending,
             name: step.name,
           ),
-        )
-        .toList();
+        ),
+      );
 
     emit(
       PipelineState(
+        steps: List<PipelineStepView>.of(_stepViews),
         summaryMessage: 'Running pipeline…',
         activeStepIndex: null,
         startedAt: startedAt,
         runStatus: .running,
-        steps: stepViews,
       ),
     );
 
@@ -201,24 +213,27 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       if (_cancelRequested || isClosed) {
         runStatus = PipelineRunStatus.cancelled;
         summaryMessage = 'Pipeline cancelled.';
-        _markRemainingSkipped(stepViews, index);
+        _markRemainingSkipped(index, includeAlwaysRun: true);
         break;
       }
 
+      // Skipped by a cascade or removed from the panel while running.
+      if (_stepViews[index].status == .skipped) continue;
+
       final step = commandSteps[index];
-      _emitStepRunning(emit, index: index, steps: stepViews);
+      _emitStepRunning(emit, index: index);
 
       final result = step.isInternal
           ? await _runInternalStep(step)
           : await _runShellStep(step);
 
       if (_cancelRequested || result.wasCancelled) {
-        stepViews[index] = _finalizeStepTiming(
-          stepViews[index],
+        _stepViews[index] = _finalizeStepTiming(
+          _stepViews[index],
         ).copyWith(errorMessage: 'Cancelled', status: .failed);
         await _logStepTiming(
           errorMessage: 'Cancelled',
-          view: stepViews[index],
+          view: _stepViews[index],
           stepName: step.name,
           success: false,
         );
@@ -226,20 +241,20 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         summaryMessage = 'Pipeline cancelled.';
         runStatus = .cancelled;
 
-        _markRemainingSkipped(stepViews, index + 1);
-        _emitSteps(emit, steps: stepViews, activeStepIndex: null);
+        _markRemainingSkipped(index + 1, includeAlwaysRun: true);
+        _emitSteps(emit, activeStepIndex: null);
         break;
       }
 
       if (!result.success) {
         hadStepFailures = true;
-        stepViews[index] = _finalizeStepTiming(stepViews[index]).copyWith(
+        _stepViews[index] = _finalizeStepTiming(_stepViews[index]).copyWith(
           status: PipelineStepStatus.failed,
           errorMessage: result.errorMessage,
         );
         await _logStepTiming(
           errorMessage: result.errorMessage,
-          view: stepViews[index],
+          view: _stepViews[index],
           stepName: step.name,
           success: false,
         );
@@ -248,21 +263,27 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         failureMessage ??= result.errorMessage;
         runStatus = PipelineRunStatus.failed;
 
-        _emitSteps(emit, steps: stepViews, activeStepIndex: null);
+        if (step.isCritical) {
+          _markRemainingSkipped(index + 1);
+        } else {
+          _cascadeSkip(fromIndex: index + 1, blockedIds: {?step.id});
+        }
+
+        _emitSteps(emit, activeStepIndex: null);
         continue;
       }
 
-      stepViews[index] = _finalizeStepTiming(
-        stepViews[index],
-      ).copyWith(status: PipelineStepStatus.completed);
+      _stepViews[index] = _finalizeStepTiming(
+        _stepViews[index],
+      ).copyWith(status: .completed);
 
       await _logStepTiming(
-        view: stepViews[index],
+        view: _stepViews[index],
         stepName: step.name,
         success: true,
       );
 
-      _emitSteps(emit, steps: stepViews, activeStepIndex: null);
+      _emitSteps(emit, activeStepIndex: null);
     }
 
     final finishedAt = DateTime.now();
@@ -303,11 +324,11 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         error: failureMessage != null
             ? CustomState(message: failureMessage, title: 'Pipeline')
             : null,
+        steps: List<PipelineStepView>.of(_stepViews),
         summaryMessage: summaryMessage,
         clearActiveStepIndex: true,
         finishedAt: finishedAt,
         runStatus: runStatus,
-        steps: stepViews,
       ),
     );
   }
@@ -401,12 +422,30 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       );
     }
 
-    final shellResult = await _consolePort.runCommand(
-      command: step.command,
-      sessionId: sessionId,
+    final result = _mapShellResult(
+      await _consolePort.runCommand(
+        command: step.command,
+        sessionId: sessionId,
+      ),
     );
 
-    return _mapShellResult(shellResult);
+    final recovery = step.recoveryCommand;
+    if (result.success ||
+        result.wasCancelled ||
+        _cancelRequested ||
+        recovery == null) {
+      return result;
+    }
+
+    await _consolePort.logLine(
+      text: '[${step.name} failed, retrying with recovery]',
+      sessionId: sessionId,
+      stream: .system,
+    );
+
+    return _mapShellResult(
+      await _consolePort.runCommand(command: recovery, sessionId: sessionId),
+    );
   }
 
   Future<PipelineStepResult> _runInternalStep(CommandStep step) async {
@@ -454,6 +493,30 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     } catch (_) {}
   }
 
+  Future<void> _onRemovePipelineStep(
+    Emitter<PipelineState> emit,
+    RemovePipelineStep event,
+  ) async {
+    final index = event.index;
+    if (!state.isRunning || index < 0 || index >= _stepViews.length) return;
+    if (_stepViews[index].status != .pending) return;
+
+    final step = _commandSteps[index];
+    _stepViews[index] = _stepViews[index].copyWith(status: .skipped);
+    _cascadeSkip(fromIndex: index + 1, blockedIds: {?step.id});
+
+    final sessionId = _sessionId;
+    if (sessionId != null) {
+      await _consolePort.logLine(
+        text: '[${step.name} removed from this run]',
+        sessionId: sessionId,
+        stream: .system,
+      );
+    }
+
+    _emitSteps(emit, activeStepIndex: state.activeStepIndex);
+  }
+
   Future<void> _onDismissPipelinePanel(
     Emitter<PipelineState> emit,
     DismissPipelinePanel event,
@@ -473,36 +536,57 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     _sessionId = null;
   }
 
-  void _emitStepRunning(
-    Emitter<PipelineState> emit, {
-    required List<PipelineStepView> steps,
-    required int index,
-  }) {
-    steps[index] = steps[index].copyWith(
+  void _emitStepRunning(Emitter<PipelineState> emit, {required int index}) {
+    _stepViews[index] = _stepViews[index].copyWith(
       status: PipelineStepStatus.running,
       startedAt: DateTime.now(),
       clearElapsed: true,
     );
-    _emitSteps(emit, steps: steps, activeStepIndex: index);
+    _emitSteps(emit, activeStepIndex: index);
   }
 
   void _emitSteps(
     Emitter<PipelineState> emit, {
-    required List<PipelineStepView> steps,
     required int? activeStepIndex,
   }) {
     if (isClosed) return;
     emit(
       state.copyWith(
-        steps: List<PipelineStepView>.of(steps),
+        steps: List<PipelineStepView>.of(_stepViews),
         activeStepIndex: activeStepIndex,
         runStatus: .running,
       ),
     );
   }
 
-  void _markRemainingSkipped(List<PipelineStepView> steps, int fromIndex) {
+  /// Skips every pending step that depends, directly or through another
+  /// skipped step, on one of [blockedIds]. Single forward pass: each newly
+  /// skipped id joins the blocked set, so transitive edges resolve in order.
+  void _cascadeSkip({
+    required Set<PipelineStepId> blockedIds,
+    required int fromIndex,
+  }) {
+    if (blockedIds.isEmpty) return;
+
+    for (var i = fromIndex; i < _stepViews.length; i++) {
+      if (_stepViews[i].status != .pending) continue;
+
+      final step = _commandSteps[i];
+      if (step.alwaysRun || step.dependsOn.isEmpty) continue;
+      if (!step.dependsOn.any(blockedIds.contains)) continue;
+
+      _stepViews[i] = _stepViews[i].copyWith(status: .skipped);
+      if (step.id != null) blockedIds.add(step.id!);
+    }
+  }
+
+  /// [includeAlwaysRun] is set when the run stops for good, such as a cancel,
+  /// so nothing is left showing as pending. An aborting failure leaves those
+  /// steps alone because the build report still has to go out.
+  void _markRemainingSkipped(int fromIndex, {bool includeAlwaysRun = false}) {
+    final steps = _stepViews;
     for (var i = fromIndex; i < steps.length; i++) {
+      if (!includeAlwaysRun && _commandSteps[i].alwaysRun) continue;
       if (steps[i].status == .pending || steps[i].status == .running) {
         steps[i] = steps[i].copyWith(status: .skipped);
       }

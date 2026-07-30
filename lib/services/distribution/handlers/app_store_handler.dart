@@ -45,16 +45,9 @@ class AppStoreHandler implements DistributionHandler {
       );
     }
 
-    final artifactsDir = context.snapshot.artifactsDir.trim();
-    if (artifactsDir.isEmpty) {
-      return DistributionResult.skipped(
-        'Artifact output directory is unavailable.',
-      );
-    }
-
-    final ipaPath = await uploader.findIpa(artifactsDir);
+    final ipaPath = context.snapshot.artifactWithExtension('.ipa');
     if (ipaPath == null) {
-      return DistributionResult.skipped('No IPA artifact found to upload.');
+      return DistributionResult.skipped('No IPA was collected in this run.');
     }
 
     try {

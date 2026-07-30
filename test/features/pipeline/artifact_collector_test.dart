@@ -10,11 +10,13 @@ void main() {
     late Directory projectRoot;
     late Directory outputDir;
     late Directory tempDir;
+    late DateTime runStart;
 
     setUp(() async {
       tempDir = await Directory.systemTemp.createTemp('fluship_artifact_');
       projectRoot = Directory(p.join(tempDir.path, 'project'));
       outputDir = Directory(p.join(tempDir.path, 'output'));
+      runStart = DateTime.now();
       await projectRoot.create(recursive: true);
     });
 
@@ -27,10 +29,12 @@ void main() {
     Future<void> writeArtifact({
       required String relativePath,
       required String content,
+      DateTime? modified,
     }) async {
       final file = File(p.join(projectRoot.path, relativePath));
       await file.parent.create(recursive: true);
       await file.writeAsString(content);
+      if (modified != null) await file.setLastModified(modified);
     }
 
     test(
@@ -60,6 +64,7 @@ void main() {
         final copied = await collector.collectApks(
           sourceRoot: projectRoot.path,
           outputDir: outputDir.path,
+          notBefore: runStart,
         );
 
         expect(copied, hasLength(2));
@@ -92,6 +97,7 @@ void main() {
       final copied = await collector.collectAab(
         sourceRoot: projectRoot.path,
         outputDir: outputDir.path,
+        notBefore: runStart,
       );
 
       expect(copied, hasLength(1));
@@ -110,6 +116,7 @@ void main() {
       final copied = await collector.collectIpa(
         sourceRoot: projectRoot.path,
         outputDir: outputDir.path,
+        notBefore: runStart,
       );
 
       expect(copied, hasLength(1));
@@ -140,6 +147,7 @@ void main() {
       await collector.collectApks(
         sourceRoot: projectRoot.path,
         outputDir: outputDir.path,
+        notBefore: runStart,
       );
 
       expect(
@@ -153,8 +161,77 @@ void main() {
         collector.collectApks(
           sourceRoot: projectRoot.path,
           outputDir: outputDir.path,
+          notBefore: runStart,
         ),
         throwsA(isA<StateError>()),
+      );
+    });
+
+    test('throws when only artifacts from an earlier build remain', () async {
+      await writeArtifact(
+        relativePath: p.join(
+          'build',
+          'app',
+          'outputs',
+          'flutter-apk',
+          'app-arm64-v8a-release.apk',
+        ),
+        modified: runStart.subtract(const Duration(hours: 2)),
+        content: 'stale split from a previous run',
+      );
+
+      await expectLater(
+        collector.collectApks(
+          sourceRoot: projectRoot.path,
+          outputDir: outputDir.path,
+          notBefore: runStart,
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            contains('app-arm64-v8a-release.apk'),
+          ),
+        ),
+      );
+    });
+
+    test('skips leftovers and copies only what this run produced', () async {
+      await writeArtifact(
+        relativePath: p.join(
+          'build',
+          'app',
+          'outputs',
+          'flutter-apk',
+          'app-armeabi-v7a-release.apk',
+        ),
+        modified: runStart.subtract(const Duration(days: 1)),
+        content: 'stale',
+      );
+      await writeArtifact(
+        relativePath: p.join(
+          'build',
+          'app',
+          'outputs',
+          'flutter-apk',
+          'app-release.apk',
+        ),
+        content: 'fresh',
+      );
+
+      final copied = await collector.collectApks(
+        sourceRoot: projectRoot.path,
+        outputDir: outputDir.path,
+        notBefore: runStart,
+      );
+
+      expect(copied, hasLength(1));
+      expect(p.basename(copied.single), 'app-release.apk');
+      expect(
+        await File(
+          p.join(outputDir.path, 'app-armeabi-v7a-release.apk'),
+        ).exists(),
+        isFalse,
       );
     });
   });

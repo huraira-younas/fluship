@@ -2,30 +2,26 @@ import 'package:fluship/services/distribution/contracts/distribution_handler.dar
 import 'package:fluship/services/distribution/contracts/distribution_context.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 
+import '../artifacts/pipeline_run_artifacts.dart';
 import 'distribution_step_kind.dart';
 import 'step_resolvers.dart';
 import 'command_step.dart';
 
-typedef StepResolver = List<CommandStep> Function(ConfigState state);
-
 class ConfigPipelineResolver {
-  static const _resolvers = <StepResolver>[
-    //! Pipeline Steps In Order Of Execution
-    resolveAppInfo,
-    resolvePreGit,
-    resolveCommonCmd,
-    resolveAndroid,
-    resolveIos,
-    resolvePostGit,
-  ];
-
   static List<CommandStep> resolve(
     ConfigState state, {
     required Future<DistributionContext> Function() reportContextProvider,
     required Map<DistributionStepKind, DistributionHandler> handlers,
     required Future<DistributionContext> Function() contextProvider,
+    required PipelineRunArtifacts artifacts,
   }) => [
-    for (final resolver in _resolvers) ...resolver(state),
+    //! Pipeline Steps In Order Of Execution
+    ...resolveAppInfo(state),
+    ...resolvePreGit(state),
+    ...resolveCommonCmd(state),
+    ...resolveAndroid(state, artifacts: artifacts),
+    ...resolveIos(state, artifacts: artifacts),
+    ...resolvePostGit(state),
     ...resolveDistribution(
       contextProvider: contextProvider,
       handlers: handlers,

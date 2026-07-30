@@ -56,6 +56,24 @@ void main() {
 
       final done = parser.feed('__FLUSHIP_CWD_END__\n');
       expect(done.isCommandComplete, isTrue);
+      expect(done.exitCode, 1);
+    });
+
+    test('reset clears the exit code kept from the previous command', () {
+      parser.feed(
+        '__FLUSHIP_BEGIN__\n__FLUSHIP_END__:1\n'
+        '__FLUSHIP_CWD__\n/project\n__FLUSHIP_CWD_END__\n',
+      );
+
+      parser.reset();
+
+      final result = parser.feed(
+        '__FLUSHIP_BEGIN__\n__FLUSHIP_END__:0\n'
+        '__FLUSHIP_CWD__\n/project\n__FLUSHIP_CWD_END__\n',
+      );
+
+      expect(result.isCommandComplete, isTrue);
+      expect(result.exitCode, 0);
     });
 
     test('streams stdout before end marker arrives', () {

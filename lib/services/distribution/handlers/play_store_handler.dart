@@ -31,16 +31,9 @@ class PlayStoreHandler implements DistributionHandler {
       return DistributionResult.skipped('Package name is not configured.');
     }
 
-    final artifactsDir = context.snapshot.artifactsDir.trim();
-    if (artifactsDir.isEmpty) {
-      return DistributionResult.skipped(
-        'Artifact output directory is unavailable.',
-      );
-    }
-
-    final aabPath = await uploader.findAab(artifactsDir);
+    final aabPath = context.snapshot.artifactWithExtension('.aab');
     if (aabPath == null) {
-      return DistributionResult.skipped('No AAB artifact found to upload.');
+      return DistributionResult.skipped('No AAB was collected in this run.');
     }
 
     try {

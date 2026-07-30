@@ -1,7 +1,7 @@
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:path/path.dart' as p;
-import 'dart:io' show Directory, File;
+import 'dart:io' show File;
 
 import 'drive_upload_outcome.dart';
 import 'drive_auth.dart';
@@ -11,7 +11,7 @@ abstract interface class DriveUploader {
   Future<DriveUploadOutcome> upload({
     Future<void> Function(String fileName)? onFileUploaded,
     required GoogleDriveConfig driveConfig,
-    required String artifactsDir,
+    required List<String> files,
     required String buildNumber,
     required String appName,
     required String version,
@@ -29,7 +29,7 @@ class GoogleDriveUploader implements DriveUploader {
   Future<DriveUploadOutcome> upload({
     Future<void> Function(String fileName)? onFileUploaded,
     required GoogleDriveConfig driveConfig,
-    required String artifactsDir,
+    required List<String> files,
     required String buildNumber,
     required String appName,
     required String version,
@@ -39,9 +39,9 @@ class GoogleDriveUploader implements DriveUploader {
       throw StateError('OAuth client JSON path is missing.');
     }
 
-    final files = await _listArtifactFiles(artifactsDir);
-    if (files.isEmpty) {
-      throw StateError('No artifact files found in $artifactsDir.');
+    final uploads = await _sortedExistingFiles(files);
+    if (uploads.isEmpty) {
+      throw StateError('None of this run\'s artifacts exist on disk.');
     }
 
     final client = await _authFactory.createClient(
@@ -73,7 +73,7 @@ class GoogleDriveUploader implements DriveUploader {
       }
 
       final uploadedNames = <String>[];
-      for (final file in files) {
+      for (final file in uploads) {
         final name = p.basename(file.path);
         await onFileUploaded?.call(name);
 
@@ -107,13 +107,11 @@ class GoogleDriveUploader implements DriveUploader {
     }
   }
 
-  Future<List<File>> _listArtifactFiles(String artifactsDir) async {
-    final dir = Directory(artifactsDir);
-    if (!await dir.exists()) return const [];
-
+  Future<List<File>> _sortedExistingFiles(List<String> paths) async {
     final files = <File>[];
-    await for (final entity in dir.list()) {
-      if (entity is File) files.add(entity);
+    for (final path in paths) {
+      final file = File(path);
+      if (await file.exists()) files.add(file);
     }
 
     files.sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));

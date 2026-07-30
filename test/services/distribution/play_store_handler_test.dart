@@ -28,17 +28,13 @@ class FakeDistributionLogger implements DistributionLogger {
 }
 
 class FakePlayStoreUploader implements PlayStoreUploader {
-  FakePlayStoreUploader({this.aabPath, this.uploadedName = 'Demo.aab'});
+  FakePlayStoreUploader({this.uploadedName = 'Demo.aab'});
 
   final String uploadedName;
   String? lastReleaseNotes;
-  final String? aabPath;
   var uploadCalls = 0;
   String? lastAabPath;
   Object? throwError;
-
-  @override
-  Future<String?> findAab(String artifactsDir) async => aabPath;
 
   @override
   Future<String> upload({
@@ -57,8 +53,12 @@ class FakePlayStoreUploader implements PlayStoreUploader {
   }
 }
 
-PipelineRunSnapshot _snapshot({required String artifactsDir}) {
+PipelineRunSnapshot _snapshot({
+  required String artifactsDir,
+  List<String> collected = const [],
+}) {
   return PipelineRunSnapshot(
+    collectedArtifacts: collected,
     steps: const [],
     runStatus: PipelineRunStatus.completed,
     totalElapsed: Duration.zero,
@@ -98,6 +98,7 @@ void main() {
   late FakePlayStoreUploader uploader;
   late PlayStoreHandler handler;
   late Directory artifactsDir;
+  late String aabPath;
 
   setUp(() async {
     uploader = FakePlayStoreUploader();
@@ -105,6 +106,7 @@ void main() {
     artifactsDir = await Directory.systemTemp.createTemp(
       'fluship_playstore_test_',
     );
+    aabPath = '${artifactsDir.path}/Demo.aab';
   });
 
   tearDown(() async {
@@ -151,14 +153,14 @@ void main() {
   });
 
   test('skips when package name is missing', () async {
-    final aabPath = '${artifactsDir.path}/Demo.aab';
     await File(aabPath).writeAsBytes([1, 2, 3]);
-    uploader = FakePlayStoreUploader(aabPath: aabPath);
-    handler = PlayStoreHandler(uploader: uploader);
 
     final result = await handler.run(
       _context(
-        snapshot: _snapshot(artifactsDir: artifactsDir.path),
+        snapshot: _snapshot(
+          artifactsDir: artifactsDir.path,
+          collected: [aabPath],
+        ),
         config: const DistributionConfigModel(
           enabled: true,
           playstore: GooglePlayConsoleConfig(
@@ -174,10 +176,7 @@ void main() {
     expect(uploader.uploadCalls, 0);
   });
 
-  test('skips when no aab artifact is found', () async {
-    uploader = FakePlayStoreUploader(aabPath: null);
-    handler = PlayStoreHandler(uploader: uploader);
-
+  test('skips when this run collected no aab', () async {
     final result = await handler.run(
       _context(snapshot: _snapshot(artifactsDir: artifactsDir.path)),
     );
@@ -187,14 +186,27 @@ void main() {
     expect(uploader.uploadCalls, 0);
   });
 
-  test('uploads aab when fully configured', () async {
-    final aabPath = '${artifactsDir.path}/Demo.aab';
+  test('skips an aab left in the folder by an earlier run', () async {
     await File(aabPath).writeAsBytes([1, 2, 3]);
-    uploader = FakePlayStoreUploader(aabPath: aabPath);
-    handler = PlayStoreHandler(uploader: uploader);
 
     final result = await handler.run(
       _context(snapshot: _snapshot(artifactsDir: artifactsDir.path)),
+    );
+
+    expect(result.isSkipped, isTrue);
+    expect(uploader.uploadCalls, 0);
+  });
+
+  test('uploads aab when fully configured', () async {
+    await File(aabPath).writeAsBytes([1, 2, 3]);
+
+    final result = await handler.run(
+      _context(
+        snapshot: _snapshot(
+          artifactsDir: artifactsDir.path,
+          collected: [aabPath],
+        ),
+      ),
     );
 
     expect(result.isSuccess, isTrue);
@@ -204,14 +216,14 @@ void main() {
   });
 
   test('passes release notes to uploader when configured', () async {
-    final aabPath = '${artifactsDir.path}/Demo.aab';
     await File(aabPath).writeAsBytes([1, 2, 3]);
-    uploader = FakePlayStoreUploader(aabPath: aabPath);
-    handler = PlayStoreHandler(uploader: uploader);
 
     final result = await handler.run(
       _context(
-        snapshot: _snapshot(artifactsDir: artifactsDir.path),
+        snapshot: _snapshot(
+          artifactsDir: artifactsDir.path,
+          collected: [aabPath],
+        ),
         config: const DistributionConfigModel(
           enabled: true,
           releaseNotes: 'Bug fixes and performance improvements.',
@@ -232,14 +244,14 @@ void main() {
   });
 
   test('passes null release notes when empty', () async {
-    final aabPath = '${artifactsDir.path}/Demo.aab';
     await File(aabPath).writeAsBytes([1, 2, 3]);
-    uploader = FakePlayStoreUploader(aabPath: aabPath);
-    handler = PlayStoreHandler(uploader: uploader);
 
     await handler.run(
       _context(
-        snapshot: _snapshot(artifactsDir: artifactsDir.path),
+        snapshot: _snapshot(
+          artifactsDir: artifactsDir.path,
+          collected: [aabPath],
+        ),
         config: const DistributionConfigModel(
           enabled: true,
           releaseNotes: '   ',
@@ -256,13 +268,15 @@ void main() {
   });
 
   test('returns failed when upload throws', () async {
-    final aabPath = '${artifactsDir.path}/Demo.aab';
-    uploader = FakePlayStoreUploader(aabPath: aabPath)
-      ..throwError = Exception('play api failed');
-    handler = PlayStoreHandler(uploader: uploader);
+    uploader.throwError = Exception('play api failed');
 
     final result = await handler.run(
-      _context(snapshot: _snapshot(artifactsDir: artifactsDir.path)),
+      _context(
+        snapshot: _snapshot(
+          artifactsDir: artifactsDir.path,
+          collected: [aabPath],
+        ),
+      ),
     );
 
     expect(result.isFailed, isTrue);
