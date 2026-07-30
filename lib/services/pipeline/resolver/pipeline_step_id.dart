@@ -8,8 +8,8 @@ enum PipelineStepId {
   pubUpgrade,
   preCommit,
   prePull,
-  clean,
   pubGet,
+  clean,
 
   collectAab,
   collectApk,
