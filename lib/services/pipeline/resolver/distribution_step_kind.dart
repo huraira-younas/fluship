@@ -29,11 +29,11 @@ enum DistributionStepKind {
   final String command;
 
   /// Steps that must have produced an artifact for this upload to make sense.
-  /// Drive and the report have no edge because they self skip when the run
-  /// collected nothing.
+  /// The report has no edge because it has to go out even for a failed run.
   Set<PipelineStepId> get dependsOn => switch (this) {
     .playStore => const {.collectAab},
     .appStore => const {.collectIpa},
-    .drive || .report => const {},
+    .drive => const {.collectApk},
+    .report => const {},
   };
 }

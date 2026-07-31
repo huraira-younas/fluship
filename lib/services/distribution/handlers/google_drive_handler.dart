@@ -34,18 +34,18 @@ class GoogleDriveHandler implements DistributionHandler {
       return DistributionResult.skipped('OAuth client JSON is not configured.');
     }
 
+    // Drive is the QA channel, and only an APK is installable from a link.
     final snapshot = context.snapshot;
-    if (snapshot.collectedArtifacts.isEmpty) {
-      return DistributionResult.skipped(
-        'No artifacts were collected in this run.',
-      );
+    final apks = snapshot.artifactsWithExtension('.apk');
+    if (apks.isEmpty) {
+      return DistributionResult.skipped('No APK was collected in this run.');
     }
 
     DriveUploadOutcome upload;
 
     try {
       upload = await uploader.upload(
-        files: snapshot.collectedArtifacts,
+        files: apks,
         buildNumber: snapshot.buildNumber,
         appName: snapshot.appName,
         version: snapshot.version,
@@ -142,12 +142,6 @@ class GoogleDriveHandler implements DistributionHandler {
     final snapshot = context.snapshot;
     final config = context.config;
 
-    final hasAndroid = upload.fileNames.any(
-      (f) => f.endsWith('.aab') || f.endsWith('.apk'),
-    );
-    final hasIos = upload.fileNames.any((f) => f.endsWith('.ipa'));
-    final platform = [if (hasAndroid) 'Android', if (hasIos) 'iOS'].join(', ');
-
     final submittedTo = [
       if (config.canSendToPlayStore && config.playstore?.distribution != null)
         'PlayStore',
@@ -161,7 +155,7 @@ class GoogleDriveHandler implements DistributionHandler {
     final url = Uri.parse(slack.webhookUrl!);
     final payload = jsonEncode({
       'version': '${snapshot.version}+${snapshot.buildNumber}',
-      'platform': platform.isEmpty ? 'unknown' : platform,
+      'platform': snapshot.platforms,
       'artifacts': upload.link,
       'app': snapshot.appName,
       'status': status,

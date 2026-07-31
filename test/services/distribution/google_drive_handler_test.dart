@@ -171,15 +171,48 @@ void main() {
     );
 
     expect(result.isSkipped, isTrue);
-    expect(result.message, contains('No artifacts were collected'));
+    expect(result.message, contains('No APK'));
     expect(driveUploader.uploadCalls, 0);
     expect(emailClient.sendCalls, 0);
   });
 
-  test('uploads exactly the artifacts collected in this run', () async {
-    await handler.run(_context(snapshot: withArtifacts()));
+  test('skips when the run collected an app bundle but no apk', () async {
+    final aabPath = '${artifactsDir.path}/Demo.aab';
+    await File(aabPath).writeAsBytes([1, 2, 3]);
 
-    expect(driveUploader.lastFiles, [apkPath]);
+    final result = await handler.run(
+      _context(
+        snapshot: _snapshot(
+          artifactsDir: artifactsDir.path,
+          collected: [aabPath],
+        ),
+      ),
+    );
+
+    expect(result.isSkipped, isTrue);
+    expect(result.message, contains('No APK'));
+    expect(driveUploader.uploadCalls, 0);
+    expect(emailClient.sendCalls, 0);
+  });
+
+  test('uploads only the apks out of everything collected', () async {
+    final aabPath = '${artifactsDir.path}/Demo.aab';
+    final ipaPath = '${artifactsDir.path}/Demo.ipa';
+    final splitApkPath = '${artifactsDir.path}/Demo-arm64-v8a.apk';
+    for (final path in [aabPath, ipaPath, splitApkPath]) {
+      await File(path).writeAsBytes([1, 2, 3]);
+    }
+
+    await handler.run(
+      _context(
+        snapshot: _snapshot(
+          artifactsDir: artifactsDir.path,
+          collected: [aabPath, apkPath, ipaPath, splitApkPath],
+        ),
+      ),
+    );
+
+    expect(driveUploader.lastFiles, [splitApkPath, apkPath]);
   });
 
   test('returns failed when upload throws', () async {

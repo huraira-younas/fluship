@@ -36,14 +36,13 @@ class PipelineRunSnapshot extends Equatable {
 
   bool get success => runStatus == .completed;
 
-  String? artifactWithExtension(String extension) {
-    final matches = [
-      for (final path in collectedArtifacts)
-        if (path.endsWith(extension)) path,
-    ]..sort();
+  List<String> artifactsWithExtension(String extension) => [
+    for (final path in collectedArtifacts)
+      if (path.endsWith(extension)) path,
+  ]..sort();
 
-    return matches.isEmpty ? null : matches.first;
-  }
+  String? artifactWithExtension(String extension) =>
+      artifactsWithExtension(extension).firstOrNull;
 
   @override
   List<Object?> get props => [
