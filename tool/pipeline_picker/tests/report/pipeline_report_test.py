@@ -86,7 +86,101 @@ class PipelineReportTest(unittest.TestCase):
         self.assertIn("IBM Plex Sans", page)
         self.assertNotIn("\u2014", page)
         self.assertNotIn("00:00 +1: some_test.dart", page)
-        self.assertLess(page.count("<li class='job'>"), 8)
+        self.assertEqual(page.count('<li class="job">'), 4)
+
+    def test_summary_names_the_failing_job(self) -> None:
+        model = {
+            "rows": [
+                {"id": "clean", "name": "Clean", "status": "DONE", "duration": "2s"},
+                {
+                    "id": "buildSplits",
+                    "name": "Build split APKs",
+                    "status": "FAIL",
+                    "duration": "2m26s",
+                },
+            ],
+            "done": 1,
+            "failed": 1,
+            "skipped": 0,
+            "total": "2m 28s",
+        }
+        summary = report.build_summary(model)
+        self.assertEqual(
+            summary["headline"],
+            "1 of 2 jobs finished. Build split APKs failed after 2m26s.",
+        )
+        self.assertIn("Slowest was Build split APKs", summary["detail"])
+        self.assertEqual(
+            summary["next_step"],
+            report.NEXT_STEPS["buildSplits"],
+        )
+
+    def test_summary_when_everything_passed(self) -> None:
+        model = {
+            "rows": [
+                {"id": "clean", "name": "Clean", "status": "DONE", "duration": "2s"},
+            ],
+            "done": 1,
+            "failed": 0,
+            "skipped": 0,
+            "total": "2s",
+        }
+        summary = report.build_summary(model)
+        self.assertEqual(summary["headline"], "All 1 jobs finished.")
+        self.assertEqual(summary["next_step"], "")
+
+    def test_summary_with_no_jobs(self) -> None:
+        summary = report.build_summary(
+            {"rows": [], "done": 0, "failed": 0, "skipped": 0, "total": "-"}
+        )
+        self.assertEqual(summary["headline"], "No jobs ran.")
+        self.assertEqual(summary["next_step"], "")
+
+    def test_slowest_jobs_are_ranked_and_scaled(self) -> None:
+        rows = [
+            {"name": "A", "duration": "10s"},
+            {"name": "B", "duration": "2m"},
+            {"name": "C", "duration": ""},
+            {"name": "D", "duration": "1m"},
+            {"name": "E", "duration": "1s"},
+        ]
+        slow = report.slowest_jobs(rows)
+        self.assertEqual([item["name"] for item in slow], ["B", "D", "A"])
+        self.assertEqual(slow[0]["percent"], 100)
+        self.assertEqual(slow[1]["percent"], 50)
+        self.assertEqual(report.slowest_jobs([]), [])
+
+    def test_report_has_two_pages(self) -> None:
+        args = report.parse_args(
+            ["--app", "Reelstay", "--steps", "Clean:ok:1s,BuildAab:fail:3m"]
+        )
+        page = report.render_html(report.build_model(args))
+        self.assertEqual(page.count('<section class="page'), 2)
+        self.assertIn('<section class="page first">', page)
+        self.assertIn("page-break-after: always", page)
+        self.assertIn("Job detail", page)
+        self.assertIn("Next step", page)
+        self.assertIn("Where the time went", page)
+
+    def test_build_banner_stays_inside_the_failing_job(self) -> None:
+        blocks = report.parse_log_blocks(
+            "===== buildSplits =====\n"
+            "$ flutter build apk --split-per-abi\n"
+            "====== BUILD FAILED ======\n"
+            "Gradle task assembleRelease failed with exit code 1\n"
+            "=====\n"
+            "exit: 1\n"
+        )
+        self.assertEqual(list(blocks), ["buildSplits"])
+        notes = report._clean_lines(blocks["buildSplits"]["lines"])
+        self.assertEqual(
+            notes,
+            [
+                "BUILD FAILED",
+                "Gradle task assembleRelease failed with exit code 1",
+            ],
+        )
+        self.assertEqual(blocks["buildSplits"]["exit"], "1")
 
     def test_titles_come_from_catalog(self) -> None:
         titles = report.load_titles()

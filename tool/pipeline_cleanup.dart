@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'pipeline_picker/host/cleanup.dart';
+import 'pipeline_picker/host/host_actions.dart';
 import 'pipeline_picker/io_helpers.dart';
 import 'pipeline_picker/progress/progress_state.dart';
 
@@ -26,6 +27,8 @@ Future<void> main(List<String> args) async {
       projectPath: parsed.project,
     );
     deleteIfExists(pathJoin(agentDir, 'last-drive.json'));
+    deleteIfExists(pathJoin(agentDir, 'whatsapp.lock'));
+    resetProgressForRun(pathJoin(agentDir, 'progress.json'));
     stdout.writeln('Prepared $pidsPath');
     return;
   }
@@ -64,13 +67,24 @@ Future<void> main(List<String> args) async {
 
   if (parsed.dryRun) return;
 
-  final killed = await killPids(plan.pidsToKill);
-  writeProgressIdle(pathJoin(agentDir, 'progress.json'));
-  saveTrackedPids(path: pidsPath, pids: const [], projectPath: project);
-  if (parsed.closePicker) {
-    deleteIfExists(lockPath);
+  // The bookkeeping has to happen even if a process refuses to die, otherwise
+  // the heartbeat keeps pinging and the next run starts from a stale state.
+  try {
+    final killed = await killPids(plan.pidsToKill);
+    stdout.writeln('Killed ${killed.length} process(es).');
+    final survivors = plan.pidsToKill.where(pidAlive).toList();
+    if (survivors.isNotEmpty) {
+      stderr.writeln('Still alive after cleanup: ${survivors.join(', ')}');
+    }
+  } finally {
+    writeProgressIdle(pathJoin(agentDir, 'progress.json'));
+    // A killed sender cannot release its own lock.
+    deleteIfExists(pathJoin(agentDir, 'whatsapp.lock'));
+    saveTrackedPids(path: pidsPath, pids: const [], projectPath: project);
+    if (parsed.closePicker) {
+      deleteIfExists(lockPath);
+    }
   }
-  stdout.writeln('Killed ${killed.length} process(es).');
 }
 
 const _help = '''
@@ -104,29 +118,13 @@ class _Args {
 }
 
 _Args _parse(List<String> args) {
-  String? workspace;
-  var project = '';
-  var prepare = false;
-  int? trackPid;
-  var closePicker = false;
-  var dryRun = false;
-  for (var i = 0; i < args.length; i++) {
-    final arg = args[i];
-    if (arg == '--prepare') prepare = true;
-    if (arg == '--close-picker') closePicker = true;
-    if (arg == '--dry-run') dryRun = true;
-    if (arg == '--workspace' && i + 1 < args.length) workspace = args[++i];
-    if (arg == '--project' && i + 1 < args.length) project = args[++i];
-    if (arg == '--track' && i + 1 < args.length) {
-      trackPid = int.tryParse(args[++i]);
-    }
-  }
+  final flags = parseCliFlags(args);
   return _Args(
-    workspace: workspace,
-    project: project,
-    prepare: prepare,
-    trackPid: trackPid,
-    closePicker: closePicker,
-    dryRun: dryRun,
+    workspace: flags['workspace'],
+    project: flagString(flags, 'project'),
+    prepare: flags.containsKey('prepare'),
+    trackPid: int.tryParse(flagString(flags, 'track')),
+    closePicker: flags.containsKey('close-picker'),
+    dryRun: flags.containsKey('dry-run'),
   );
 }

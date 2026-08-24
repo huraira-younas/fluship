@@ -9,7 +9,7 @@ Follow this file for run pipeline, ship, or build AAB / APK / IPA. Do not change
 - Do not start jobs before the picker exits 0. Do not add extra ids the user did not submit.
 - Ask for host permissions first. Do not start a long step while Allow is pending. Every shell command in the run uses full host permissions (`required_permissions: ["all"]`).
 - Logs are mandatory. Create the run folder and `logs.txt` before the first job. Also write `.fluship-agent/progress.json` before the first job.
-- After every job, print the progress board in chat (NOW / DONE / WAIT / FAIL / SKIP). Never batch. Never wait until the end. Update `progress.json` with the same board command.
+- After every job (ok, fail, skip), run the board command and paste that stdout in chat before the next job. The user must see NOW / DONE / WAIT / FAIL / SKIP. Never hide the board in tool output only. Never batch. Never wait until the end. A long job gets a board when it starts (NOW) and again when it ends. Update `progress.json` with the same board command.
 - Do not commit, push, upload stores, email, or run power unless that id was selected. Power needs a second confirm after the picker.
 - Do not swallow git failures. Critical ids abort later jobs: `bumpVersion`, `clean`, `pubGet`, `pubUpgrade`. Then offer fix and continue.
 - After Dart edits in this repo: `dart format .` and `flutter analyze`.
@@ -52,7 +52,7 @@ dart tool/pipeline_cleanup.dart --prepare --project {targetProjectPath}
 dart tool/pipeline_progress.dart --selected id1,id2 --current id2 --done id1 --results id1=ok --times id1=0.3s --app NAME --version VER --build NUM --progress .fluship-agent/progress.json --log {logFilePath}
 ```
 
-Paste stdout as-is. After each build PID: `dart tool/pipeline_cleanup.dart --track {pid} --project {targetProjectPath}`.
+Paste stdout as-is in the chat message. Do not start the next id until that board is in chat. After each build PID: `dart tool/pipeline_cleanup.dart --track {pid} --project {targetProjectPath}`.
 
 If `whatsappShare` is selected and the cache number is valid, start the heartbeat after logs exist, then track its PID:
 
@@ -107,7 +107,7 @@ Mutex: `pubGet`/`pubUpgrade`, `buildApk`/`buildSplits`, `distPlayProduction`/`di
 | id | Action |
 | --- | --- |
 | `bumpVersion` | Set `pubspec.yaml` to `{version}+{buildNumber}`. Critical. |
-| `preCommit` | `git add . && git commit -m "{msg}"`. Fallback `{version} cleanup`. |
+| `preCommit` | `git add . && git commit -m "{msg}"`. Fallback `{version} cleanup`. If git says nothing to commit, mark ok. |
 | `prePull` | `git pull origin {branch}`. |
 | `clean` | `flutter clean`. Critical. |
 | `pubGet` | `flutter pub get`. Critical. |
@@ -123,7 +123,7 @@ Mutex: `pubGet`/`pubUpgrade`, `buildApk`/`buildSplits`, `distPlayProduction`/`di
 | `podInstall` | `cd ios && pod install --repo-update`. macOS. On error: delete `ios/Podfile.lock` and retry. |
 | `buildIpa` | `flutter build ipa`. macOS. |
 | `collectIpa` | Copy this run's `*.ipa` from `build/ios/ipa/`. macOS. |
-| `postCommit` | `git add . && git commit -m "{msg}"`. Fallback `{version} release`. |
+| `postCommit` | `git add . && git commit -m "{msg}"`. Fallback `{version} release`. If git says nothing to commit, mark ok. |
 | `postPush` | `git push origin {branch}`. Never force-push. |
 | `distPlayProduction` | `dart run tool/dist_play.dart --aab {aab} --track production --progress .fluship-agent/progress.json`. Ask once for Play secrets if missing. |
 | `distPlayInternal` | `dart run tool/dist_play.dart --aab {aab} --track internal --progress .fluship-agent/progress.json`. Same secrets as production. |

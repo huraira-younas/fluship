@@ -13,7 +13,7 @@ Future<bool> writeHtmlReportPdf({
   String excerpt = '',
   List<String> files = const [],
 }) async {
-  final py = resolvePipelineReportPy();
+  final py = resolveToolScript('pipeline_report.py');
   if (py == null) return false;
   final htmlPath = pdfPath.replaceAll(RegExp(r'\.pdf$'), '.html');
   final result = await Process.run('python3', [
@@ -45,5 +45,3 @@ Future<bool> writeHtmlReportPdf({
       File(pdfPath).existsSync() &&
       File(pdfPath).lengthSync() >= 64;
 }
-
-String? resolvePipelineReportPy() => resolveToolScript('pipeline_report.py');

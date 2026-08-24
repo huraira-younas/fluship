@@ -94,6 +94,78 @@ class WhatsAppSendTest(unittest.TestCase):
         self.assertIn("clear", host.calls)
         self.assertIn("paste", host.calls)
 
+    def test_waits_five_seconds_after_open(self) -> None:
+        sleeps: list[float] = []
+        host = FakeHost()
+        with tempfile.TemporaryDirectory() as folder:
+            pdf = Path(folder) / "pipeline-report.pdf"
+            pdf.write_bytes(b"%PDF-1.4")
+            wa.share(
+                host,
+                "+923096547269",
+                "hi",
+                [str(pdf)],
+                sleep=sleeps.append,
+            )
+        self.assertEqual(sleeps[0], wa.CHAT_OPEN_SECONDS)
+        self.assertEqual(sleeps[0], 5.0)
+        self.assertLess(host.calls.index("open_chat"), host.calls.index("activate"))
+        self.assertLess(host.calls.index("activate"), host.calls.index("clear"))
+
+        text_sleeps: list[float] = []
+        text_host = FakeHost()
+        wa.share_text(
+            text_host,
+            "+923096547269",
+            "Fluship still running",
+            sleep=text_sleeps.append,
+        )
+        self.assertEqual(text_sleeps[0], 5.0)
+        self.assertLess(
+            text_host.calls.index("open_chat"),
+            text_host.calls.index("clear"),
+        )
+
+    def test_send_is_pressed_twice(self) -> None:
+        host = FakeHost()
+        sleeps: list[float] = []
+        result = wa.share_text(
+            host,
+            "+923096547269",
+            "Fluship still running",
+            sleep=sleeps.append,
+        )
+        self.assertEqual(result, "sent")
+        self.assertEqual(host.calls.count("send"), 2)
+        self.assertEqual(sleeps[-2:], [wa.SEND_SECONDS, wa.SEND_RETRY_SECONDS])
+
+    def test_no_send_never_presses_enter(self) -> None:
+        host = FakeHost()
+        result = wa.share_text(
+            host,
+            "+923096547269",
+            "Fluship still running",
+            send=False,
+            sleep=lambda _: None,
+        )
+        self.assertEqual(result, "attached")
+        self.assertNotIn("send", host.calls)
+
+    def test_delays_are_positive_and_ordered(self) -> None:
+        for name in (
+            "CHAT_OPEN_SECONDS",
+            "FOCUS_SECONDS",
+            "CLEAR_SECONDS",
+            "FILE_PASTE_SECONDS",
+            "CAPTION_PASTE_SECONDS",
+            "SEND_SECONDS",
+            "SEND_RETRY_SECONDS",
+            "KEY_GAP_SECONDS",
+        ):
+            self.assertGreater(getattr(wa, name), 0, name)
+        self.assertGreaterEqual(wa.CHAT_OPEN_SECONDS, 5.0)
+        self.assertGreater(wa.FILE_PASTE_SECONDS, wa.CAPTION_PASTE_SECONDS)
+
     def test_text_only_sends_caption_without_files(self) -> None:
         host = FakeHost()
         result = wa.share(

@@ -15,7 +15,7 @@ Future<void> main(List<String> args) async {
 Future<void> _run(Map<String, String> parsed) async {
   final agent = loadAgentJson(parsed);
   final files = resolveApks(
-    explicit: splitFiles(parsed['files'] ?? ''),
+    explicit: csvValues(parsed['files'] ?? ''),
     outputDir: parsed['output-dir'] ?? '',
   );
   final failure = driveValidation(
@@ -29,7 +29,9 @@ Future<void> _run(Map<String, String> parsed) async {
     return;
   }
 
-  final progressPath = parsed['progress'] ?? '';
+  final progressPath = parsed.containsKey('progress')
+      ? resolveAgentPath(parsed['progress'], 'progress.json')
+      : '';
   final gate = ProgressWriteGate();
   var fileIndex = 1;
   final fileCount = files.length;
@@ -65,7 +67,7 @@ Future<void> _run(Map<String, String> parsed) async {
   );
 
   writeLastDrive(
-    path: parsed['last-drive'] ?? '.fluship-agent/last-drive.json',
+    path: resolveAgentPath(parsed['last-drive'], 'last-drive.json'),
     link: outcome.link,
     fileNames: outcome.fileNames,
   );

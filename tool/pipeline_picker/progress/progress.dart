@@ -56,6 +56,8 @@ String formatStepLines(String raw) {
   ].join('\n');
 }
 
+const _maxNameWidth = 34;
+
 String formatProgressBoard({
   required List<String> selected,
   required List<String> done,
@@ -67,6 +69,8 @@ String formatProgressBoard({
   String buildNumber = '',
   String uploadLabel = '',
   String note = '',
+  String runElapsed = '',
+  int maxRows = 0,
 }) {
   final title = _boardTitle(
     appName: appName,
@@ -74,44 +78,99 @@ String formatProgressBoard({
     buildNumber: buildNumber,
   );
   if (selected.isEmpty) {
-    return '$title\n${_rule()}\n  No jobs selected.\n${_rule()}';
+    final rule = _rule(24);
+    return '$title\n$rule\n  No jobs selected.\n$rule';
   }
 
   final doneSet = {for (final id in done) normalizeStepId(id)};
   final now = current == null || current.isEmpty
       ? ''
       : normalizeStepId(current);
-  final rows = <String>[];
+  final cells = <_BoardRow>[];
   var finished = 0;
-  var index = 1;
+  var nowIndex = -1;
   for (final raw in selected) {
     final id = normalizeStepId(raw);
     final isNow = now == id;
     final isDone = doneSet.contains(id);
     if (isDone && !isNow) finished += 1;
-    final mark = boardState(
-      isNow: isNow,
-      isDone: isDone,
-      result: results[id] ?? '',
+    if (isNow) nowIndex = cells.length;
+    cells.add(
+      _BoardRow(
+        index: cells.length + 1,
+        mark: boardState(
+          isNow: isNow,
+          isDone: isDone,
+          result: results[id] ?? '',
+        ),
+        name: _fit(humanStepName(id), _maxNameWidth),
+        time: times[id] ?? '',
+      ),
     );
-    final time = times[id] ?? '';
-    final name = _fit(humanStepName(id), 34);
-    final line = StringBuffer('  ${index.toString().padLeft(2)}  $mark  $name');
-    if (time.isNotEmpty) line.write('  $time');
-    rows.add(line.toString());
-    index += 1;
   }
 
+  final shown = _window(cells, nowIndex: nowIndex, maxRows: maxRows);
+  final nameWidth = shown.fold(
+    0,
+    (w, row) => row.name.length > w ? row.name.length : w,
+  );
+  final timeWidth = shown.fold(
+    0,
+    (w, row) => row.time.length > w ? row.time.length : w,
+  );
+  final rows = [for (final row in shown) row.render(nameWidth, timeWidth)];
+  final width = rows.fold(0, (w, row) => row.length > w ? row.length : w);
+  final hidden = cells.length - shown.length;
+
   final nowName = now.isEmpty ? '-' : humanStepName(now);
+  final footer = [
+    '$finished/${cells.length} done',
+    if (runElapsed.trim().isNotEmpty) 'run ${runElapsed.trim()}',
+    'now: $nowName',
+  ].join('   ');
   return [
     title,
-    _rule(),
+    _rule(width),
     ...rows,
-    _rule(),
-    '  $finished/${selected.length} done    now: $nowName',
+    if (hidden > 0) '  +$hidden more',
+    _rule(width),
+    '  $footer',
     if (uploadLabel.trim().isNotEmpty) '  upload: ${uploadLabel.trim()}',
     if (note.trim().isNotEmpty) '  note: ${note.trim()}',
   ].join('\n');
+}
+
+class _BoardRow {
+  const _BoardRow({
+    required this.index,
+    required this.mark,
+    required this.name,
+    required this.time,
+  });
+
+  final int index;
+  final String mark;
+  final String name;
+  final String time;
+
+  String render(int nameWidth, int timeWidth) {
+    final head = '  ${index.toString().padLeft(2)}  $mark  ';
+    if (timeWidth == 0 || time.isEmpty) return '$head$name'.trimRight();
+    return '$head${name.padRight(nameWidth)}  ${time.padLeft(timeWidth)}';
+  }
+}
+
+/// Keeps the board short enough for a chat message while always showing the
+/// current job. `maxRows` of 0 or less shows everything.
+List<_BoardRow> _window(
+  List<_BoardRow> rows, {
+  required int nowIndex,
+  required int maxRows,
+}) {
+  if (maxRows <= 0 || rows.length <= maxRows) return rows;
+  final wanted = nowIndex < 0 ? maxRows : nowIndex + 2;
+  final end = wanted.clamp(maxRows, rows.length);
+  return rows.sublist(end - maxRows, end);
 }
 
 String boardState({
@@ -158,7 +217,7 @@ String _boardTitle({
   return bits.join('  ');
 }
 
-String _rule() => '  ----------------------------------------------';
+String _rule(int width) => '  ${'-' * (width < 4 ? 4 : width - 2)}';
 
 String _fit(String text, int width) {
   if (text.length <= width) return text.padRight(width);

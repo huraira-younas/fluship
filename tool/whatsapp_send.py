@@ -20,6 +20,26 @@ from pathlib import Path
 from typing import Callable, Protocol
 from urllib.parse import quote
 
+def _seconds(name: str, default: float) -> float:
+    """Timings are tunable without a code edit. Bad values fall back."""
+    try:
+        value = float(os.environ.get(name, "").strip())
+    except ValueError:
+        return default
+    return value if value >= 0 else default
+
+
+# Chat keeps loading after the URI, even when WhatsApp is already open.
+CHAT_OPEN_SECONDS = _seconds("FLUSHIP_WA_CHAT_OPEN", 5.0)
+FOCUS_SECONDS = _seconds("FLUSHIP_WA_FOCUS", 0.8)
+CLEAR_SECONDS = _seconds("FLUSHIP_WA_CLEAR", 0.4)
+FILE_PASTE_SECONDS = _seconds("FLUSHIP_WA_FILE_PASTE", 3.5)
+CAPTION_PASTE_SECONDS = _seconds("FLUSHIP_WA_CAPTION_PASTE", 1.2)
+SEND_SECONDS = _seconds("FLUSHIP_WA_SEND", 1.5)
+SEND_RETRY_SECONDS = _seconds("FLUSHIP_WA_SEND_RETRY", 1.2)
+# Keystrokes land in the wrong order when they are posted back to back.
+KEY_GAP_SECONDS = _seconds("FLUSHIP_WA_KEY_GAP", 0.08)
+
 
 def digits_only(raw: str) -> str:
     return "".join(ch for ch in raw if ch.isdigit())
@@ -90,6 +110,42 @@ class BaseHost:
         return open_uri(desktop_chat_uri(phone))
 
 
+def wait_for_open_chat(host: Host, sleep: Callable[[float], None]) -> None:
+    sleep(CHAT_OPEN_SECONDS)
+    host.activate()
+    sleep(FOCUS_SECONDS)
+
+
+def open_and_paste(
+    host: Host,
+    phone: str,
+    settle: float,
+    sleep: Callable[[float], None],
+) -> str:
+    """Returns an empty string on success, otherwise the failure code."""
+    if not host.open_chat(phone):
+        return "no-whatsapp"
+    wait_for_open_chat(host, sleep)
+    host.clear_composer()
+    sleep(CLEAR_SECONDS)
+    if not host.paste():
+        return "failed"
+    sleep(settle)
+    return ""
+
+
+def press_send_twice(host: Host, sleep: Callable[[float], None]) -> bool:
+    """A stuck modifier turns Enter into a newline instead of a send. WhatsApp
+    ignores Enter on an empty composer, so the second press only ever helps.
+    """
+    if not host.press_send():
+        return False
+    sleep(SEND_SECONDS)
+    host.press_send()
+    sleep(SEND_RETRY_SECONDS)
+    return True
+
+
 def share_text(
     host: Host,
     number: str,
@@ -105,22 +161,12 @@ def share_text(
         return "no-text"
     if not host.copy_text(text):
         return "failed"
-    if not host.open_chat(phone):
-        return "no-whatsapp"
-    sleep(2.8)
-    host.activate()
-    sleep(0.8)
-    host.clear_composer()
-    sleep(0.2)
-    if not host.paste():
-        return "failed"
-    sleep(0.7)
-    if send:
-        if not host.press_send():
-            return "failed"
-        sleep(0.9)
-        return "sent"
-    return "attached"
+    failure = open_and_paste(host, phone, CAPTION_PASTE_SECONDS, sleep)
+    if failure:
+        return failure
+    if not send:
+        return "attached"
+    return "sent" if press_send_twice(host, sleep) else "failed"
 
 
 def share(
@@ -142,30 +188,20 @@ def share(
         return "no-files"
     if not host.copy_files(paths):
         return "failed"
-    if not host.open_chat(phone):
-        return "no-whatsapp"
-    sleep(2.8)
-    host.activate()
-    sleep(0.8)
-    host.clear_composer()
-    sleep(0.2)
-    if not host.paste():
-        return "failed"
-    sleep(2.8)
+    failure = open_and_paste(host, phone, FILE_PASTE_SECONDS, sleep)
+    if failure:
+        return failure
     if caption.strip():
         if not host.copy_text(caption):
             return "failed"
         host.activate()
-        sleep(0.25)
+        sleep(FOCUS_SECONDS)
         if not host.paste():
             return "failed"
-        sleep(0.7)
-    if send:
-        if not host.press_send():
-            return "failed"
-        sleep(0.9)
-        return "sent"
-    return "attached"
+        sleep(CAPTION_PASTE_SECONDS)
+    if not send:
+        return "attached"
+    return "sent" if press_send_twice(host, sleep) else "failed"
 
 
 class MacHost(BaseHost):
@@ -189,6 +225,7 @@ class MacHost(BaseHost):
         return _mac_hotkey(9, command=True)
 
     def press_send(self) -> bool:
+        # Plain Return. Any leaked Shift turns this into a newline.
         return _mac_hotkey(36)
 
 
@@ -285,27 +322,46 @@ def _mac_copy_files(paths: list[str]) -> bool:
         return False
 
 
+_CG_COMMAND_FLAG = 0x100000
+_CG_SOURCE_PRIVATE_STATE = 1
+_CG_SESSION_TAP = 0
+_CG_CACHE: tuple | None = None
+
+
+def _core_graphics():
+    global _CG_CACHE
+    if _CG_CACHE is not None:
+        return _CG_CACHE
+    cg = ctypes.cdll.LoadLibrary(
+        "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics"
+    )
+    cg.CGEventSourceCreate.restype = ctypes.c_void_p
+    cg.CGEventSourceCreate.argtypes = [ctypes.c_uint32]
+    cg.CGEventCreateKeyboardEvent.restype = ctypes.c_void_p
+    cg.CGEventCreateKeyboardEvent.argtypes = [
+        ctypes.c_void_p,
+        ctypes.c_uint16,
+        ctypes.c_bool,
+    ]
+    cg.CGEventSetFlags.argtypes = [ctypes.c_void_p, ctypes.c_uint64]
+    cg.CGEventPost.argtypes = [ctypes.c_uint32, ctypes.c_void_p]
+    # A private source plus explicit flags keeps every event from inheriting
+    # whatever modifier the user or an earlier hotkey left held down.
+    _CG_CACHE = (cg, cg.CGEventSourceCreate(_CG_SOURCE_PRIVATE_STATE))
+    return _CG_CACHE
+
+
 def _mac_hotkey(key_code: int, command: bool = False) -> bool:
     try:
-        cg = ctypes.cdll.LoadLibrary(
-            "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics"
-        )
-        cg.CGEventCreateKeyboardEvent.restype = ctypes.c_void_p
-        cg.CGEventCreateKeyboardEvent.argtypes = [
-            ctypes.c_void_p,
-            ctypes.c_uint16,
-            ctypes.c_bool,
-        ]
-        cg.CGEventSetFlags.argtypes = [ctypes.c_void_p, ctypes.c_uint64]
-        cg.CGEventPost.argtypes = [ctypes.c_uint32, ctypes.c_void_p]
-        flags = 0x100000 if command else 0
-        down = cg.CGEventCreateKeyboardEvent(None, key_code, True)
-        up = cg.CGEventCreateKeyboardEvent(None, key_code, False)
-        if flags:
-            cg.CGEventSetFlags(down, flags)
-            cg.CGEventSetFlags(up, flags)
-        cg.CGEventPost(0, down)
-        cg.CGEventPost(0, up)
+        cg, source = _core_graphics()
+        flags = _CG_COMMAND_FLAG if command else 0
+        for pressed in (True, False):
+            event = cg.CGEventCreateKeyboardEvent(source, key_code, pressed)
+            if not event:
+                return False
+            cg.CGEventSetFlags(event, flags)
+            cg.CGEventPost(_CG_SESSION_TAP, event)
+            time.sleep(KEY_GAP_SECONDS)
         return True
     except OSError:
         return False

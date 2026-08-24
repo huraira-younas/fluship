@@ -5,15 +5,17 @@ import 'package:mailer/mailer.dart' as mailer;
 import 'package:mailer/smtp_server/gmail.dart';
 import 'package:path/path.dart' as p;
 
+import 'pipeline_picker/io_helpers.dart';
+
 Future<void> main(List<String> args) async {
-  final parsed = _parseArgs(args);
+  final parsed = parseCliFlags(args);
   if (parsed.containsKey('help')) {
     stdout.writeln(_usage);
     return;
   }
 
-  final secretsPath = parsed['secrets'] ?? '.fluship-agent/secrets.json';
-  final cachePath = parsed['cache'] ?? '.fluship-agent/pipeline-cache.json';
+  final secretsPath = resolveAgentPath(parsed['secrets'], 'secrets.json');
+  final cachePath = resolveAgentPath(parsed['cache'], 'pipeline-cache.json');
   final secrets = await _readJson(secretsPath);
   final cache = await _readJson(cachePath);
 
@@ -122,31 +124,6 @@ Options:
 
 Do not pass the Gmail app password on the command line.
 ''';
-
-Map<String, String> _parseArgs(List<String> args) {
-  final result = <String, String>{};
-  for (var i = 0; i < args.length; i++) {
-    final arg = args[i];
-    if (arg == '--help' || arg == '-h') {
-      result['help'] = 'true';
-      continue;
-    }
-    if (!arg.startsWith('--')) continue;
-
-    final key = arg.substring(2);
-    final eq = key.indexOf('=');
-    if (eq >= 0) {
-      result[key.substring(0, eq)] = key.substring(eq + 1);
-      continue;
-    }
-    if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
-      result[key] = args[++i];
-    } else {
-      result[key] = 'true';
-    }
-  }
-  return result;
-}
 
 Future<Map<String, dynamic>> _readJson(String path) async {
   final file = File(path);

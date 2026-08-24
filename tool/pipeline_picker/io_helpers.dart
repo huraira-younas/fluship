@@ -130,6 +130,103 @@ String asString(Object? value, [String fallback = '']) {
   return text.isEmpty ? fallback : text;
 }
 
+/// Parses `--key value`, `--key=value`, and bare `--flag` (which becomes
+/// `'true'`). A value that starts with `--` is treated as the next flag, so a
+/// missing value can never swallow one. Repeated `--file` values are joined
+/// with newlines under `files`.
+Map<String, String> parseCliFlags(List<String> args) {
+  final result = <String, String>{};
+  final files = <String>[];
+  for (var i = 0; i < args.length; i++) {
+    final arg = args[i];
+    if (arg == '--help' || arg == '-h') {
+      result['help'] = 'true';
+      continue;
+    }
+    if (!arg.startsWith('--')) continue;
+    final key = arg.substring(2);
+    final eq = key.indexOf('=');
+    if (eq >= 0) {
+      result[key.substring(0, eq)] = key.substring(eq + 1);
+      continue;
+    }
+    if (i + 1 >= args.length || args[i + 1].startsWith('--')) {
+      result[key] = 'true';
+      continue;
+    }
+    final value = args[++i];
+    if (key == 'file' || key == 'files') {
+      files.add(value);
+    } else {
+      result[key] = value;
+    }
+  }
+  if (files.isNotEmpty) result['files'] = files.join('\n');
+  return result;
+}
+
+String flagString(
+  Map<String, String> flags,
+  String key, [
+  String fallback = '',
+]) {
+  final value = flags[key]?.trim() ?? '';
+  return value.isEmpty ? fallback : value;
+}
+
+bool flagBool(Map<String, String> flags, String key, {bool fallback = false}) {
+  final value = flags[key]?.trim().toLowerCase();
+  if (value == null || value.isEmpty) return fallback;
+  return value != 'false' && value != '0' && value != 'no';
+}
+
+int flagInt(
+  Map<String, String> flags,
+  String key,
+  int fallback, {
+  int min = 0,
+}) {
+  final parsed = int.tryParse(flags[key]?.trim() ?? '') ?? fallback;
+  return parsed < min ? min : parsed;
+}
+
+List<String> csvValues(String raw) {
+  return [
+    for (final part in raw.split(RegExp(r'[\n,]')))
+      if (part.trim().isNotEmpty) part.trim(),
+  ];
+}
+
+/// The repo root, found from the running script instead of the process cwd.
+String workspaceRoot() {
+  final cached = _workspaceRoot;
+  if (cached != null) return cached;
+  var dir = File.fromUri(Platform.script).absolute.parent;
+  for (var i = 0; i < 8; i++) {
+    if (dirExists(pathJoin(dir.path, 'tool')) &&
+        fileExists(pathJoin(dir.path, 'pubspec.yaml'))) {
+      return _workspaceRoot = dir.path;
+    }
+    final parent = dir.parent;
+    if (parent.path == dir.path) break;
+    dir = parent;
+  }
+  return _workspaceRoot = Directory.current.path;
+}
+
+String? _workspaceRoot;
+
+/// Anchors `.fluship-agent` files to the workspace. A wrong cwd would otherwise
+/// read an empty cache or write a second, stray agent folder.
+String resolveAgentPath(String? value, String fallbackName) {
+  final raw = value?.trim() ?? '';
+  if (raw.isEmpty) {
+    return pathJoin(workspaceRoot(), '.fluship-agent', fallbackName);
+  }
+  if (File(raw).isAbsolute) return raw;
+  return pathJoin(workspaceRoot(), raw);
+}
+
 String? resolveToolScript(String name) {
   var dir = File.fromUri(Platform.script).absolute.parent;
   for (var i = 0; i < 8; i++) {

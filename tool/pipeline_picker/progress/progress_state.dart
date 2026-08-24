@@ -208,6 +208,14 @@ void writeProgressIdle(String path) {
   saveProgressState(path, markProgressIdle(current));
 }
 
+/// Clears the board before a run starts. A board update only replaces `done`,
+/// `results`, and `times` when the new value is non-empty, so without this the
+/// first board of a run shows the previous run's rows and run clock.
+void resetProgressForRun(String path) {
+  if (path.trim().isEmpty) return;
+  saveProgressState(path, const PipelineProgressState(idle: true));
+}
+
 String formatElapsed(Duration duration) {
   final secs = duration.inSeconds;
   if (secs < 0) return '0s';

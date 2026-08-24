@@ -160,62 +160,19 @@ class _Args {
 }
 
 _Args _parse(List<String> args) {
-  String logPath = '';
-  String outputDir = '';
-  String project = '';
-  String number = defaultWhatsAppNumber;
-  String appName = 'App';
-  String version = '';
-  String buildNumber = '';
-  var success = true;
-  String steps = '';
-  String errorExcerpt = '';
-  var dryRun = false;
-  var send = true;
-
-  for (var i = 0; i < args.length; i++) {
-    final arg = args[i];
-    String next() => i + 1 < args.length ? args[++i] : '';
-    switch (arg) {
-      case '--log':
-        logPath = next();
-      case '--output-dir':
-        outputDir = next();
-      case '--project':
-        project = next();
-      case '--number':
-        number = next();
-      case '--app-name':
-        appName = next();
-      case '--version':
-        version = next();
-      case '--build-number':
-        buildNumber = next();
-      case '--success':
-        success = next() != 'false';
-      case '--steps':
-        steps = next();
-      case '--error':
-        errorExcerpt = next();
-      case '--dry-run':
-        dryRun = true;
-      case '--no-send':
-        send = false;
-    }
-  }
-
+  final flags = parseCliFlags(args);
   return _Args(
-    logPath: logPath,
-    outputDir: outputDir,
-    project: project,
-    number: number,
-    appName: appName,
-    version: version,
-    buildNumber: buildNumber,
-    success: success,
-    steps: steps,
-    errorExcerpt: errorExcerpt,
-    dryRun: dryRun,
-    send: send,
+    logPath: flagString(flags, 'log'),
+    outputDir: flagString(flags, 'output-dir'),
+    project: flagString(flags, 'project'),
+    number: flagString(flags, 'number', defaultWhatsAppNumber),
+    appName: flagString(flags, 'app-name', 'App'),
+    version: flagString(flags, 'version'),
+    buildNumber: flagString(flags, 'build-number'),
+    success: flagBool(flags, 'success', fallback: true),
+    steps: flagString(flags, 'steps'),
+    errorExcerpt: flagString(flags, 'error'),
+    dryRun: flags.containsKey('dry-run'),
+    send: !flags.containsKey('no-send'),
   );
 }

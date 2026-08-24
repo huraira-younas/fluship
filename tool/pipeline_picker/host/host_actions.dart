@@ -24,23 +24,6 @@ Future<void> revealOutput(String path) async {
   await Process.run('xdg-open', [folder]);
 }
 
-Future<void> openBrowser(String url) async {
-  if (Platform.isMacOS) {
-    await Process.start('open', [url], mode: ProcessStartMode.detached);
-    return;
-  }
-  if (Platform.isWindows) {
-    await Process.start('cmd', [
-      '/c',
-      'start',
-      '',
-      url,
-    ], mode: ProcessStartMode.detached);
-    return;
-  }
-  await Process.start('xdg-open', [url], mode: ProcessStartMode.detached);
-}
-
 Future<String?> browseFolder() async {
   try {
     if (Platform.isMacOS) {

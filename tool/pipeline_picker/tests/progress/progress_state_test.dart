@@ -59,6 +59,37 @@ void main() {
     _check(cleared.now == 'slackNotify', 'new current');
     _check(cleared.upload == null, 'clear upload on step change');
 
+    // A new run must not inherit the previous run's rows or run clock.
+    saveProgressState(
+      path,
+      PipelineProgressState(
+        app: 'Reelstay',
+        now: 'buildSplits',
+        selected: const ['clean', 'buildSplits'],
+        done: const ['clean'],
+        results: const {'clean': 'ok', 'buildSplits': 'fail'},
+        times: const {'clean': '1.2s'},
+        runStartedAt: started,
+      ),
+    );
+    resetProgressForRun(path);
+    final fresh = loadProgressState(path);
+    _check(fresh.done.isEmpty, 'reset done');
+    _check(fresh.results.isEmpty, 'reset results');
+    _check(fresh.times.isEmpty, 'reset times');
+    _check(fresh.selected.isEmpty, 'reset selected');
+    _check(fresh.runStartedAt == null, 'reset run clock');
+    _check(fresh.now.isEmpty, 'reset now');
+
+    final firstBoard = applyBoardUpdate(
+      existing: fresh,
+      now: started.add(const Duration(hours: 3)),
+      selected: const ['clean', 'buildAab'],
+      current: 'clean',
+    );
+    _check(firstBoard.results.isEmpty, 'first board has no stale results');
+    _check(firstBoard.elapsedRun == '0s', 'first board run clock starts now');
+
     _check(formatElapsed(const Duration(seconds: 9)) == '9s', 'seconds');
     _check(formatElapsed(const Duration(seconds: 125)) == '2m5s', 'minutes');
     _check(uploadGateChanges(), 'gate');

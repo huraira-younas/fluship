@@ -11,7 +11,7 @@ Future<void> main(List<String> args) async {
 
 Future<void> _run(Map<String, String> parsed) async {
   final agent = loadAgentJson(parsed);
-  final lastDrive = parsed['last-drive'] ?? '.fluship-agent/last-drive.json';
+  final lastDrive = resolveAgentPath(parsed['last-drive'], 'last-drive.json');
   final link = (parsed['link'] ?? readLastDriveLink(lastDrive)).trim();
   final failure = slackValidation(
     webhookUrl: secretString(agent.secrets, 'slackWebhookUrl'),

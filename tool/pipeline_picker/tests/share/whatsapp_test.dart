@@ -3,7 +3,7 @@ import 'dart:io';
 import '../../io_helpers.dart';
 import '../../share/whatsapp.dart';
 
-void main() {
+Future<void> main() async {
   _check(isValidWhatsAppNumber(defaultWhatsAppNumber), 'default valid');
   _check(whatsappPhone(defaultWhatsAppNumber) == '923096547269', 'digits');
   _check(isValidWhatsAppNumber('03001234567'), 'local 11');
@@ -58,19 +58,62 @@ void main() {
     fileNameOf('/tmp/pipeline-report.pdf') == 'pipeline-report.pdf',
     'name',
   );
-  _check(resolveWhatsAppSendPy() != null, 'python sender');
-  final sender = File(resolveWhatsAppSendPy()!).readAsStringSync();
+  final senderPath = resolveToolScript('whatsapp_send.py');
+  _check(senderPath != null, 'python sender');
+  final sender = File(senderPath!).readAsStringSync();
   _check(sender.contains('NSFilenamesPboardType'), 'finder file list');
   _check(!sender.contains('osascript'), 'no applescript');
   _check(sender.contains('desktop_chat_uri'), 'phone-only uri');
   _check(sender.contains('def share_text'), 'text-only ping');
   _check(sender.contains('text-only'), 'text-only flag');
+  // The send key must never inherit a stuck modifier, or Enter adds a newline.
+  _check(sender.contains('CGEventSetFlags(event, flags)'), 'explicit flags');
+  _check(sender.contains('CGEventSourceCreate'), 'private event source');
+  _check(sender.contains('press_send_twice'), 'send retry');
   _check(
     errorExcerptFromLog('ok\nGradle failed.\n') == 'Gradle failed.',
     'excerpt',
   );
 
+  await _checkUiLock();
+
   stdout.writeln('whatsapp tests: ok');
+}
+
+/// Two senders must never paste into the same composer at once.
+Future<void> _checkUiLock() async {
+  final root = Directory.systemTemp.createTempSync('fluship-wa-lock-');
+  try {
+    final path = pathJoin(root.path, 'whatsapp.lock');
+    final first = await acquireWhatsAppUiLock(path: path, wait: Duration.zero);
+    _check(first.held, 'lock acquired');
+
+    // A live foreign owner must block a second sender.
+    final other = await Process.start('sleep', ['30']);
+    final stamp = DateTime.now().toIso8601String();
+    File(path).writeAsStringSync('${other.pid}\n$stamp');
+    final blocked = await acquireWhatsAppUiLock(
+      path: path,
+      wait: Duration.zero,
+    );
+    _check(!blocked.held, 'live owner blocks');
+    other.kill();
+
+    // A dead owner must never wedge the pipeline.
+    File(path).writeAsStringSync('999999\n${DateTime.now().toIso8601String()}');
+    final stolen = await acquireWhatsAppUiLock(path: path, wait: Duration.zero);
+    _check(stolen.held, 'dead owner is ignored');
+
+    stolen.release();
+    _check(!File(path).existsSync(), 'release clears the lock');
+
+    // A sender that never held it must not delete someone else's lock.
+    File(path).writeAsStringSync('4242\n$stamp');
+    WhatsAppUiLock(path: path, held: false).release();
+    _check(File(path).existsSync(), 'release only clears our own lock');
+  } finally {
+    root.deleteSync(recursive: true);
+  }
 }
 
 void _check(bool ok, String message) {

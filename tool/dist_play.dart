@@ -35,7 +35,9 @@ Future<void> _run(Map<String, String> parsed) async {
 
   final notes = parsed['notes'] ?? asString(agent.cache['releaseNotes']);
   final gate = ProgressWriteGate();
-  final progressPath = parsed['progress'] ?? '';
+  final progressPath = parsed.containsKey('progress')
+      ? resolveAgentPath(parsed['progress'], 'progress.json')
+      : '';
   final id = track == 'internal' ? 'distPlayInternal' : 'distPlayProduction';
 
   final uploaded = await const GooglePlayPublisherUploader().upload(

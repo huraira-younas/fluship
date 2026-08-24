@@ -54,7 +54,9 @@ Future<void> main(List<String> args) async {
   if (existing != null) {
     final url = asString(existing['url']);
     if (url.isNotEmpty) {
-      await _announcePicker(agentDir, url, open: parsed.openBrowser);
+      // A picker is already on screen. Print where it is, never open a second
+      // tab, per the one-tab rule in AGENTS.md.
+      await _announcePicker(agentDir, url, open: false);
     }
     exit(_waitForResult(resultPath, asInt(existing['pid']) ?? 0));
   }
@@ -101,28 +103,11 @@ class _Args {
 }
 
 _Args _parseArgs(List<String> args) {
-  String? workspace;
-  var timeoutSeconds = 600;
-  var openBrowser = true;
-  for (var i = 0; i < args.length; i++) {
-    final arg = args[i];
-    if (arg == '--no-browser') {
-      openBrowser = false;
-      continue;
-    }
-    if (arg == '--workspace' && i + 1 < args.length) {
-      workspace = args[++i];
-      continue;
-    }
-    if (arg == '--timeout-seconds' && i + 1 < args.length) {
-      timeoutSeconds = int.tryParse(args[++i]) ?? timeoutSeconds;
-      continue;
-    }
-  }
+  final flags = parseCliFlags(args);
   return _Args(
-    workspace: workspace,
-    timeoutSeconds: timeoutSeconds,
-    openBrowser: openBrowser,
+    workspace: flags['workspace'],
+    timeoutSeconds: flagInt(flags, 'timeout-seconds', 600, min: 1),
+    openBrowser: !flags.containsKey('no-browser'),
   );
 }
 

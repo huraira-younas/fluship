@@ -57,6 +57,45 @@ void main() {
     'board em-dash',
   );
 
+  final framed = formatProgressBoard(
+    selected: const ['bumpVersion', 'buildSplits'],
+    done: const ['bumpVersion'],
+    current: 'buildSplits',
+    times: const {'bumpVersion': '0.6s'},
+    runElapsed: '2m30s',
+  );
+  final frameLines = framed.split('\n');
+  final rules = [
+    for (final line in frameLines)
+      if (line.trim().startsWith('---')) line,
+  ];
+  _check(rules.length == 2, 'two rules');
+  final widest = frameLines.fold(0, (w, l) => l.length > w ? l.length : w);
+  _check(rules.first.length == widest, 'rule spans the widest row');
+  _check(rules.first == rules.last, 'rules match');
+  _check(framed.contains('run 2m30s'), 'run elapsed');
+  _check(framed.contains('1/2 done   run 2m30s   now:'), 'footer order');
+
+  final wide = formatProgressBoard(
+    selected: const ['bumpVersion', 'buildSplits'],
+    done: const ['bumpVersion', 'buildSplits'],
+    current: '',
+    times: const {'bumpVersion': '0.6s', 'buildSplits': '2m26s'},
+  );
+  _check(wide.contains('  0.6s'), 'short time is right aligned');
+  _check(wide.contains(' 2m26s'), 'long time sets the column');
+
+  final capped = formatProgressBoard(
+    selected: const ['bumpVersion', 'clean', 'pubGet', 'format', 'analyze'],
+    done: const ['bumpVersion', 'clean', 'pubGet'],
+    current: 'format',
+    maxRows: 3,
+  );
+  _check(capped.contains('+2 more'), 'hidden count');
+  _check(RegExp(r'NOW\s+Format Dart').hasMatch(capped), 'window keeps now');
+  _check(!capped.contains('Set app version'), 'oldest row dropped');
+  _check(capped.contains('3/5 done'), 'count stays full');
+
   stdout.writeln('progress tests: ok');
 }
 

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'pipeline_picker/io_helpers.dart';
 import 'pipeline_picker/progress/heartbeat.dart';
 import 'pipeline_picker/progress/progress_state.dart';
 import 'pipeline_picker/share/whatsapp.dart';
@@ -36,19 +37,27 @@ Future<void> main(List<String> args) async {
     );
     if (!decision.shouldPing) return;
     clock = clock.withSending(true);
+    var attempted = true;
     try {
       final result = await sendWhatsAppText(
         number: parsed.number,
         text: decision.message,
       );
+      // Another sender owns the composer. Retry on the next poll rather than
+      // spending the whole interval on a ping that never left.
+      attempted = result != 'busy';
       stdout.writeln('Heartbeat: $result');
-      if (result != 'sent' && result != 'attached') {
+      if (attempted && result != 'sent' && result != 'attached') {
         stderr.writeln('Heartbeat ping failed: $result');
       }
     } catch (error) {
       stderr.writeln('Heartbeat ping failed: $error');
     } finally {
-      clock = clock.markedPing(now).withSending(false);
+      // Stamp after the send, not before. The WhatsApp UI work takes seconds,
+      // and counting it inside the interval makes the next ping fire early.
+      clock = attempted
+          ? clock.markedPing(DateTime.now().toUtc()).withSending(false)
+          : clock.withSending(false);
     }
   }
 
@@ -87,33 +96,13 @@ class _Args {
 }
 
 _Args _parse(List<String> args) {
-  var progress = '.fluship-agent/progress.json';
-  var number = '';
-  var intervalSeconds = 120;
-  var pollSeconds = 5;
-  var once = false;
-  for (var i = 0; i < args.length; i++) {
-    final arg = args[i];
-    if (arg == '--once') once = true;
-    if (arg == '--progress' && i + 1 < args.length) progress = args[++i];
-    if (arg == '--number' && i + 1 < args.length) number = args[++i];
-    if (arg == '--interval-seconds' && i + 1 < args.length) {
-      intervalSeconds = clampSeconds(int.tryParse(args[++i]), intervalSeconds);
-    }
-    if (arg == '--poll-seconds' && i + 1 < args.length) {
-      pollSeconds = clampSeconds(int.tryParse(args[++i]), pollSeconds);
-    }
-  }
+  final flags = parseCliFlags(args);
   return _Args(
-    progress: progress,
-    number: number,
-    intervalSeconds: intervalSeconds,
-    pollSeconds: pollSeconds,
-    once: once,
+    progress: resolveAgentPath(flags['progress'], 'progress.json'),
+    number: flagString(flags, 'number'),
+    intervalSeconds: flagInt(flags, 'interval-seconds', 120, min: 1),
+    // Tight poll so the first ping lands within seconds of the 2 minute mark.
+    pollSeconds: flagInt(flags, 'poll-seconds', 2, min: 1),
+    once: flags.containsKey('once'),
   );
-}
-
-int clampSeconds(int? value, int fallback) {
-  final n = value ?? fallback;
-  return n < 1 ? 1 : n;
 }

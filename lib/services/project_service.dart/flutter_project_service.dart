@@ -15,6 +15,11 @@ class FlutterProjectException implements Exception {
   String toString() => message;
 }
 
+final _launcherImagePath = RegExp(
+  r'^\s*image_path(?:_android|_ios)?\s*:\s*(.+)$',
+  multiLine: true,
+);
+
 class FlutterProjectService {
   const FlutterProjectService({PubspecParser? parser})
     : _parser = parser ?? const PubspecParser();
@@ -198,6 +203,9 @@ class FlutterProjectService {
   }
 
   Future<String?> resolveAppIconPath(String projectPath) async {
+    final configured = await _launcherIconPath(projectPath);
+    if (configured != null) return configured;
+
     final candidates = [
       p.join(projectPath, 'assets', 'icons', 'app_icon.png'),
       p.join(projectPath, 'assets', 'icon', 'app_icon.png'),
@@ -228,6 +236,25 @@ class FlutterProjectService {
     }
 
     return null;
+  }
+
+  /// The `image_path` under `flutter_launcher_icons` in pubspec.yaml. The app
+  /// author picked that icon, so it beats any guessed path.
+  Future<String?> _launcherIconPath(String projectPath) async {
+    final pubspec = File(p.join(projectPath, 'pubspec.yaml'));
+    if (!await pubspec.exists()) return null;
+
+    final match = _launcherImagePath.firstMatch(await pubspec.readAsString());
+    final raw = match?.group(1)?.trim();
+    if (raw == null || raw.isEmpty) return null;
+
+    final cleaned = raw.replaceAll(RegExp(r'''^["']|["']$'''), '');
+    if (cleaned.isEmpty) return null;
+
+    final resolved = p.normalize(
+      p.isAbsolute(cleaned) ? cleaned : p.join(projectPath, cleaned),
+    );
+    return await File(resolved).exists() ? resolved : null;
   }
 
   static String _formatPubspecName(String name) => name

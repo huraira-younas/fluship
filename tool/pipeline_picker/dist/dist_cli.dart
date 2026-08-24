@@ -10,63 +10,23 @@ class DistCliFailure {
   final String message;
 }
 
-Map<String, String> parseFlagArgs(List<String> args) {
-  final result = <String, String>{};
-  final files = <String>[];
-  for (var i = 0; i < args.length; i++) {
-    final arg = args[i];
-    if (arg == '--help' || arg == '-h') {
-      result['help'] = 'true';
-      continue;
-    }
-    if (!arg.startsWith('--')) continue;
-    final key = arg.substring(2);
-    final eq = key.indexOf('=');
-    if (eq >= 0) {
-      result[key.substring(0, eq)] = key.substring(eq + 1);
-      continue;
-    }
-    if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
-      final value = args[++i];
-      if (key == 'file' || key == 'files') {
-        files.add(value);
-      } else {
-        result[key] = value;
-      }
-    } else {
-      result[key] = 'true';
-    }
-  }
-  if (files.isNotEmpty) result['files'] = files.join('\n');
-  return result;
-}
-
-List<String> splitFiles(String raw) {
-  return [
-    for (final part in raw.split(RegExp(r'[\n,]')))
-      if (part.trim().isNotEmpty) part.trim(),
-  ];
-}
-
-Map<String, dynamic> readJsonMap(String path) => readJsonFile(path);
-
 ({Map<String, dynamic> secrets, Map<String, dynamic> cache}) loadAgentJson(
   Map<String, String> parsed,
 ) {
   return (
-    secrets: readJsonMap(parsed['secrets'] ?? '.fluship-agent/secrets.json'),
-    cache: readJsonMap(parsed['cache'] ?? '.fluship-agent/pipeline-cache.json'),
+    secrets: readJsonFile(resolveAgentPath(parsed['secrets'], 'secrets.json')),
+    cache: readJsonFile(
+      resolveAgentPath(parsed['cache'], 'pipeline-cache.json'),
+    ),
   );
 }
-
-int clampAtLeast(int value, int min) => value < min ? min : value;
 
 Future<void> runDistMain({
   required List<String> args,
   required String usage,
   required Future<void> Function(Map<String, String> parsed) run,
 }) async {
-  final parsed = parseFlagArgs(args);
+  final parsed = parseCliFlags(args);
   if (parsed.containsKey('help')) {
     stdout.writeln(usage);
     return;

@@ -145,6 +145,10 @@ HeartbeatDecision decideHeartbeat({
   );
 }
 
+/// WhatsApp renders a triple backtick block as monospace, so the board columns
+/// line up in the chat exactly like they do in the agent chat.
+const heartbeatBoardRows = 25;
+
 String formatHeartbeatMessage({
   required PipelineProgressState state,
   required Duration jobElapsed,
@@ -157,12 +161,27 @@ String formatHeartbeatMessage({
       : ' v${state.version}+${state.buildNumber}';
   final app = state.app.isEmpty ? 'Fluship' : state.app;
   final step = state.now.isEmpty ? '-' : humanStepName(state.now);
-  final upload = state.upload?.label ?? '';
+  final board = formatProgressBoard(
+    selected: state.selected,
+    done: state.done,
+    current: state.now,
+    results: state.results,
+    times: state.times,
+    appName: app,
+    version: state.version,
+    buildNumber: state.buildNumber,
+    uploadLabel: state.upload?.label ?? '',
+    note: state.note,
+    runElapsed: runElapsed == null ? '' : formatElapsed(runElapsed),
+    maxRows: heartbeatBoardRows,
+  );
   return [
     'Fluship: $app$version still running.',
+    '```',
+    // A note carrying its own fence would end the block early and leak the
+    // rest of the board as plain text.
+    board.replaceAll('```', "'''"),
+    '```',
     'NOW $step  ${formatElapsed(jobElapsed)}',
-    if (runElapsed != null) 'Run ${formatElapsed(runElapsed)}',
-    if (state.note.trim().isNotEmpty) state.note.trim(),
-    if (upload.isNotEmpty) 'Upload $upload',
   ].join('\n');
 }

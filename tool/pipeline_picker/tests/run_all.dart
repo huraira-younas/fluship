@@ -12,8 +12,10 @@ import 'report/report_html_test.dart' as report_html;
 import 'report/report_pdf_test.dart' as report_pdf;
 import 'share/whatsapp_send_test.dart' as whatsapp_send;
 import 'share/whatsapp_test.dart' as whatsapp;
+import 'support/io_helpers_test.dart' as io_helpers;
 
-void main() {
+Future<void> main() async {
+  io_helpers.main();
   readiness.main();
   progress.main();
   progress_state.main();
@@ -21,7 +23,7 @@ void main() {
   dist_cli.main();
   permissions.main();
   open_page.main();
-  whatsapp.main();
+  await whatsapp.main();
   whatsapp_send.main();
   pdf.main();
   report_html.main();

@@ -32,7 +32,9 @@ Future<void> _run(Map<String, String> parsed) async {
     return;
   }
 
-  final progressPath = parsed['progress'] ?? '';
+  final progressPath = parsed.containsKey('progress')
+      ? resolveAgentPath(parsed['progress'], 'progress.json')
+      : '';
   final gate = ProgressWriteGate();
   final ipaName = fileNameOf(ipa!);
 

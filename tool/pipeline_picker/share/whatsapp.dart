@@ -1,8 +1,75 @@
 import 'dart:io';
 
+import '../host/host_actions.dart';
 import '../io_helpers.dart';
 
 const defaultWhatsAppNumber = '+923096547269';
+
+/// Driving WhatsApp means pasting into one shared composer, so two senders at
+/// once garble both messages. The heartbeat runs in its own process, so an
+/// in-memory guard is not enough and the lock has to live on disk.
+class WhatsAppUiLock {
+  const WhatsAppUiLock({required this.path, required this.held});
+
+  final String path;
+  final bool held;
+
+  void release() {
+    if (!held) return;
+    if (_lockOwner(path) != pid) return;
+    deleteIfExists(path);
+  }
+}
+
+int? _lockOwner(String path) {
+  try {
+    final raw = File(path).readAsStringSync().trim();
+    if (raw.isEmpty) return null;
+    return int.tryParse(raw.split('\n').first.trim());
+  } catch (_) {
+    return null;
+  }
+}
+
+bool _lockIsFree(String path) {
+  final file = File(path);
+  if (!file.existsSync()) return true;
+  final owner = _lockOwner(path);
+  // A killed sender leaves the file behind, so a dead owner means it is free.
+  if (owner == null || owner == pid || !pidAlive(owner)) return true;
+  try {
+    final age = DateTime.now().difference(file.lastModifiedSync());
+    return age > const Duration(minutes: 3);
+  } catch (_) {
+    return true;
+  }
+}
+
+Future<WhatsAppUiLock> acquireWhatsAppUiLock({
+  Duration wait = const Duration(seconds: 2),
+  String? path,
+}) async {
+  final lockPath = path ?? resolveAgentPath(null, 'whatsapp.lock');
+  final deadline = DateTime.now().add(wait);
+  while (true) {
+    if (_lockIsFree(lockPath)) {
+      try {
+        final file = File(lockPath);
+        file.parent.createSync(recursive: true);
+        file.writeAsStringSync('$pid\n${DateTime.now().toIso8601String()}');
+        if (_lockOwner(lockPath) == pid) {
+          return WhatsAppUiLock(path: lockPath, held: true);
+        }
+      } catch (_) {
+        // Fall through and retry until the deadline.
+      }
+    }
+    if (!DateTime.now().isBefore(deadline)) {
+      return WhatsAppUiLock(path: lockPath, held: false);
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+  }
+}
 
 String digitsOnly(String raw) {
   return raw.replaceAll(RegExp(r'\D'), '');
@@ -79,8 +146,6 @@ String whatsappWebUri({required String number, required String text}) {
   return 'https://wa.me/$phone?text=${Uri.encodeComponent(text)}';
 }
 
-String? resolveWhatsAppSendPy() => resolveToolScript('whatsapp_send.py');
-
 String whatsappResultFromOutput(String out) {
   final lower = out.toLowerCase();
   if (lower.contains('whatsapp result: sent')) return 'sent';
@@ -97,9 +162,13 @@ Future<String> _runWhatsAppSend({
   required List<String> files,
   required bool send,
   required bool textOnly,
+  required Duration lockWait,
+  required bool skipWhenBusy,
 }) async {
-  final py = resolveWhatsAppSendPy();
+  final py = resolveToolScript('whatsapp_send.py');
   if (py == null) return 'no-python';
+  final lock = await acquireWhatsAppUiLock(wait: lockWait);
+  if (!lock.held && skipWhenBusy) return 'busy';
   final stamp = '$pid-${DateTime.now().microsecondsSinceEpoch}';
   final captionFile = File(
     pathJoin(Directory.systemTemp.path, 'fluship-wa-$stamp-caption.txt'),
@@ -123,6 +192,7 @@ Future<String> _runWhatsAppSend({
     return whatsappResultFromOutput('${result.stdout}\n${result.stderr}');
   } finally {
     deleteIfExists(captionFile.path);
+    lock.release();
   }
 }
 
@@ -143,6 +213,9 @@ Future<String> sendWhatsAppFiles({
     files: existing,
     send: send,
     textOnly: false,
+    // The final report has to go out, so outwait a ping instead of skipping.
+    lockWait: const Duration(seconds: 90),
+    skipWhenBusy: false,
   );
 }
 
@@ -159,5 +232,8 @@ Future<String> sendWhatsAppText({
     files: const [],
     send: send,
     textOnly: true,
+    // A ping is disposable. Never make it queue in front of the real report.
+    lockWait: const Duration(seconds: 2),
+    skipWhenBusy: true,
   );
 }

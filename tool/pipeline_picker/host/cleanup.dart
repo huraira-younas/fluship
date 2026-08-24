@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../io_helpers.dart';
+import 'host_actions.dart';
 
 const buildPatterns = <String>[
   'flutter',
@@ -144,16 +145,28 @@ bool _hasTrackedAncestor(int pid, Set<int> tracked, Map<int, int> pidToPpid) {
   return false;
 }
 
-bool _isOrphanBuild(ProcessSnapshot row, String projectPath) {
-  final root = projectPath.trim();
+/// A bare substring match would let `/apps/shop` also match `/apps/shop-v2`,
+/// so the project root has to end at a path boundary.
+bool commandTouchesProject(String command, String projectPath) {
+  final root = projectPath.trim().replaceAll(RegExp(r'[/\\]+$'), '');
   if (root.isEmpty) return false;
-  final lower = row.command.toLowerCase();
-  if (!row.command.contains(root)) return false;
-  if (buildPatterns.any(lower.contains)) return true;
-  if (lower.contains('dart') && dartBuildHints.any(lower.contains)) {
-    return true;
+  var from = 0;
+  while (true) {
+    final at = command.indexOf(root, from);
+    if (at < 0) return false;
+    final after = at + root.length;
+    if (after >= command.length) return true;
+    final next = command[after];
+    if (next == '/' || next == r'\' || next.trim().isEmpty) return true;
+    from = at + 1;
   }
-  return false;
+}
+
+bool _isOrphanBuild(ProcessSnapshot row, String projectPath) {
+  if (!commandTouchesProject(row.command, projectPath)) return false;
+  final lower = row.command.toLowerCase();
+  if (buildPatterns.any(lower.contains)) return true;
+  return lower.contains('dart') && dartBuildHints.any(lower.contains);
 }
 
 List<int> loadTrackedPids(String path) {
@@ -245,15 +258,29 @@ List<ProcessSnapshot> _parseWmic(String source) {
   return rows;
 }
 
+/// Asks nicely, then forces whatever is still alive. One process that refuses
+/// to die must not stop the rest of the cleanup.
 Future<List<int>> killPids(Iterable<int> pids) async {
-  final killed = <int>[];
-  for (final pid in pids) {
-    Process.killPid(pid, ProcessSignal.sigterm);
+  final targets = pids.toSet();
+  for (final pid in targets) {
+    _tryKill(pid, ProcessSignal.sigterm);
   }
   await Future<void>.delayed(const Duration(milliseconds: 250));
-  for (final pid in pids) {
-    Process.killPid(pid, ProcessSignal.sigkill);
-    killed.add(pid);
+  final killed = <int>[];
+  for (final pid in targets) {
+    if (!pidAlive(pid)) {
+      killed.add(pid);
+      continue;
+    }
+    if (_tryKill(pid, ProcessSignal.sigkill)) killed.add(pid);
   }
   return killed;
+}
+
+bool _tryKill(int pid, ProcessSignal signal) {
+  try {
+    return Process.killPid(pid, signal);
+  } catch (_) {
+    return false;
+  }
 }

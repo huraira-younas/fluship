@@ -15,6 +15,7 @@ import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
@@ -52,10 +53,21 @@ PASSWORD = re.compile(
 )
 
 BLOCK_HEAD = re.compile(r"^\[(?P<ts>[^\]]+)\]\s+(?P<id>[A-Za-z]\w*)\s*$")
+# Agents also write plain banners such as "===== buildSplits =====" and a
+# matching "===== buildSplits done =====" when the job ends. Build tools print
+# lookalikes such as "====== BUILD FAILED ======", so the id must be a real
+# catalog step before this counts as a header.
+SECTION_HEAD = re.compile(r"^=+\s*(?P<id>[A-Za-z]\w*)\b[^=]*=*$")
+DECORATION = re.compile(r"^[=*~_-]{3,}$")
+BANNER_EDGE = re.compile(r"^[=*]{2,}\s*|\s*[=*]{2,}$")
 INLINE_HEAD = re.compile(
     r"^(?P<ts>\d{4}-\d{2}-\d{2}T\S+)\s+(?P<id>[A-Za-z]\w+)\s+(?P<rest>.*)$"
 )
 EXIT_LINE = re.compile(r"(?:exit:\s*|exit=)(-?\d+)")
+NOISE_PREFIX = re.compile(
+    r"^(exit|started|started_at|ended_at|result|elapsed)\b[:=]?",
+    re.I,
+)
 ELAPSED_LINE = re.compile(r"elapsed=([0-9hm.]+s|[0-9]+m(?:[0-9.]+s)?)")
 
 _FONT_CSS: str | None = None
@@ -145,21 +157,43 @@ def format_total(seconds: float) -> str:
     return f"{minutes}m {rest:.0f}s"
 
 
+def section_head_id(line: str) -> str:
+    """Return the step id for an agent banner line, or "" when the line only
+    looks like one. Build tools emit "====== BUILD FAILED ======", which must
+    stay inside the running job instead of opening a bogus block."""
+    match = SECTION_HEAD.match(line)
+    if not match:
+        return ""
+    step_id = match.group("id")
+    if TITLES and normalize_id(step_id) not in TITLES:
+        return ""
+    return step_id
+
+
 def parse_log_blocks(text: str) -> dict[str, dict]:
     blocks: dict[str, dict] = {}
     current: dict | None = None
 
     def store(block: dict | None) -> None:
-        if block:
+        """A job can appear twice, once on start and again on finish or retry.
+        Merge instead of overwrite so no output is lost."""
+        if not block:
+            return
+        prior = blocks.get(block["id"])
+        if prior is None:
             blocks[block["id"]] = block
+            return
+        for line in block["lines"]:
+            _append_line(prior, line)
 
     for raw in text.replace("\r\n", "\n").split("\n"):
         line = raw.rstrip()
         block_match = BLOCK_HEAD.match(line)
-        inline_match = None if block_match else INLINE_HEAD.match(line)
-        if block_match:
+        head_id = block_match.group("id") if block_match else section_head_id(line)
+        inline_match = None if head_id else INLINE_HEAD.match(line)
+        if head_id:
             store(current)
-            current = _new_block(block_match.group("id"))
+            current = _new_block(head_id)
             continue
         if inline_match:
             rest = inline_match.group("rest")
@@ -209,11 +243,16 @@ def _clean_lines(lines: list[str]) -> list[str]:
     cleaned = []
     for line in lines:
         text = redact(line.strip())
+        if DECORATION.match(text):
+            continue
+        text = BANNER_EDGE.sub("", text).strip()
         if not text or SKIP_LINE.search(text):
             continue
         if text.startswith("command:") or text.startswith("command="):
             continue
-        if text.startswith("exit:") or text.startswith("started:"):
+        if text.startswith("$ ") or text.startswith("output:"):
+            continue
+        if NOISE_PREFIX.match(text):
             continue
         if re.match(r"^\d{4}-\d{2}-\d{2}T", text):
             continue
@@ -328,6 +367,93 @@ def pick_notes(
     return picker(_clean_lines(lines), failed)
 
 
+NEXT_STEPS: dict[str, str] = {
+    "bumpVersion": "Check the version line in pubspec.yaml, then rerun.",
+    "preCommit": "Stage or discard the leftover changes, then commit again.",
+    "postCommit": "Stage or discard the leftover changes, then commit again.",
+    "prePull": "Resolve the merge conflict in the repo, then pull again.",
+    "postPush": "Pull the remote branch, resolve the conflict, then push.",
+    "clean": "Close anything holding the build folder, then clean again.",
+    "pubGet": "Fix the version conflict in pubspec.yaml, then run pub get.",
+    "pubUpgrade": "Fix the version conflict in pubspec.yaml, then upgrade.",
+    "format": "Fix the file dart format could not parse.",
+    "analyze": "Fix the analyzer issues, then run flutter analyze again.",
+    "test": "Fix the failing test, then run flutter test again.",
+    "buildAab": "Read the Gradle error in the log, then rebuild the bundle.",
+    "buildApk": "Read the Gradle error in the log, then rebuild the APK.",
+    "buildSplits": "Read the Gradle error in the log, then rebuild the splits.",
+    "podInstall": "Delete ios/Podfile.lock, then run pod install again.",
+    "buildIpa": "Check signing in Xcode, then build the IPA again.",
+    "collectAab": "The build produced no bundle. Rebuild before collecting.",
+    "collectApk": "The build produced no APK. Rebuild before collecting.",
+    "collectIpa": "The build produced no IPA. Rebuild before collecting.",
+    "distPlayProduction": "Check the Play service account and package name.",
+    "distPlayInternal": "Check the Play service account and package name.",
+    "distAppStore": "Check the App Store API key and the .p8 path.",
+    "distDrive": "Re-auth Drive in Fluship Settings, then upload again.",
+    "slackNotify": "Check the Slack webhook URL, then notify again.",
+    "report": "Check the Gmail address and app password, then resend.",
+    "whatsappShare": "Grant Accessibility to the terminal, then share again.",
+}
+
+DEFAULT_NEXT_STEP = "Open the log at that job and fix the first error."
+
+
+def slowest_jobs(rows: list[dict], limit: int = 3) -> list[dict]:
+    """Longest jobs first, each with a share of the slowest for the bar width."""
+    timed = [
+        {
+            "name": row["name"],
+            "duration": row["duration"],
+            "seconds": parse_seconds(row["duration"]),
+        }
+        for row in rows
+        if parse_seconds(row["duration"]) > 0
+    ]
+    timed.sort(key=lambda item: item["seconds"], reverse=True)
+    top = timed[:limit]
+    peak = top[0]["seconds"] if top else 0.0
+    for item in top:
+        item["percent"] = round(item["seconds"] / peak * 100) if peak else 0
+    return top
+
+
+def build_summary(model: dict) -> dict:
+    """One plain sentence about the run, plus the single next action."""
+    rows = model["rows"]
+    if not rows:
+        return {"headline": "No jobs ran.", "detail": "", "next_step": ""}
+    total = len(rows)
+    done = model["done"]
+    failures = [row for row in rows if row["status"] == "FAIL"]
+    if failures:
+        first = failures[0]
+        after = f" after {first['duration']}" if first["duration"] else ""
+        headline = f"{done} of {total} jobs finished. {first['name']} failed{after}."
+        next_step = NEXT_STEPS.get(first["id"], DEFAULT_NEXT_STEP)
+    elif model["skipped"]:
+        headline = (
+            f"{done} of {total} jobs finished. {model['skipped']} were skipped."
+        )
+        next_step = ""
+    else:
+        headline = f"All {total} jobs finished."
+        next_step = ""
+    details = [f"Total job time {model['total']}."]
+    slowest = slowest_jobs(rows, limit=1)
+    if slowest:
+        details.append(
+            f"Slowest was {slowest[0]['name']} at {slowest[0]['duration']}."
+        )
+    if len(failures) > 1:
+        details.append(f"{len(failures)} jobs failed in total.")
+    return {
+        "headline": headline,
+        "detail": " ".join(details),
+        "next_step": next_step,
+    }
+
+
 def _read_log(path: str) -> str:
     if not path:
         return ""
@@ -404,6 +530,7 @@ def build_model(args: argparse.Namespace) -> dict:
         "total": total,
         "excerpt": excerpt[:240],
         "log_name": Path(args.log).name if args.log else "logs.txt",
+        "stamp": datetime.now().strftime("%d %b %Y at %H:%M"),
     }
 
 
@@ -435,246 +562,350 @@ def font_css() -> str:
     return _FONT_CSS
 
 
-def render_html(model: dict) -> str:
-    badge = "Success" if model["success"] else "Failed"
-    badge_class = "ok" if model["success"] else "bad"
-    version = ""
-    if model["version"]:
-        version = (
-            f"v{html.escape(model['version'])}+{html.escape(model['build'])}"
-            if model["build"]
-            else f"v{html.escape(model['version'])}"
-        )
-    stats = [
-        (str(len(model["rows"])), "jobs"),
-        (str(model["done"]), "done"),
+_CSS = """
+:root {
+  --ink: #12151c;
+  --muted: #5d6573;
+  --line: #e4e7ee;
+  --paper: #f6f7fb;
+  --navy: #121826;
+  --blue: #3d7dff;
+  --ok: #1ea36a;
+  --bad: #e24b66;
+  --skip: #8a8394;
+}
+* { box-sizing: border-box; }
+@page { size: A4; margin: 12mm 11mm 14mm; }
+html, body {
+  margin: 0;
+  background: #fff;
+  color: var(--ink);
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-size: 12.5px;
+  line-height: 1.45;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.page { width: 100%; }
+.page.first { page-break-after: always; }
+header.hero {
+  background: var(--navy);
+  color: #fff;
+  border-radius: 18px;
+  padding: 22px 24px 20px;
+}
+.kicker {
+  margin: 0 0 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 10px;
+  color: #8fb4ff;
+  font-weight: 600;
+}
+.hero-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+h1 { margin: 0; font-size: 30px; letter-spacing: -0.03em; font-weight: 600; }
+.ver {
+  margin: 6px 0 0;
+  color: #c5d0e6;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+}
+.badge {
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+}
+.badge.ok { background: var(--ok); }
+.badge.bad { background: var(--bad); }
+.lead {
+  margin: 18px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.sub { margin: 6px 0 0; color: #9aa6bd; font-size: 11.5px; }
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+}
+.tiles li {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 12px 10px;
+  text-align: center;
+}
+.tiles strong {
+  display: block;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+.tiles span {
+  color: var(--muted);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+.tiles li.bad strong { color: var(--bad); }
+.tiles li.bad { border-color: #f7c8d1; background: #fff7f9; }
+h2 {
+  margin: 0 0 12px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+.card {
+  margin-top: 14px;
+  padding: 16px 18px 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+.bars { list-style: none; margin: 0; padding: 0; }
+.bars li {
+  display: grid;
+  grid-template-columns: 1fr 100px auto;
+  gap: 12px;
+  align-items: center;
+  padding: 7px 0;
+}
+.bar-name { font-weight: 500; }
+.track { background: var(--paper); border-radius: 999px; height: 8px; }
+/* A sub-second job still gets a visible sliver. */
+.fill {
+  display: block;
+  background: var(--blue);
+  border-radius: 999px;
+  height: 8px;
+  min-width: 4px;
+}
+.bar-time {
+  color: var(--muted);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  min-width: 52px;
+  text-align: right;
+}
+.issue { background: #fff5f7; border-color: #f7c8d1; }
+.issue h2 { color: var(--bad); }
+.who { margin: 0; font-weight: 600; font-size: 14px; }
+.what {
+  margin: 6px 0 0;
+  color: var(--ink);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  word-break: break-word;
+}
+.next {
+  margin: 12px 0 4px;
+  padding-top: 10px;
+  border-top: 1px solid #f7c8d1;
+  color: var(--ink);
+}
+.next b {
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bad);
+  margin-bottom: 3px;
+}
+.jobs { list-style: none; margin: 0; padding: 0; }
+.job {
+  display: grid;
+  grid-template-columns: 28px 1fr auto 56px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--paper);
+}
+.job:last-child { border-bottom: 0; }
+.n {
+  color: var(--muted);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+}
+.name { margin: 0; font-weight: 600; font-size: 13px; }
+.note { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+.pill {
+  min-width: 52px;
+  text-align: center;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.pill.done { color: var(--ok); background: #e8f8f0; }
+.pill.fail { color: var(--bad); background: #fdecef; }
+.pill.skip { color: var(--skip); background: var(--paper); }
+.time {
+  text-align: right;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+}
+.files { list-style: none; margin: 0; padding: 0; }
+.files li {
+  margin: 0 0 7px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+}
+.page-head {
+  margin: 0 0 4px;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: var(--ink);
+  font-weight: 600;
+}
+.page-sub { margin: 0 0 14px; color: var(--muted); font-size: 11px; }
+footer { margin-top: 16px; color: var(--muted); font-size: 10px; }
+"""
+
+
+def version_label(model: dict) -> str:
+    if not model["version"]:
+        return ""
+    if model["build"]:
+        return f"v{model['version']}+{model['build']}"
+    return f"v{model['version']}"
+
+
+def _tiles_html(model: dict) -> str:
+    tiles = [
+        (str(len(model["rows"])), "jobs", False),
+        (str(model["done"]), "done", False),
+        (str(model["failed"]), "failed", bool(model["failed"])),
+        (str(model["skipped"]), "skipped", False),
+        (model["total"], "job time", False),
     ]
-    if model["failed"]:
-        stats.append((str(model["failed"]), "failed"))
-    if model["skipped"]:
-        stats.append((str(model["skipped"]), "skipped"))
-    stats.append((html.escape(model["total"]), "total"))
-    stat_html = "".join(
-        f'<li><strong>{value}</strong><span>{label}</span></li>'
-        for value, label in stats
+    return "".join(
+        f'<li class="{"bad" if bad else ""}">'
+        f"<strong>{html.escape(value)}</strong>"
+        f"<span>{label}</span></li>"
+        for value, label, bad in tiles
     )
-    job_html = []
-    for index, row in enumerate(model["rows"], start=1):
+
+
+def _bars_html(rows: list[dict]) -> str:
+    slow = slowest_jobs(rows)
+    if not slow:
+        return ""
+    items = "".join(
+        f'<li><span class="bar-name">{html.escape(item["name"])}</span>'
+        f'<span class="track"><span class="fill" style="width:{item["percent"]}%"></span></span>'
+        f'<span class="bar-time">{html.escape(item["duration"])}</span></li>'
+        for item in slow
+    )
+    return f'<section class="card"><h2>Where the time went</h2><ul class="bars">{items}</ul></section>'
+
+
+def _issue_html(model: dict, summary: dict) -> str:
+    failed = [row for row in model["rows"] if row["status"] == "FAIL"]
+    if not failed and not model["excerpt"]:
+        return ""
+    who = failed[0]["name"] if failed else "Run"
+    what = model["excerpt"] or "No error line was captured."
+    next_step = summary["next_step"] or DEFAULT_NEXT_STEP
+    return (
+        '<section class="card issue"><h2>Issue</h2>'
+        f'<p class="who">{html.escape(who)}</p>'
+        f'<p class="what">{html.escape(what)}</p>'
+        f'<p class="next"><b>Next step</b>{html.escape(next_step)}</p>'
+        "</section>"
+    )
+
+
+def _files_html(model: dict) -> str:
+    if not model["files"]:
+        return ""
+    items = "".join(f"<li>{html.escape(name)}</li>" for name in model["files"])
+    return f'<section class="card"><h2>Attachments</h2><ul class="files">{items}</ul></section>'
+
+
+def _jobs_html(rows: list[dict]) -> str:
+    out = []
+    for index, row in enumerate(rows, start=1):
         note = html.escape(row["notes"][0]) if row["notes"] else ""
-        job_html.append(
-            "<li class='job'>"
-            f"<span class='n'>{index:02d}</span>"
-            "<div class='copy'>"
-            f"<p class='name'>{html.escape(row['name'])}</p>"
-            f"{f'<p class="note">{note}</p>' if note else ''}"
-            "</div>"
-            f"<span class='pill {row['status'].lower()}'>{row['status']}</span>"
-            f"<span class='time'>{html.escape(row['duration'] or '-')}</span>"
+        note_html = f'<p class="note">{note}</p>' if note else ""
+        out.append(
+            '<li class="job">'
+            f'<span class="n">{index:02d}</span>'
+            f'<div><p class="name">{html.escape(row["name"])}</p>{note_html}</div>'
+            f'<span class="pill {row["status"].lower()}">{row["status"]}</span>'
+            f'<span class="time">{html.escape(row["duration"] or "-")}</span>'
             "</li>"
         )
-    notes_html = ""
-    extra = [item for item in model["notes"] if item[2] == "FAIL"]
-    if model["excerpt"]:
-        notes_html = (
-            "<section class='card issue'>"
-            "<h2>Issue</h2>"
-            f"<p>{html.escape(model['excerpt'])}</p>"
-            "</section>"
-        )
-    elif extra:
-        items = "".join(
-            f"<li><strong>{html.escape(name)}</strong> {html.escape(line)}</li>"
-            for name, line, _status in extra[:4]
-        )
-        notes_html = (
-            f"<section class='card'><h2>Watch</h2>"
-            f"<ul class='notes'>{items}</ul></section>"
-        )
-    files_html = ""
-    if model["files"]:
-        items = "".join(f"<li>{html.escape(name)}</li>" for name in model["files"])
-        files_html = (
-            f"<section class='card'><h2>Files</h2>"
-            f"<ul class='files'>{items}</ul></section>"
-        )
-    return f"""<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Fluship {html.escape(model['app'])} {version}</title>
-  <style>
-    {font_css()}
-    :root {{
-      --ink: #12151c;
-      --muted: #5d6573;
-      --line: #e4e7ee;
-      --paper: #f6f7fb;
-      --navy: #121826;
-      --blue: #3d7dff;
-      --ok: #1ea36a;
-      --bad: #e24b66;
-      --skip: #8a8394;
-    }}
-    * {{ box-sizing: border-box; }}
-    @page {{ size: A4; margin: 12mm 11mm 14mm; }}
-    html, body {{
-      margin: 0;
-      background: #fff;
-      color: var(--ink);
-      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-      font-size: 12.5px;
-      line-height: 1.45;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }}
-    .sheet {{ width: 100%; }}
-    header.hero {{
-      background: var(--navy);
-      color: #fff;
-      border-radius: 18px;
-      padding: 22px 24px 18px;
-    }}
-    .kicker {{
-      margin: 0 0 8px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      font-size: 10px;
-      color: #8fb4ff;
-      font-weight: 600;
-    }}
-    .hero-row {{
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-    }}
-    h1 {{
-      margin: 0;
-      font-size: 28px;
-      letter-spacing: -0.03em;
-      font-weight: 600;
-    }}
-    .ver {{
-      margin: 6px 0 0;
-      color: #c5d0e6;
-      font-family: "IBM Plex Mono", ui-monospace, monospace;
-      font-size: 12px;
-    }}
-    .badge {{
-      border-radius: 999px;
-      padding: 7px 12px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: #fff;
-    }}
-    .badge.ok {{ background: var(--ok); }}
-    .badge.bad {{ background: var(--bad); }}
-    .stats {{
-      display: flex;
-      gap: 18px;
-      list-style: none;
-      margin: 18px 0 0;
-      padding: 14px 0 0;
-      border-top: 1px solid rgba(255,255,255,0.1);
-    }}
-    .stats strong {{
-      display: block;
-      font-size: 16px;
-      letter-spacing: -0.02em;
-    }}
-    .stats span {{ color: #9aa6bd; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }}
-    h2 {{
-      margin: 0 0 10px;
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--blue);
-    }}
-    .card {{
-      margin-top: 14px;
-      padding: 14px 16px 8px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: #fff;
-    }}
-    .jobs {{ list-style: none; margin: 0; padding: 0; }}
-    .job {{
-      display: grid;
-      grid-template-columns: 28px 1fr auto auto;
-      gap: 10px;
-      align-items: center;
-      padding: 10px 4px;
-      border-bottom: 1px solid var(--paper);
-    }}
-    .job:last-child {{ border-bottom: 0; }}
-    .n {{
-      color: var(--muted);
-      font-family: "IBM Plex Mono", ui-monospace, monospace;
-      font-size: 11px;
-    }}
-    .name {{ margin: 0; font-weight: 600; font-size: 13px; }}
-    .note {{
-      margin: 3px 0 0;
-      color: var(--muted);
-      font-size: 11px;
-    }}
-    .pill {{
-      min-width: 52px;
-      text-align: center;
-      border-radius: 999px;
-      padding: 4px 8px;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-    }}
-    .pill.done {{ color: var(--ok); background: #e8f8f0; }}
-    .pill.fail {{ color: var(--bad); background: #fdecef; }}
-    .pill.skip {{ color: var(--skip); background: var(--paper); }}
-    .time {{
-      min-width: 52px;
-      text-align: right;
-      color: var(--muted);
-      font-family: "IBM Plex Mono", ui-monospace, monospace;
-      font-size: 11px;
-    }}
-    .issue {{ background: #fff5f7; border-color: #f7c8d1; }}
-    .issue p, .notes, .files {{ margin: 0 0 10px; padding: 0; color: var(--ink); }}
-    .notes, .files {{ list-style: none; }}
-    .notes li, .files li {{ margin: 0 0 8px; color: var(--muted); }}
-    .files li {{ font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; color: var(--ink); }}
-    footer {{
-      margin-top: 16px;
-      color: var(--muted);
-      font-size: 10px;
-    }}
-  </style>
-</head>
-<body>
-  <article class="sheet">
-    <header class="hero">
-      <p class="kicker">Fluship report</p>
-      <div class="hero-row">
-        <div>
-          <h1>{html.escape(model['app'])}</h1>
-          <p class="ver">{version}</p>
-        </div>
-        <span class="badge {badge_class}">{badge}</span>
-      </div>
-      <ul class="stats">{stat_html}</ul>
-    </header>
-    <section class="card">
-      <h2>Progress</h2>
-      <ol class="jobs">{''.join(job_html)}</ol>
-    </section>
-    {notes_html}
-    {files_html}
-    <footer>Full command output stays in {html.escape(model['log_name'])}. This page is the readable report.</footer>
-  </article>
-</body>
-</html>
-"""
+    return "".join(out)
+
+
+def _cover_page(model: dict, summary: dict) -> str:
+    badge = "Success" if model["success"] else "Failed"
+    return (
+        '<section class="page first">'
+        '<header class="hero">'
+        '<p class="kicker">Fluship release report</p>'
+        '<div class="hero-row"><div>'
+        f'<h1>{html.escape(model["app"])}</h1>'
+        f'<p class="ver">{html.escape(version_label(model))}</p>'
+        f'</div><span class="badge {"ok" if model["success"] else "bad"}">{badge}</span></div>'
+        f'<p class="lead">{html.escape(summary["headline"])}</p>'
+        f'<p class="sub">{html.escape(summary["detail"])}</p>'
+        "</header>"
+        f'<ul class="tiles">{_tiles_html(model)}</ul>'
+        f"{_bars_html(model['rows'])}"
+        f"{_issue_html(model, summary)}"
+        f"{_files_html(model)}"
+        f'<footer>Generated {html.escape(model["stamp"])}. '
+        f'Job detail is on the next page.</footer>'
+        "</section>"
+    )
+
+
+def _detail_page(model: dict) -> str:
+    return (
+        '<section class="page">'
+        '<h2 class="page-head">Job detail</h2>'
+        f'<p class="page-sub">{html.escape(model["app"])} '
+        f'{html.escape(version_label(model))}, every job in run order.</p>'
+        f'<section class="card"><ol class="jobs">{_jobs_html(model["rows"])}</ol></section>'
+        f'<footer>Full command output stays in {html.escape(model["log_name"])}. '
+        "This report keeps only the useful lines.</footer>"
+        "</section>"
+    )
+
+
+def render_html(model: dict) -> str:
+    summary = build_summary(model)
+    title = f"Fluship {model['app']} {version_label(model)}".strip()
+    return (
+        "<!doctype html>\n"
+        '<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+        f"<title>{html.escape(title)}</title>\n"
+        f"<style>\n{font_css()}\n{_CSS}</style>\n"
+        "</head>\n<body>\n"
+        f"{_cover_page(model, summary)}\n{_detail_page(model)}\n"
+        "</body>\n</html>\n"
+    )
 
 
 def find_chrome() -> str | None:

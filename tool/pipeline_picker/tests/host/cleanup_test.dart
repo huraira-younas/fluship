@@ -84,6 +84,46 @@ void main() {
   );
   _check(closePlan.pidsToKill.contains(40), 'close picker');
 
+  // A sibling folder that merely starts with the project path is not ours.
+  _check(
+    commandTouchesProject('flutter build /Users/me/apps/shop', project),
+    'exact project match',
+  );
+  _check(
+    commandTouchesProject('flutter build /Users/me/apps/shop/android', project),
+    'match inside project',
+  );
+  _check(
+    !commandTouchesProject('flutter build /Users/me/apps/shop-v2', project),
+    'no sibling prefix match',
+  );
+  _check(
+    !commandTouchesProject('flutter build /Users/me/apps/shopping', project),
+    'no longer name match',
+  );
+  _check(
+    commandTouchesProject(
+      'cd /Users/me/apps/shop/ && pod install',
+      '$project/',
+    ),
+    'trailing slash project',
+  );
+  _check(!commandTouchesProject('flutter build', ''), 'empty project');
+
+  final siblingPlan = planCleanup(
+    rows: const [
+      ProcessSnapshot(
+        pid: 70,
+        ppid: 1,
+        command: 'flutter build apk /Users/me/apps/shop-v2',
+      ),
+    ],
+    trackedPids: const [],
+    projectPath: project,
+    selfPid: 99,
+  );
+  _check(siblingPlan.pidsToKill.isEmpty, 'never kill a sibling project build');
+
   final parsed = parsePsTable(' 20  1 flutter build\n21 20 java gradle\n');
   _check(parsed.length == 2, 'parse ps');
   _check(parsed.first.pid == 20 && parsed.first.ppid == 1, 'parse fields');
