@@ -63,8 +63,34 @@ void writeJsonFile(String path, Map<String, dynamic> data) {
   );
 }
 
-String readText(String path) {
-  return File(path).readAsStringSync();
+String fileNameOf(String path) {
+  final trimmed = path.trim();
+  if (trimmed.isEmpty) return '';
+  final parts = trimmed.replaceAll('\\', '/').split('/');
+  return parts.isEmpty ? trimmed : parts.last;
+}
+
+String readFileTail(String path, {int maxBytes = 8192}) {
+  final file = File(path);
+  if (!file.existsSync()) return '';
+  final length = file.lengthSync();
+  if (length <= 0) return '';
+  final start = length > maxBytes ? length - maxBytes : 0;
+  final raf = file.openSync();
+  try {
+    raf.setPositionSync(start);
+    return String.fromCharCodes(raf.readSync(length - start));
+  } finally {
+    raf.closeSync();
+  }
+}
+
+void deleteIfExists(String path) {
+  final file = File(path);
+  if (!file.existsSync()) return;
+  try {
+    file.deleteSync();
+  } catch (_) {}
 }
 
 bool looksLikeJsonObject(String value) {

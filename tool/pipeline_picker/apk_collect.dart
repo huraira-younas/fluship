@@ -15,20 +15,19 @@ List<String> collectShareApks({
     );
   }
 
-  final byName = <String, File>{};
-  for (final file in files) {
-    byName[file.path] = file;
-  }
-  final unique = byName.values.toList()
-    ..sort((a, b) => a.path.compareTo(b.path));
+  final seen = <String>{};
+  final unique = <File>[
+    for (final file in files)
+      if (seen.add(file.path)) file,
+  ]..sort((a, b) => a.path.compareTo(b.path));
 
   final v7a = [
     for (final file in unique)
-      if (_nameOf(file).contains('armeabi-v7a')) file.path,
+      if (fileNameOf(file.path).contains('armeabi-v7a')) file.path,
   ];
   final v8a = [
     for (final file in unique)
-      if (_nameOf(file).contains('arm64-v8a')) file.path,
+      if (fileNameOf(file.path).contains('arm64-v8a')) file.path,
   ];
   if (v7a.isNotEmpty || v8a.isNotEmpty) {
     return [...v7a.take(1), ...v8a.take(1)];
@@ -36,7 +35,7 @@ List<String> collectShareApks({
 
   final fat = [
     for (final file in unique)
-      if (_isFatReleaseApk(_nameOf(file))) file.path,
+      if (_isFatReleaseApk(fileNameOf(file.path))) file.path,
   ];
   return fat.take(1).toList();
 }
@@ -46,15 +45,12 @@ void _addApks(List<File> files, String dirPath) {
   if (!dir.existsSync()) return;
   for (final entity in dir.listSync()) {
     if (entity is! File) continue;
-    final name = _nameOf(entity).toLowerCase();
+    final name = fileNameOf(entity.path).toLowerCase();
     if (!name.endsWith('.apk')) continue;
     if (name.contains('x86')) continue;
     files.add(entity);
   }
 }
-
-String _nameOf(File file) =>
-    file.uri.pathSegments.isEmpty ? file.path : file.uri.pathSegments.last;
 
 bool _isFatReleaseApk(String name) {
   final lower = name.toLowerCase();

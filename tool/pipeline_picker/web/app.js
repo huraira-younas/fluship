@@ -93,6 +93,15 @@ function mutexFor(id) {
   return mutex.find((group) => group.includes(id)) || null;
 }
 
+function jobBlurb(step) {
+  if (!step.enabled && step.reason) {
+    return step.savedButBlocked
+      ? step.reason + " Last run saved this job."
+      : step.reason;
+  }
+  return step.blurb || "";
+}
+
 function makeSwitch(step) {
   const row = document.createElement("div");
   row.className = "job" + (step.enabled ? "" : " is-locked");
@@ -103,14 +112,7 @@ function makeSwitch(step) {
   title.textContent = step.title || step.label;
   const blurb = document.createElement("p");
   blurb.className = "job-blurb";
-  blurb.textContent = step.enabled
-    ? step.blurb || ""
-    : step.reason
-      ? step.reason
-      : step.blurb || "";
-  if (step.savedButBlocked) {
-    blurb.textContent = (step.reason || "") + " Last run saved this job.";
-  }
+  blurb.textContent = jobBlurb(step);
   copy.append(title, blurb);
   const toggle = document.createElement("button");
   toggle.type = "button";
@@ -134,27 +136,27 @@ function makeChoice(steps) {
   hint.textContent =
     steps.length > 2 ? "Pick one, or leave all off." : "Pick one, or leave both off.";
   const row = document.createElement("div");
-  row.className = "chips";
+  row.className = "segments";
   for (const step of steps) {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = "chip";
-    chip.dataset.step = step.id;
-    chip.id = "step-" + step.id;
-    chip.setAttribute("aria-checked", step.checked ? "true" : "false");
-    chip.setAttribute("aria-label", step.title || step.label);
-    chip.disabled = !step.enabled;
-    chip.textContent = step.title || step.label;
-    if (!step.enabled && step.reason) chip.title = step.reason;
-    chip.addEventListener("click", () => onToggle(step.id));
-    row.appendChild(chip);
+    const segment = document.createElement("button");
+    segment.type = "button";
+    segment.className = "segment";
+    segment.dataset.step = step.id;
+    segment.id = "step-" + step.id;
+    segment.setAttribute("aria-checked", step.checked ? "true" : "false");
+    segment.setAttribute("aria-label", step.title || step.label);
+    segment.disabled = !step.enabled;
+    segment.textContent = step.title || step.label;
+    if (!step.enabled && step.reason) segment.title = step.reason;
+    segment.addEventListener("click", () => onToggle(step.id));
+    row.appendChild(segment);
   }
   wrap.append(hint, row);
-  const locked = steps.filter((step) => !step.enabled && step.reason);
-  if (locked.length) {
+  const locked = steps.find((step) => !step.enabled && step.reason);
+  if (locked) {
     const why = document.createElement("p");
     why.className = "reason";
-    why.textContent = locked[0].reason;
+    why.textContent = locked.reason;
     wrap.appendChild(why);
   }
   return wrap;
@@ -165,65 +167,51 @@ function renderGroups(state) {
   groupsEl.innerHTML = "";
   for (const group of state.groups || []) {
     const wrap = document.createElement("section");
-    wrap.className = "group";
+    wrap.className = "chapter";
     const head = document.createElement("div");
-    head.className = "group-head";
+    head.className = "chapter-head";
     const title = document.createElement("h3");
     title.textContent = group.title;
     const onCount = group.steps.filter((step) => step.checked).length;
     const meta = document.createElement("span");
-    meta.className = "group-meta";
+    meta.className = "chapter-meta";
     meta.textContent = onCount ? onCount + " on" : "Off";
     head.append(title, meta);
     wrap.appendChild(head);
 
-    const ready = group.steps.filter((step) => step.enabled);
-    const locked = group.steps.filter((step) => !step.enabled);
     const used = new Set();
-
-    const readyBox = document.createElement("div");
-    readyBox.className = "job-list";
-    for (const step of ready) {
+    const list = document.createElement("div");
+    for (const step of group.steps) {
       if (used.has(step.id)) continue;
       const groupIds = mutexFor(step.id);
       if (groupIds) {
-        const pack = ready.filter((item) => groupIds.includes(item.id));
+        const pack = group.steps.filter((item) => groupIds.includes(item.id));
         pack.forEach((item) => used.add(item.id));
-        readyBox.appendChild(makeChoice(pack));
+        list.appendChild(makeChoice(pack));
       } else {
         used.add(step.id);
-        readyBox.appendChild(makeSwitch(step));
+        list.appendChild(makeSwitch(step));
       }
     }
-    if (readyBox.children.length) wrap.appendChild(readyBox);
-
-    if (locked.length) {
-      const block = document.createElement("details");
-      block.className = "setup";
-      const summary = document.createElement("summary");
-      summary.textContent = locked.length + " need setup";
-      block.appendChild(summary);
-      for (const step of locked) {
-        block.appendChild(makeSwitch(step));
-      }
-      wrap.appendChild(block);
-    }
+    wrap.appendChild(list);
     groupsEl.appendChild(wrap);
   }
   updateFooter();
 }
 
-function updateFooter(count) {
+function updateFooter() {
   const ids = selectedIds();
-  const n = typeof count === "number" ? count : ids.length;
-  countEl.textContent = n + (n === 1 ? " job selected" : " jobs selected");
-  pickedEl.textContent = ids
-    .map((id) => {
-      const el = document.getElementById("step-" + id);
-      return el ? el.getAttribute("aria-label") || el.textContent : id;
-    })
-    .filter(Boolean)
-    .join(" · ");
+  const n = ids.length;
+  countEl.textContent = n + " selected";
+  pickedEl.textContent = n
+    ? ids
+        .map((id) => {
+          const el = document.getElementById("step-" + id);
+          return el ? el.getAttribute("aria-label") || el.textContent : id;
+        })
+        .filter(Boolean)
+        .join(" · ")
+    : "Nothing selected";
   submitBtn.disabled = !pathInput.value.trim() || !lastValidatedPath;
 }
 
@@ -356,6 +344,8 @@ $("submit").addEventListener("click", async () => {
     submitBtn.disabled = false;
   }
 });
+
+window.addEventListener("pagehide", () => clearTimeout(pathTimer));
 
 boot().catch((err) => {
   projectStatus.className = "status bad";

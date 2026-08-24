@@ -2,11 +2,8 @@ import 'dart:io';
 
 import 'pipeline_picker/progress.dart';
 
-/// Prints a live pipeline board for the agent chat.
-///
-/// Usage:
-///   dart tool/pipeline_progress.dart --selected bumpVersion,clean \
-///     --current clean --done bumpVersion --results bumpVersion=ok
+/// Prints the live pipeline board. The agent must run this before the first
+/// job and again after every job, then paste the stdout into chat.
 void main(List<String> args) {
   if (args.contains('--help') || args.contains('-h')) {
     stdout.writeln(_help);
@@ -18,7 +15,11 @@ void main(List<String> args) {
       selected: _csv(args, '--selected'),
       done: _csv(args, '--done'),
       current: _value(args, '--current'),
-      results: _results(args, '--results'),
+      results: _map(args, '--results'),
+      times: _map(args, '--times'),
+      appName: _value(args, '--app'),
+      version: _value(args, '--version'),
+      buildNumber: _value(args, '--build'),
     ),
   );
 }
@@ -27,7 +28,7 @@ const _help = '''
 Print the live Fluship pipeline progress board.
 
 Usage:
-  dart tool/pipeline_progress.dart --selected id1,id2 --current id2 --done id1 --results id1=ok
+  dart tool/pipeline_progress.dart --selected id1,id2 --current id2 --done id1 --results id1=ok --times id1=0.3s --app Reelstay --version 1.8.2 --build 8205
 ''';
 
 String _value(List<String> args, String flag) {
@@ -43,7 +44,7 @@ List<String> _csv(List<String> args, String flag) {
   ];
 }
 
-Map<String, String> _results(List<String> args, String flag) {
+Map<String, String> _map(List<String> args, String flag) {
   final out = <String, String>{};
   for (final part in _csv(args, flag)) {
     final split = part.indexOf('=');

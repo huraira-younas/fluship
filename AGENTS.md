@@ -19,7 +19,7 @@ Picker and cache live in the **Fluship workspace** (this repo). `targetProjectPa
 - Ask for every host permission at the start. Do not start a long step while a permission dialog is pending.
 - If the user already named steps, still open the picker. Do not silently add extras.
 - Logs are mandatory every run (not a checkbox). Create the run folder and `logs.txt` before the first step.
-- While steps run, always show a live progress board in chat (NOW / DONE / WAIT). Do not stay silent until the end.
+- While steps run, always show a live progress board in chat after every job (NOW / DONE / WAIT). Do not stay silent until the end.
 - Do not commit, push, upload stores, email, or run power actions unless those exact ids were selected. Power needs a second confirm after the picker.
 - Do not swallow git failures. The GUI uses `|| true`. You must not.
 - Critical ids abort later steps: `bumpVersion`, `clean`, `pubGet`, `pubUpgrade`. Then offer fix and continue.
@@ -65,22 +65,13 @@ Tell the user where the picker is. Exit 0 means submit. Exit 2 means cancel. Exi
 
 2. Read `.fluship-agent/pipeline-cache.json`. Use `targetProjectPath` as the working directory for Flutter and git commands.
 3. Create `{workspace}/outputs/{sanitizedProject}/v{version}/{buildNumber}/` and `logs.txt`. Write `.fluship-agent/last-run.json`.
-4. Print a live progress board in chat before the first step, then again before and after every step. Do not wait until the end. The user must always see which job is NOW, which are DONE, and which are still WAIT.
+4. Progress is mandatory. After picker submit, print the board before the first job. After every job finishes, print the board again before the next job starts. Never batch updates. Never wait until the end. If you skip a board, you failed the protocol.
 
 ```bash
-dart tool/pipeline_progress.dart --selected bumpVersion,clean,pubUpgrade --current clean --done bumpVersion --results bumpVersion=ok
+dart tool/pipeline_progress.dart --selected bumpVersion,clean,pubUpgrade --current clean --done bumpVersion --results bumpVersion=ok --times bumpVersion=0.3s --app Reelstay --version 1.8.2 --build 8205
 ```
 
-Example board:
-
-```
-Pipeline progress
-1. [DONE] Set app version
-2. [NOW] Clean old build files
-3. [WAIT] Upgrade packages
-```
-
-Use `[NOW]`, `[WAIT]`, and a result (`[OK]`, `[FAIL]`, `[SKIP]`, or `[DONE]`) for every selected id. Human names come from the tool. Never hide a selected step.
+Paste the tool stdout into chat as-is. The board shows NOW, DONE, WAIT, FAIL, or SKIP for every selected id. Never hide a selected job.
 5. Run only selected ids that are still enabled on this host OS, in catalog order. Ignore iOS ids on Windows and Linux even if an older Mac cache saved them.
 6. If a mutex pair is both present, keep the first in catalog order and skip the other.
 7. If `bumpVersion` or any git step is selected and version, build number, or branch is missing, ask and reuse cache values when present. Default branch is `master`.
@@ -93,7 +84,7 @@ Use `[NOW]`, `[WAIT]`, and a result (`[OK]`, `[FAIL]`, `[SKIP]`, or `[DONE]`) fo
 dart tool/whatsapp_share.dart --log {logFilePath} --output-dir {outputDir} --project {targetProjectPath} --number {whatsappNumber} --app-name {name} --version {version} --build-number {buildNumber} --success true --steps Clean:ok:1.2s,BuildAab:fail:3m4s
 ```
 
-That tool writes `pipeline-report.pdf` first, opens WhatsApp Desktop on macOS with a two-line status, and pastes the PDF plus a fat APK or `armeabi-v7a` and `arm64-v8a` splits. It does not press Send. If paste fails, it reveals the PDF in Finder. File paste needs Mac Accessibility for Terminal or Cursor. Do not use a WhatsApp Cloud API. Do not send text without the PDF.
+`whatsappShare` is last. After logs exist, that Dart tool runs `python3 tool/pipeline_report.py`, which reads `logs.txt`, keeps only short useful notes, writes `pipeline-report.html`, then prints `pipeline-report.pdf`. Full logs stay in `logs.txt`. Do not dump raw logs into the PDF. Then it opens WhatsApp Desktop, pastes the PDF plus a fat APK or `armeabi-v7a` and `arm64-v8a` splits, and sends. If it exits 2, run warmup and retry the share tool once. Do not type the chat by hand. Do not use a WhatsApp Cloud API. Do not send text without the PDF.
 12. If a power id is selected, ask one second confirm. Do not run power without that yes.
 13. Always clean processes last, including when the user says close or stop, and after success, fail, cancel, or timeout:
 
@@ -284,6 +275,7 @@ Subject style: `✓ {app} v{version}+{build} - Build Report` or `✗` on failure
 - `tool/pipeline_warmup.dart` Ask for host permissions at the start
 - `tool/pipeline_picker.dart` Agent pipeline picker
 - `tool/pipeline_progress.dart` Live NOW / DONE / WAIT board for chat
+- `tool/pipeline_report.py` HTML report then PDF (short log notes only)
 - `tool/whatsapp_share.dart` WhatsApp PDF and APK share
 - `tool/pipeline_cleanup.dart` Tracked and orphan process cleanup
 - `test/` mirrors features and services

@@ -49,10 +49,10 @@ String formatStepLines(String raw) {
   return [
     for (final step in parsed)
       [
-        _resultMark(step.result),
+        boardMark(step.result),
         humanStepName(step.id),
-        if (step.duration.isNotEmpty) '(${step.duration})',
-      ].join(' '),
+        if (step.duration.isNotEmpty) step.duration,
+      ].join('  '),
   ].join('\n');
 }
 
@@ -61,38 +61,73 @@ String formatProgressBoard({
   required List<String> done,
   String? current,
   Map<String, String> results = const {},
+  Map<String, String> times = const {},
+  String appName = '',
+  String version = '',
+  String buildNumber = '',
 }) {
-  if (selected.isEmpty) return 'Pipeline progress\nNo steps selected.';
+  final title = _boardTitle(
+    appName: appName,
+    version: version,
+    buildNumber: buildNumber,
+  );
+  if (selected.isEmpty) {
+    return '$title\n${_rule()}\n  No jobs selected.\n${_rule()}';
+  }
+
   final doneSet = {for (final id in done) normalizeStepId(id)};
   final now = current == null || current.isEmpty
       ? ''
       : normalizeStepId(current);
-  final lines = <String>['Pipeline progress'];
+  final rows = <String>[];
+  var finished = 0;
   var index = 1;
   for (final raw in selected) {
     final id = normalizeStepId(raw);
-    final name = humanStepName(id);
-    final result = results[id] ?? '';
-    String state;
-    if (now == id) {
-      state = 'NOW';
-    } else if (doneSet.contains(id)) {
-      state = result.isEmpty ? 'DONE' : result.toUpperCase();
-    } else {
-      state = 'WAIT';
-    }
-    lines.add('$index. [$state] $name');
+    final isNow = now == id;
+    final isDone = doneSet.contains(id);
+    if (isDone && !isNow) finished += 1;
+    final mark = boardState(
+      isNow: isNow,
+      isDone: isDone,
+      result: results[id] ?? '',
+    );
+    final time = times[id] ?? '';
+    final name = _fit(humanStepName(id), 34);
+    final line = StringBuffer('  ${index.toString().padLeft(2)}  $mark  $name');
+    if (time.isNotEmpty) line.write('  $time');
+    rows.add(line.toString());
     index += 1;
   }
-  return lines.join('\n');
+
+  final nowName = now.isEmpty ? '-' : humanStepName(now);
+  return [
+    title,
+    _rule(),
+    ...rows,
+    _rule(),
+    '  $finished/${selected.length} done    now: $nowName',
+  ].join('\n');
 }
 
-String _resultMark(String result) {
+String boardState({
+  required bool isNow,
+  required bool isDone,
+  required String result,
+}) {
+  if (isNow) return 'NOW ';
+  if (!isDone) return 'WAIT';
+  final mark = boardMark(result);
+  return mark.length >= 4 ? mark.substring(0, 4) : mark.padRight(4);
+}
+
+String boardMark(String result) {
   switch (result.toLowerCase()) {
     case 'ok':
     case 'done':
     case 'success':
-      return 'OK';
+    case '':
+      return 'DONE';
     case 'fail':
     case 'failed':
     case 'error':
@@ -103,4 +138,26 @@ String _resultMark(String result) {
     default:
       return result.toUpperCase();
   }
+}
+
+String _boardTitle({
+  required String appName,
+  required String version,
+  required String buildNumber,
+}) {
+  final bits = <String>['FLUSHIP'];
+  if (appName.trim().isNotEmpty) bits.add(appName.trim());
+  if (version.trim().isNotEmpty) {
+    final build = buildNumber.trim();
+    bits.add(build.isEmpty ? 'v$version' : 'v$version+$build');
+  }
+  return bits.join('  ');
+}
+
+String _rule() => '  ----------------------------------------------';
+
+String _fit(String text, int width) {
+  if (text.length <= width) return text.padRight(width);
+  if (width <= 1) return text.substring(0, width);
+  return '${text.substring(0, width - 1)}.';
 }

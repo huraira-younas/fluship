@@ -251,6 +251,21 @@ void _parentDeps() {
       none['slackNotify']!.reason == reasonNeedDriveAndApk,
       'slack parents',
     );
+    final stable = stabilizeReadiness(
+      catalog: catalog,
+      project: project,
+      secrets: secrets,
+      selected: const ['collectAab', 'buildAab'],
+    );
+    _check(stable.checked.contains('buildAab'), 'keep parent');
+    _check(stable.checked.contains('collectAab'), 'keep child after parent');
+    final orphan = stabilizeReadiness(
+      catalog: catalog,
+      project: project,
+      secrets: secrets,
+      selected: const ['collectAab'],
+    );
+    _check(!orphan.checked.contains('collectAab'), 'drop orphan collect');
   } finally {
     root.deleteSync(recursive: true);
   }
@@ -315,6 +330,8 @@ void _noEmDash() {
     File(pathJoin(here.parent.path, 'pipeline_cleanup.dart')),
     File(pathJoin(here.parent.path, 'pipeline_progress.dart')),
     File(pathJoin(here.parent.path, 'pipeline_warmup.dart')),
+    File(pathJoin(here.parent.path, 'pipeline_report.py')),
+    File(pathJoin(here.parent.path, 'pipeline_report_test.py')),
     File(pathJoin(here.parent.parent.path, 'AGENTS.md')),
     File(
       pathJoin(
@@ -331,7 +348,8 @@ void _noEmDash() {
         !file.path.endsWith('.html') &&
         !file.path.endsWith('.css') &&
         !file.path.endsWith('.js') &&
-        !file.path.endsWith('.md')) {
+        !file.path.endsWith('.md') &&
+        !file.path.endsWith('.py')) {
       continue;
     }
     _check(

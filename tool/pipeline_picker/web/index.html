@@ -7,83 +7,72 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <div class="backdrop">
-    <main class="dialog" id="dialog">
-      <header class="hero">
-        <div class="mark" aria-hidden="true"></div>
-        <div class="hero-copy">
-          <p class="eyebrow">Fluship agent</p>
-          <h1>Run pipeline</h1>
-          <p class="lede" id="lede">Pick the project first. Then turn on only the jobs you want for this run.</p>
-        </div>
-      </header>
-
-      <ol class="flow" aria-label="How this works">
-        <li><strong>1</strong> Choose the Flutter app</li>
-        <li><strong>2</strong> Turn on jobs</li>
-        <li><strong>3</strong> Start run</li>
-      </ol>
-
-      <section class="panel" aria-labelledby="project-title">
-        <div class="panel-head">
-          <p class="kicker">Step 1</p>
-          <h2 id="project-title">Which app?</h2>
-          <p class="hint">Later runs remember this folder.</p>
-        </div>
-        <label class="field">
-          <span>Recent apps</span>
-          <select id="recent"></select>
-        </label>
-        <div class="path-row">
-          <label class="field grow">
-            <span>Folder</span>
-            <input id="path" class="mono" type="text" spellcheck="false" placeholder="/path/to/flutter/app" autocomplete="off">
-          </label>
-          <button type="button" class="btn ghost" id="browse">Browse</button>
-          <button type="button" class="btn ghost" id="validate">Check</button>
-        </div>
-        <p class="status" id="project-status" role="status"></p>
-        <div class="meta-grid">
-          <label class="field">
-            <span>Version</span>
-            <input id="version" class="mono" type="text" spellcheck="false" placeholder="1.0.0">
-          </label>
-          <label class="field">
-            <span>Build</span>
-            <input id="buildNumber" class="mono" type="text" spellcheck="false" placeholder="1">
-          </label>
-          <label class="field">
-            <span>Branch</span>
-            <input id="gitBranch" class="mono" type="text" spellcheck="false" placeholder="master">
-          </label>
-        </div>
-        <label class="field share-field">
-          <span>WhatsApp number</span>
-          <input id="whatsappNumber" class="mono" type="tel" spellcheck="false" placeholder="+923096547269" autocomplete="off">
-          <span class="field-note">Used only if you turn on WhatsApp share below.</span>
-        </label>
-      </section>
-
-      <section class="panel steps-panel" aria-labelledby="steps-title">
-        <div class="panel-head">
-          <p class="kicker">Step 2</p>
-          <h2 id="steps-title">What should run?</h2>
-          <p class="hint" id="steps-hint">Switches that are dimmed need setup first. They stay visible so you can see why.</p>
-        </div>
-        <div id="groups"></div>
-      </section>
-
-      <footer class="footer">
+  <div class="app">
+    <header class="top">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
         <div>
-          <p class="count" id="count">0 jobs selected</p>
-          <p class="picked" id="picked"></p>
+          <p class="brand-kicker">Fluship</p>
+          <h1>Pipeline</h1>
         </div>
-        <div class="actions">
-          <button type="button" class="btn ghost" id="cancel">Cancel</button>
-          <button type="button" class="btn primary" id="submit" disabled>Start run</button>
-        </div>
-      </footer>
-    </main>
+      </div>
+      <p class="top-count" id="count">0 selected</p>
+    </header>
+
+    <p class="intro" id="lede">Choose the app, turn on only the jobs for this run, then start.</p>
+
+    <section class="card" aria-labelledby="app-title">
+      <div class="card-head">
+        <h2 id="app-title">App</h2>
+        <p class="status" id="project-status" role="status"></p>
+      </div>
+      <label class="field">
+        <span>Recent</span>
+        <select id="recent"></select>
+      </label>
+      <div class="path-row">
+        <label class="field grow">
+          <span>Folder</span>
+          <input id="path" type="text" spellcheck="false" placeholder="/path/to/flutter/app" autocomplete="off">
+        </label>
+        <button type="button" class="btn" id="browse">Browse</button>
+        <button type="button" class="btn" id="validate">Check</button>
+      </div>
+      <div class="meta">
+        <label class="field">
+          <span>Version</span>
+          <input id="version" type="text" spellcheck="false" placeholder="1.0.0">
+        </label>
+        <label class="field">
+          <span>Build</span>
+          <input id="buildNumber" type="text" spellcheck="false" placeholder="1">
+        </label>
+        <label class="field">
+          <span>Branch</span>
+          <input id="gitBranch" type="text" spellcheck="false" placeholder="master">
+        </label>
+        <label class="field">
+          <span>WhatsApp</span>
+          <input id="whatsappNumber" type="tel" spellcheck="false" placeholder="+923096547269" autocomplete="off">
+        </label>
+      </div>
+    </section>
+
+    <section class="jobs-wrap" aria-labelledby="jobs-title">
+      <div class="card-head">
+        <h2 id="jobs-title">Jobs</h2>
+        <p class="hint">Turn on what you want. Dimmed rows need setup first.</p>
+      </div>
+      <div id="groups"></div>
+    </section>
+
+    <footer class="dock">
+      <p class="picked" id="picked">Nothing selected</p>
+      <div class="dock-actions">
+        <button type="button" class="btn" id="cancel">Cancel</button>
+        <button type="button" class="btn primary" id="submit" disabled>Start</button>
+      </div>
+    </footer>
   </div>
   <script src="/app.js"></script>
 </body>

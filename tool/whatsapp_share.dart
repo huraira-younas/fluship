@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'pipeline_picker/apk_collect.dart';
 import 'pipeline_picker/host_actions.dart';
 import 'pipeline_picker/io_helpers.dart';
-import 'pipeline_picker/log_pdf.dart';
+import 'pipeline_picker/report_io.dart';
+import 'pipeline_picker/report_pdf.dart';
 import 'pipeline_picker/whatsapp.dart';
 
 Future<void> main(List<String> args) async {
@@ -20,36 +20,51 @@ Future<void> main(List<String> args) async {
     return;
   }
   if (!isValidWhatsAppNumber(parsed.number)) {
-    stderr.writeln(reasonNumber);
+    stderr.writeln('Enter a valid WhatsApp number.');
     exitCode = 64;
     return;
   }
 
   Directory(parsed.outputDir).createSync(recursive: true);
-  final logFile = File(parsed.logPath);
-  final logText = logFile.existsSync() ? logFile.readAsStringSync() : '';
-  final excerpt = parsed.errorExcerpt.isNotEmpty
-      ? parsed.errorExcerpt
-      : errorExcerptFromLog(logText);
   final pdfPath = pathJoin(parsed.outputDir, 'pipeline-report.pdf');
   final apks = collectShareApks(
     outputDir: parsed.outputDir,
     projectPath: parsed.project,
   );
   final attachments = <String>[pdfPath, ...apks];
-  final title =
-      'Fluship ${parsed.appName} v${parsed.version}+${parsed.buildNumber} '
-      '${parsed.success ? 'success' : 'failed'}';
-  final caption = buildWhatsAppCaption(
+  final wrote = await writeHtmlReportPdf(
+    logPath: parsed.logPath,
+    pdfPath: pdfPath,
     appName: parsed.appName,
     version: parsed.version,
     buildNumber: parsed.buildNumber,
     success: parsed.success,
     steps: parsed.steps,
-    errorExcerpt: excerpt,
-    attachments: attachments,
+    excerpt: parsed.errorExcerpt,
+    files: attachments,
   );
-  writeLogPdf(path: pdfPath, title: title, body: '$caption\n\n$logText');
+  if (!wrote) {
+    final excerpt = parsed.errorExcerpt.isNotEmpty
+        ? parsed.errorExcerpt
+        : errorExcerptFromLog(readFileTail(parsed.logPath));
+    writeReportPdf(
+      path: pdfPath,
+      report: PipelineReport(
+        appName: parsed.appName,
+        version: parsed.version,
+        buildNumber: parsed.buildNumber,
+        success: parsed.success,
+        steps: parsed.steps,
+        attachments: attachments,
+        errorExcerpt: excerpt,
+      ),
+    );
+  }
+  if (!File(pdfPath).existsSync() || File(pdfPath).lengthSync() < 64) {
+    stderr.writeln('Failed to write pipeline-report.pdf');
+    exitCode = 1;
+    return;
+  }
 
   final chatText = buildWhatsAppChatText(
     appName: parsed.appName,
@@ -71,35 +86,37 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  final uri = Platform.isMacOS
-      ? whatsappDesktopUri(number: parsed.number, text: chatText)
-      : whatsappWebUri(number: parsed.number, text: chatText);
-  await openBrowser(uri);
-
   if (!Platform.isMacOS) {
+    await openBrowser(whatsappWebUri(number: parsed.number, text: chatText));
     stdout.writeln(
       'Opened wa.me. Attach the PDF and APKs from ${parsed.outputDir}.',
     );
     return;
   }
 
-  final attached = await attachFilesOnMac(attachments);
-  if (attached) {
+  final result = await sendFilesOnMac(
+    number: parsed.number,
+    caption: chatText,
+    files: attachments,
+    send: parsed.send,
+  );
+  stdout.writeln('WhatsApp result: $result');
+  if (result == 'sent' || result == 'attached') {
     stdout.writeln(
-      'PDF and APKs were pasted into WhatsApp. Check the compose box, then tap Send.',
+      result == 'sent'
+          ? 'WhatsApp sent the PDF and APKs.'
+          : 'PDF and APKs are in the WhatsApp compose box. Tap Send.',
     );
     return;
   }
 
   await Process.run('open', ['-R', pdfPath]);
-  stdout.writeln(
-    'WhatsApp chat is open with a short status. The PDF was not pasted. '
-    'The PDF is $pdfPath. Drag pipeline-report.pdf and any APKs into the chat. '
-    'Do not send the chat text without the PDF.',
+  stderr.writeln(
+    'WhatsApp did not receive the PDF. The file is $pdfPath. '
+    'Grant Accessibility to Cursor, then drag pipeline-report.pdf into the chat.',
   );
+  exitCode = 2;
 }
-
-const reasonNumber = 'Enter a valid WhatsApp number.';
 
 const _help = '''
 Share a Fluship pipeline PDF and APKs on WhatsApp.
@@ -117,6 +134,7 @@ Options:
   --steps Clean:ok:1.2s,BuildAab:fail:3m4s
   --error TEXT
   --dry-run
+  --no-send
 ''';
 
 class _Args {
@@ -132,6 +150,7 @@ class _Args {
     required this.steps,
     required this.errorExcerpt,
     required this.dryRun,
+    required this.send,
   });
 
   final String logPath;
@@ -145,6 +164,7 @@ class _Args {
   final String steps;
   final String errorExcerpt;
   final bool dryRun;
+  final bool send;
 }
 
 _Args _parse(List<String> args) {
@@ -159,6 +179,7 @@ _Args _parse(List<String> args) {
   String steps = '';
   String errorExcerpt = '';
   var dryRun = false;
+  var send = true;
 
   for (var i = 0; i < args.length; i++) {
     final arg = args[i];
@@ -186,6 +207,8 @@ _Args _parse(List<String> args) {
         errorExcerpt = next();
       case '--dry-run':
         dryRun = true;
+      case '--no-send':
+        send = false;
     }
   }
 
@@ -201,100 +224,6 @@ _Args _parse(List<String> args) {
     steps: steps,
     errorExcerpt: errorExcerpt,
     dryRun: dryRun,
+    send: send,
   );
-}
-
-String errorExcerptFromLog(String log) {
-  final redacted = redactSecrets(log);
-  for (final line in redacted.split('\n').reversed) {
-    final lower = line.toLowerCase();
-    if (lower.contains('error') ||
-        lower.contains('fail') ||
-        lower.contains('exception')) {
-      return line.trim();
-    }
-  }
-  return '';
-}
-
-Future<bool> attachFilesOnMac(List<String> files) async {
-  final existing = [
-    for (final path in files)
-      if (File(path).existsSync()) path,
-  ];
-  if (existing.isEmpty) return false;
-
-  try {
-    await Future<void>.delayed(const Duration(seconds: 2));
-    await Process.run('osascript', [
-      '-e',
-      'tell application "WhatsApp" to activate',
-    ]);
-    await Future<void>.delayed(const Duration(seconds: 2));
-
-    final copied =
-        await _copyFilesToPasteboard(existing) ||
-        await _copyFilesWithFinder(existing);
-    if (!copied) {
-      return await _openFilesInWhatsApp(existing);
-    }
-
-    final pasted = await Process.run('osascript', [
-      '-e',
-      'tell application "WhatsApp" to activate\n'
-          'delay 0.8\n'
-          'tell application "System Events" to keystroke "v" using command down',
-    ]);
-    if (pasted.exitCode != 0) {
-      return await _openFilesInWhatsApp(existing);
-    }
-    await Future<void>.delayed(const Duration(seconds: 1));
-    return true;
-  } catch (_) {
-    return false;
-  }
-}
-
-Future<bool> _copyFilesToPasteboard(List<String> files) async {
-  final script = File(
-    '${Directory.systemTemp.path}/fluship-whatsapp-pasteboard.js',
-  );
-  script.writeAsStringSync('''
-ObjC.import("AppKit");
-const paths = ${jsonEncode(files)};
-const pb = \$.NSPasteboard.generalPasteboard;
-pb.clearContents;
-const urls = \$.NSMutableArray.array;
-for (const path of paths) {
-  urls.addObject(\$.NSURL.fileURLWithPath(path));
-}
-pb.writeObjects(urls);
-''');
-  final result = await Process.run('osascript', [
-    '-l',
-    'JavaScript',
-    script.path,
-  ]);
-  return result.exitCode == 0;
-}
-
-Future<bool> _copyFilesWithFinder(List<String> files) async {
-  final lines = [
-    'set theFiles to {}',
-    for (final path in files)
-      'set end of theFiles to POSIX file ${jsonEncode(path)}',
-    'set the clipboard to theFiles',
-  ];
-  final result = await Process.run('osascript', ['-e', lines.join('\n')]);
-  return result.exitCode == 0;
-}
-
-Future<bool> _openFilesInWhatsApp(List<String> files) async {
-  var any = false;
-  for (final path in files) {
-    final opened = await Process.run('open', ['-a', 'WhatsApp', path]);
-    if (opened.exitCode == 0) any = true;
-    await Future<void>.delayed(const Duration(seconds: 1));
-  }
-  return any;
 }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'io_helpers.dart';
 import 'whatsapp.dart';
 
 void main() {
@@ -21,20 +22,9 @@ void main() {
     'cache used',
   );
 
-  final caption = buildWhatsAppCaption(
-    appName: 'Demo',
-    version: '1.0.0',
-    buildNumber: '2',
-    success: false,
-    steps: 'Clean:ok:1s,BuildAab:fail:3m',
-    errorExcerpt: 'appPassword=super-secret failed to sign',
-  );
-  _check(caption.contains('Status: failed'), 'fail status');
-  _check(caption.contains('FAIL Build Play bundle (AAB) (3m)'), 'step detail');
-  _check(!caption.contains('BuildAab:fail:3m'), 'no packed dump');
-  _check(!caption.contains('super-secret'), 'redact password');
-  _check(caption.contains('[redacted]'), 'redacted marker');
-  _check(!caption.contains('\u2014'), 'caption em-dash');
+  final redacted = redactSecrets('appPassword=super-secret failed to sign');
+  _check(!redacted.contains('super-secret'), 'redact password');
+  _check(redacted.contains('[redacted]'), 'redacted marker');
 
   final chat = buildWhatsAppChatText(
     appName: 'Reelstay',
@@ -59,6 +49,14 @@ void main() {
       text: 'x',
     ).startsWith('https://wa.me/923096547269'),
     'web uri',
+  );
+  _check(
+    fileNameOf('/tmp/pipeline-report.pdf') == 'pipeline-report.pdf',
+    'name',
+  );
+  _check(
+    errorExcerptFromLog('ok\nGradle failed.\n') == 'Gradle failed.',
+    'excerpt',
   );
 
   stdout.writeln('whatsapp tests: ok');

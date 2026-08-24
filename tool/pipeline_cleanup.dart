@@ -65,8 +65,7 @@ Future<void> main(List<String> args) async {
   final killed = await killPids(plan.pidsToKill);
   saveTrackedPids(path: pidsPath, pids: const [], projectPath: project);
   if (parsed.closePicker) {
-    final lock = File(lockPath);
-    if (lock.existsSync()) lock.deleteSync();
+    deleteIfExists(lockPath);
   }
   stdout.writeln('Killed ${killed.length} process(es).');
 }

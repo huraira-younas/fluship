@@ -221,7 +221,7 @@ String? _layerAReason(
   return null;
 }
 
-Set<String> enabledIds(List<StepReadiness> readiness) {
+Set<String> _enabledIds(List<StepReadiness> readiness) {
   return {
     for (final step in readiness)
       if (step.enabled) step.id,
@@ -232,9 +232,34 @@ Set<String> filterSelected(
   Iterable<String> selected,
   List<StepReadiness> readiness,
 ) {
-  final allowed = enabledIds(readiness);
+  final allowed = _enabledIds(readiness);
   return {
     for (final id in selected)
       if (allowed.contains(id)) id,
   };
+}
+
+({List<StepReadiness> rows, Set<String> checked}) stabilizeReadiness({
+  required List<CatalogStep> catalog,
+  required ProjectFacts project,
+  required SecretsFacts secrets,
+  required Iterable<String> selected,
+  String whatsappNumber = '',
+}) {
+  var rows = evaluateReadiness(
+    catalog: catalog,
+    project: project,
+    secrets: secrets,
+    selected: selected.toSet(),
+    whatsappNumber: whatsappNumber,
+  );
+  var checked = filterSelected(selected, rows);
+  rows = evaluateReadiness(
+    catalog: catalog,
+    project: project,
+    secrets: secrets,
+    selected: checked,
+    whatsappNumber: whatsappNumber,
+  );
+  return (rows: rows, checked: filterSelected(checked, rows));
 }

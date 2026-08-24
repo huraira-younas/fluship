@@ -40,19 +40,21 @@ Every later shell command in this run must also use `required_permissions: ["all
 dart tool/pipeline_cleanup.dart --prepare --project {targetProjectPath}
 ```
 
-3. Print the live progress board in chat, then run only selected enabled ids in catalog order, in `targetProjectPath`. Update the board before and after every step. The user must see NOW, DONE, and WAIT at all times:
+3. Print the live progress board in chat before the first job, and again after every job. Never skip a board. Never wait until the end.
 
 ```bash
-dart tool/pipeline_progress.dart --selected id1,id2,id3 --current id2 --done id1 --results id1=ok
+dart tool/pipeline_progress.dart --selected id1,id2,id3 --current id2 --done id1 --results id1=ok --times id1=0.3s --app NAME --version VER --build NUM
 ```
 
 After each spawned build PID: `dart tool/pipeline_cleanup.dart --track {pid} --project {targetProjectPath}`. On failure, fix, then `dart format .` and `flutter analyze` if Dart changed, then retry (max 3).
 4. If `report` is selected, send logs at the end even when earlier steps failed.
-5. If `whatsappShare` is selected, run even when earlier steps failed. Never type the WhatsApp text. Never send a comma-separated Steps dump. Always run this tool so a PDF is written and attached:
+5. If `whatsappShare` is selected, run it last, after logs exist, even when earlier steps failed. Never type the WhatsApp text. Never send a comma-separated Steps dump. The share tool reads logs, builds HTML, prints a short PDF, then attaches that PDF:
 
 ```bash
 dart tool/whatsapp_share.dart --log {logFilePath} --output-dir {outputDir} --project {targetProjectPath} --number {whatsappNumber} --app-name {name} --version {version} --build-number {buildNumber} --success true --steps Clean:ok:1.2s,BuildAab:ok:3m4s
 ```
+
+If the tool exits 2, the PDF was not attached. Run warmup, then retry once. Do not type the WhatsApp message.
 
 6. Always cleanup last (success, fail, cancel, timeout, or user close/stop):
 

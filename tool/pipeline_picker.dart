@@ -84,7 +84,7 @@ Future<void> main(List<String> args) async {
 
   final code = await picker.done.future;
   await picker.close();
-  _deleteIfExists(lockPath);
+  deleteIfExists(lockPath);
   exit(code);
 }
 
@@ -130,7 +130,7 @@ Map<String, dynamic>? _liveLock(String lockPath) {
   final lock = readJsonFile(lockPath);
   final lockPid = asInt(lock['pid']);
   if (lockPid == null || !pidAlive(lockPid)) {
-    _deleteIfExists(lockPath);
+    deleteIfExists(lockPath);
     return null;
   }
   return lock;
@@ -170,11 +170,6 @@ int _waitForResult(String resultPath, int lockPid) {
     sleep(const Duration(milliseconds: 400));
   }
   return 3;
-}
-
-void _deleteIfExists(String path) {
-  final file = File(path);
-  if (file.existsSync()) file.deleteSync();
 }
 
 class _PickerApp {
@@ -307,11 +302,10 @@ class _PickerApp {
     final project = isFirstRun
         ? ProjectFacts.empty
         : ProjectFacts.inspect(savedPath);
-    final useSaved = !isFirstRun && project.isValidFlutterProject;
     return _buildState(
       cache: cache,
-      project: useSaved ? project : (isFirstRun ? ProjectFacts.empty : project),
-      selectedHint: useSaved ? cache.selected : const [],
+      project: project,
+      selectedHint: project.isValidFlutterProject ? cache.selected : const [],
       isFirstRun: isFirstRun,
       incomingNumber: '',
     );
@@ -380,24 +374,15 @@ class _PickerApp {
         if (hostIds.contains(id)) id,
     };
 
-    var readiness = evaluateReadiness(
+    final ready = stabilizeReadiness(
       catalog: hostSteps,
       project: project,
       secrets: SecretsFacts.fromJson(readJsonFile(secretsPath)),
       selected: hint,
       whatsappNumber: whatsappNumber,
     );
-    var checked = filterSelected(hint, readiness);
-    readiness = evaluateReadiness(
-      catalog: hostSteps,
-      project: project,
-      secrets: SecretsFacts.fromJson(readJsonFile(secretsPath)),
-      selected: checked,
-      whatsappNumber: whatsappNumber,
-    );
-    checked = filterSelected(checked, readiness);
-
-    final byId = {for (final step in readiness) step.id: step};
+    final checked = ready.checked;
+    final byId = {for (final step in ready.rows) step.id: step};
     final sameProject =
         project.path.isNotEmpty &&
         absolutePath(cache.targetProjectPath) == project.path;
@@ -463,7 +448,6 @@ class _PickerApp {
       'emailRecipient': cache.emailRecipient,
       'whatsappNumber': whatsappNumber,
       'powerDelaySeconds': cache.powerDelaySeconds,
-      'selectedCount': checked.length,
       'mutex': Catalog.mutexGroups,
       'groups': groups,
     };
@@ -493,26 +477,15 @@ class _PickerApp {
     }
 
     final whatsappNumber = asString(body['whatsappNumber']);
-    var readiness = evaluateReadiness(
+    final allowed = stabilizeReadiness(
       catalog: hostSteps,
       project: project,
       secrets: SecretsFacts.fromJson(readJsonFile(secretsPath)),
-      selected: requested.toSet(),
+      selected: requested,
       whatsappNumber: whatsappNumber.isEmpty
           ? defaultWhatsAppNumber
           : whatsappNumber,
-    );
-    final selected = filterSelected(requested, readiness).toList();
-    readiness = evaluateReadiness(
-      catalog: hostSteps,
-      project: project,
-      secrets: SecretsFacts.fromJson(readJsonFile(secretsPath)),
-      selected: selected.toSet(),
-      whatsappNumber: whatsappNumber.isEmpty
-          ? defaultWhatsAppNumber
-          : whatsappNumber,
-    );
-    final allowed = filterSelected(selected, readiness).toList();
+    ).checked.toList();
 
     final version = asString(body['version']);
     final buildNumber = asString(body['buildNumber']);
@@ -615,9 +588,9 @@ String _closedPage(String title, String message) {
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <main class="dialog done">
+  <main class="app done">
     <h1>$title</h1>
-    <p class="lede">$message</p>
+    <p class="intro">$message</p>
   </main>
 </body>
 </html>

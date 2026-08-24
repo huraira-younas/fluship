@@ -395,7 +395,7 @@ class Catalog {
     ),
     'whatsappShare': StepCopy(
       'Send PDF and APKs on WhatsApp',
-      'Builds a PDF report and sends it with APKs to the number above.',
+      'Reads the logs, builds a short HTML report, prints a PDF, then sends it with APKs.',
     ),
     'openOutputs': StepCopy(
       'Open outputs folder',
