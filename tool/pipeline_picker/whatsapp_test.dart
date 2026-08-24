@@ -54,6 +54,20 @@ void main() {
     fileNameOf('/tmp/pipeline-report.pdf') == 'pipeline-report.pdf',
     'name',
   );
+  _check(whatsAppSendScript.contains('writeObjects'), 'copies file urls');
+  _check(
+    whatsAppSendScript.contains('fileURLWithPath'),
+    'uses file urls not aliases',
+  );
+  _check(
+    !whatsAppSendScript.contains('as alias'),
+    'does not put aliases on clipboard',
+  );
+  _check(
+    whatsAppSendScript.indexOf('copyFilesToClipboard') <
+        whatsAppSendScript.indexOf('set the clipboard to captionText'),
+    'files hit the clipboard before caption',
+  );
   _check(
     errorExcerptFromLog('ok\nGradle failed.\n') == 'Gradle failed.',
     'excerpt',
