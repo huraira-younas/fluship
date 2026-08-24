@@ -5,11 +5,13 @@ import 'dart:io' show File;
 
 import '../contracts/distribution_logger.dart';
 import '../models/distribution_result.dart';
+import '../upload/counted_upload.dart';
 import 'play_store_auth.dart';
 
 abstract interface class PlayStoreUploader {
   Future<String> upload({
     required PlayStoreDistribution distribution,
+    UploadByteProgress? onProgress,
     required String packageName,
     required String saJsonPath,
     DistributionLogger? logger,
@@ -27,6 +29,7 @@ class GooglePlayPublisherUploader implements PlayStoreUploader {
   @override
   Future<String> upload({
     required PlayStoreDistribution distribution,
+    UploadByteProgress? onProgress,
     required String packageName,
     required String saJsonPath,
     DistributionLogger? logger,
@@ -58,12 +61,20 @@ class GooglePlayPublisherUploader implements PlayStoreUploader {
       await _log(logger, '[play] uploading: $aabName');
 
       final length = await aabFile.length();
+      final source = onProgress == null
+          ? aabFile.openRead()
+          : countedFileStream(
+              aabFile,
+              onProgress: onProgress,
+              fileName: aabName,
+              total: length,
+            );
       final bundle = await api.edits.bundles.upload(
         packageName,
         editId,
         uploadMedia: androidpublisher.Media(
           contentType: 'application/octet-stream',
-          aabFile.openRead(),
+          source,
           length,
         ),
       );

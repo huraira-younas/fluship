@@ -2,6 +2,7 @@ import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
 import 'package:fluship/services/distribution/distribution.dart';
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'dart:convert' show jsonDecode;
 import 'dart:io' show Directory, File;
 
 const _testTheme = ReportHtmlTheme(
@@ -57,6 +58,7 @@ class FakeDriveUploader implements DriveUploader {
   @override
   Future<DriveUploadOutcome> upload({
     Future<void> Function(String fileName)? onFileUploaded,
+    UploadByteProgress? onProgress,
     required GoogleDriveConfig driveConfig,
     required List<String> files,
     required String buildNumber,
@@ -257,6 +259,81 @@ void main() {
     expect(emailClient.lastMessage?.recipients, ['tester@example.com']);
     expect(emailClient.lastMessage?.subject, contains('Download Link'));
     expect(logger.lines, contains('[drive] uploading: Demo.apk\n'));
+  });
+
+  test('posts slack after upload when webhook is set', () async {
+    Uri? url;
+    String? body;
+    handler = GoogleDriveHandler(
+      htmlBuilder: const ReportHtmlBuilder(),
+      emailClient: emailClient,
+      uploader: driveUploader,
+      slackNotifier: SlackNotifier(
+        post: (posted, raw) async {
+          url = posted;
+          body = raw;
+        },
+      ),
+    );
+
+    await handler.run(
+      _context(
+        snapshot: withArtifacts(),
+        config: const DistributionConfigModel(
+          enabled: true,
+          driveConfig: GoogleDriveConfig(
+            enabled: true,
+            oauthJson: '/secrets/oauth.json',
+          ),
+          slackConfig: SlackConfig(
+            enabled: true,
+            webhookUrl: 'https://hooks.slack.com/x',
+          ),
+        ),
+      ),
+    );
+
+    expect(url.toString(), 'https://hooks.slack.com/x');
+    expect(jsonDecode(body!), {
+      'version': '1.0.0+42',
+      'platform': 'Android',
+      'artifacts': 'https://drive.google.com/drive/folders/abc',
+      'app': 'Demo App',
+      'status': 'Artifacts for QA',
+    });
+  });
+
+  test('keeps drive success when slack post throws', () async {
+    handler = GoogleDriveHandler(
+      htmlBuilder: const ReportHtmlBuilder(),
+      emailClient: emailClient,
+      uploader: driveUploader,
+      slackNotifier: SlackNotifier(
+        post: (_, _) async {
+          throw Exception('slack down');
+        },
+      ),
+    );
+
+    final result = await handler.run(
+      _context(
+        snapshot: withArtifacts(),
+        config: const DistributionConfigModel(
+          enabled: true,
+          driveConfig: GoogleDriveConfig(
+            enabled: true,
+            oauthJson: '/secrets/oauth.json',
+          ),
+          slackConfig: SlackConfig(
+            enabled: true,
+            webhookUrl: 'https://hooks.slack.com/x',
+          ),
+        ),
+      ),
+    );
+
+    expect(result.isSuccess, isTrue);
+    expect(driveUploader.uploadCalls, 1);
   });
 
   test('returns failed when email client throws after upload', () async {

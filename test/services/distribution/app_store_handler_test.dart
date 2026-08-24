@@ -40,6 +40,7 @@ class FakeAppStoreUploader implements AppStoreUploader {
     required IosConfig appstore,
     required String ipaPath,
     DistributionLogger? logger,
+    TransporterLine? onLine,
   }) async {
     uploadCalls++;
     lastIpaPath = ipaPath;

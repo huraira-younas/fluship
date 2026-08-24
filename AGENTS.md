@@ -8,8 +8,8 @@ Follow this file for run pipeline, ship, or build AAB / APK / IPA. Do not change
 - Show is not select. First run checks nothing. Never hide a host-OS step. Windows and Linux omit iOS ids. macOS shows iOS ids even when blocked.
 - Do not start jobs before the picker exits 0. Do not add extra ids the user did not submit.
 - Ask for host permissions first. Do not start a long step while Allow is pending. Every shell command in the run uses full host permissions (`required_permissions: ["all"]`).
-- Logs are mandatory. Create the run folder and `logs.txt` before the first job.
-- After every job, print the progress board in chat (NOW / DONE / WAIT / FAIL / SKIP). Never batch. Never wait until the end.
+- Logs are mandatory. Create the run folder and `logs.txt` before the first job. Also write `.fluship-agent/progress.json` before the first job.
+- After every job, print the progress board in chat (NOW / DONE / WAIT / FAIL / SKIP). Never batch. Never wait until the end. Update `progress.json` with the same board command.
 - Do not commit, push, upload stores, email, or run power unless that id was selected. Power needs a second confirm after the picker.
 - Do not swallow git failures. Critical ids abort later jobs: `bumpVersion`, `clean`, `pubGet`, `pubUpgrade`. Then offer fix and continue.
 - After Dart edits in this repo: `dart format .` and `flutter analyze`.
@@ -44,15 +44,23 @@ Exit 0 submit. Exit 2 cancel. Exit 3 timeout. Anything else is an error. On canc
 dart tool/pipeline_cleanup.dart --prepare --project {targetProjectPath}
 ```
 
-3. Create `{workspace}/outputs/{sanitizedProject}/v{version}/{buildNumber}/` and `logs.txt`. Write `.fluship-agent/last-run.json` (`logFilePath`, `outputDir`, `startedAt`, `success`). Sanitize the project folder to lowercase `[a-z0-9_]`.
+3. Create `{workspace}/outputs/{sanitizedProject}/v{version}/{buildNumber}/` and `logs.txt`. Write `.fluship-agent/last-run.json` (`logFilePath`, `outputDir`, `startedAt`, `success`). Sanitize the project folder to lowercase `[a-z0-9_]`. Write `.fluship-agent/progress.json` with the first board command.
 
 4. Print the board before the first job, and again after every job:
 
 ```bash
-dart tool/pipeline_progress.dart --selected id1,id2 --current id2 --done id1 --results id1=ok --times id1=0.3s --app NAME --version VER --build NUM
+dart tool/pipeline_progress.dart --selected id1,id2 --current id2 --done id1 --results id1=ok --times id1=0.3s --app NAME --version VER --build NUM --progress .fluship-agent/progress.json --log {logFilePath}
 ```
 
 Paste stdout as-is. After each build PID: `dart tool/pipeline_cleanup.dart --track {pid} --project {targetProjectPath}`.
+
+If `whatsappShare` is selected and the cache number is valid, start the heartbeat after logs exist, then track its PID:
+
+```bash
+dart tool/pipeline_heartbeat.dart --progress .fluship-agent/progress.json --number {whatsappNumber} --interval-seconds 120
+```
+
+It sends a WhatsApp text ping every 2 minutes while the current job has been running at least 2 minutes. Text only. No files. Do not type the chat. A failed ping does not fail the build. Pause pings while `whatsappShare` is the current id. Cleanup always stops this PID.
 
 5. Run only selected ids that are still enabled on this host OS, in catalog order. Ignore iOS ids on Windows and Linux. Mutex pair: keep the first in catalog order, skip the other.
 
@@ -62,9 +70,11 @@ Paste stdout as-is. After each build PID: `dart tool/pipeline_cleanup.dart --tra
 
 8. On failure: fix the real cause, then retry that id (max 3). If Dart in this repo changed, format and analyze first. For `podInstall` (or any iOS pod error): delete `ios/Podfile.lock`, then retry. After 3 failures, continue or abort per critical rules.
 
-9. If `report` is selected, send it at the end even when earlier jobs failed.
+9. If a dist id is selected and its secrets are missing, ask once, save them to `.fluship-agent/secrets.json`, then run. If the user cancels the ask, skip that id only.
 
-10. If `whatsappShare` is selected, run it last after logs exist, even when earlier jobs failed. Never type the WhatsApp chat.
+10. If `report` is selected, send it at the end even when earlier jobs failed.
+
+11. If `whatsappShare` is selected, run it last after logs exist, even when earlier jobs failed. Set the board current id to `whatsappShare` before the file send so heartbeat does not collide. Never type the WhatsApp chat.
 
 ```bash
 dart tool/whatsapp_share.dart --log {logFilePath} --output-dir {outputDir} --project {targetProjectPath} --number {whatsappNumber} --app-name {name} --version {version} --build-number {buildNumber} --success true --steps Clean:ok:1.2s,BuildAab:ok:3m4s
@@ -72,17 +82,17 @@ dart tool/whatsapp_share.dart --log {logFilePath} --output-dir {outputDir} --pro
 
 Exit 2: warmup, then retry that command once. Do not send text without the PDF.
 
-11. If a power id is selected, ask one second confirm.
+12. If a power id is selected, ask one second confirm.
 
-12. Always cleanup last (success, fail, cancel, timeout, close, stop):
+13. Always cleanup last (success, fail, cancel, timeout, close, stop):
 
 ```bash
 dart tool/pipeline_cleanup.dart --project {targetProjectPath}
 ```
 
-On close/stop also pass `--close-picker`.
+On close/stop also pass `--close-picker`. Cleanup marks `progress.json` idle and kills the heartbeat PID.
 
-13. Summarize: selected ids, each status, log path, email result, WhatsApp result, final board.
+14. Summarize: selected ids, each status, log path, email result, WhatsApp result, final board.
 
 If the picker cannot start, two `AskQuestion` rounds only: project, then host-OS catalog with blocked ids listed. Do not use chat checkboxes as the normal path.
 
@@ -115,11 +125,11 @@ Mutex: `pubGet`/`pubUpgrade`, `buildApk`/`buildSplits`, `distPlayProduction`/`di
 | `collectIpa` | Copy this run's `*.ipa` from `build/ios/ipa/`. macOS. |
 | `postCommit` | `git add . && git commit -m "{msg}"`. Fallback `{version} release`. |
 | `postPush` | `git push origin {branch}`. Never force-push. |
-| `distPlayProduction` | Play production upload. Needs Play secrets. Skip if missing. |
-| `distPlayInternal` | Play internal upload. Same as production. |
-| `distAppStore` | `xcrun iTMSTransporter -m upload -assetFile {ipa} -apiKey {id} -apiIssuer {issuer} -apiKeyPath {p8} -v eXtreme`. macOS. Skip if secrets missing. |
-| `distDrive` | Upload collected APKs. Skip if Drive secrets missing. |
-| `slackNotify` | POST `slackWebhookUrl`. Skip if missing. |
+| `distPlayProduction` | `dart run tool/dist_play.dart --aab {aab} --track production --progress .fluship-agent/progress.json`. Ask once for Play secrets if missing. |
+| `distPlayInternal` | `dart run tool/dist_play.dart --aab {aab} --track internal --progress .fluship-agent/progress.json`. Same secrets as production. |
+| `distAppStore` | `dart run tool/dist_app_store.dart --ipa {ipa} --progress .fluship-agent/progress.json`. macOS. Ask once for App Store secrets if missing. |
+| `distDrive` | `dart run tool/dist_drive.dart --output-dir {outputDir} --progress .fluship-agent/progress.json`. Ask once for Drive secrets if missing. Writes `.fluship-agent/last-drive.json`. |
+| `slackNotify` | `dart run tool/slack_notify.dart --link {driveLink} --app-name {name} --version {ver} --build-number {num}`. Ask once for `slackWebhookUrl` if missing. |
 | `report` | Email HTML report and `logs.txt`. Ask for Gmail secrets once if missing, save them, then: `dart run tool/send_pipeline_report.dart --log {logFilePath} --app-name {name} --version {version} --build-number {buildNumber} --success true --elapsed 2m10s --platforms Android --steps Clean:ok:1.2s`. Do not pass the password on the command line. |
 | `whatsappShare` | `dart tool/whatsapp_share.dart` (see Run). Valid number, 10 to 15 digits. Form default `+923096547269`. |
 | `openOutputs` | Windows `explorer`; macOS `open`; Linux `xdg-open`. |
@@ -140,9 +150,14 @@ Confirm is blocked until `targetProjectPath` is a Flutter project.
 - `tool/pipeline_warmup.dart`
 - `tool/pipeline_picker.dart`
 - `tool/pipeline_progress.dart`
+- `tool/pipeline_heartbeat.dart`
 - `tool/pipeline_report.py`
 - `tool/whatsapp_share.dart` (calls `tool/whatsapp_send.py`)
 - `tool/pipeline_cleanup.dart`
 - `tool/send_pipeline_report.dart`
+- `tool/dist_play.dart`
+- `tool/dist_drive.dart`
+- `tool/dist_app_store.dart`
+- `tool/slack_notify.dart`
 
-Picker tests: `dart tool/pipeline_picker/run_all_tests.dart`.
+Pipeline tests: `dart tool/pipeline_picker/tests/run_all.dart`.

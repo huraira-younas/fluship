@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'pipeline_picker/apk_collect.dart';
-import 'pipeline_picker/host_actions.dart';
+import 'pipeline_picker/host/host_actions.dart';
 import 'pipeline_picker/io_helpers.dart';
-import 'pipeline_picker/report_io.dart';
-import 'pipeline_picker/report_pdf.dart';
-import 'pipeline_picker/whatsapp.dart';
+import 'pipeline_picker/report/report_io.dart';
+import 'pipeline_picker/report/report_pdf.dart';
+import 'pipeline_picker/share/apk_collect.dart';
+import 'pipeline_picker/share/whatsapp.dart';
 
 Future<void> main(List<String> args) async {
   if (args.contains('--help') || args.contains('-h')) {

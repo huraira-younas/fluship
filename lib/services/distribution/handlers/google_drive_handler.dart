@@ -1,12 +1,10 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert' show jsonEncode;
-
 import '../contracts/distribution_context.dart';
 import '../contracts/distribution_handler.dart';
 import '../drive/drive_upload_outcome.dart';
 import '../models/distribution_result.dart';
 import '../email/report_html_builder.dart';
 import '../contracts/email_client.dart';
+import '../slack/slack_notifier.dart';
 import '../drive/drive_uploader.dart';
 
 class GoogleDriveHandler implements DistributionHandler {
@@ -14,9 +12,11 @@ class GoogleDriveHandler implements DistributionHandler {
     required this.emailClient,
     required this.htmlBuilder,
     required this.uploader,
+    this.slackNotifier = const SlackNotifier(),
   });
 
   final ReportHtmlBuilder htmlBuilder;
+  final SlackNotifier slackNotifier;
   final EmailClient emailClient;
   final DriveUploader uploader;
 
@@ -109,7 +109,7 @@ class GoogleDriveHandler implements DistributionHandler {
         snapshot.version.isNotEmpty && snapshot.buildNumber.isNotEmpty
         ? ' v${snapshot.version}+${snapshot.buildNumber}'
         : '';
-    final subject = '📦 $label Build Ready$versionTag — Download Link';
+    final subject = '📦 $label Build Ready$versionTag - Download Link';
 
     try {
       await emailClient.send(
@@ -141,30 +141,27 @@ class GoogleDriveHandler implements DistributionHandler {
 
     final snapshot = context.snapshot;
     final config = context.config;
+    final webhook = slack.webhookUrl?.trim() ?? '';
+    if (webhook.isEmpty) return;
 
-    final submittedTo = [
-      if (config.canSendToPlayStore && config.playstore?.distribution != null)
-        'PlayStore',
-      if (config.canSendToAppStore && config.appstore?.enabled == true)
-        'AppStore',
-    ];
-    final status = submittedTo.isEmpty
-        ? 'Artifacts for QA'
-        : '${submittedTo.join(', ')} submitted';
-
-    final url = Uri.parse(slack.webhookUrl!);
-    final payload = jsonEncode({
-      'version': '${snapshot.version}+${snapshot.buildNumber}',
-      'platform': snapshot.platforms,
-      'artifacts': upload.link,
-      'app': snapshot.appName,
-      'status': status,
-    });
-
-    await http.post(
-      headers: {'Content-Type': 'application/json'},
-      body: payload,
-      url,
-    );
+    try {
+      await slackNotifier.send(
+        webhookUrl: webhook,
+        body: SlackNotifier.payload(
+          buildNumber: snapshot.buildNumber,
+          platform: snapshot.platforms,
+          version: snapshot.version,
+          artifacts: upload.link,
+          app: snapshot.appName,
+          status: SlackNotifier.statusLine(
+            playStore:
+                config.canSendToPlayStore &&
+                config.playstore?.distribution != null,
+            appStore:
+                config.canSendToAppStore && config.appstore?.enabled == true,
+          ),
+        ),
+      );
+    } catch (_) {}
   }
 }

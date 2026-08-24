@@ -131,14 +131,15 @@ String asString(Object? value, [String fallback = '']) {
 }
 
 String? resolveToolScript(String name) {
-  final scriptDir = File.fromUri(Platform.script).parent;
-  final candidates = <String>[
-    pathJoin(scriptDir.path, name),
-    pathJoin(scriptDir.parent.path, name),
-    pathJoin(Directory.current.path, 'tool', name),
-  ];
-  for (final path in candidates) {
-    if (File(path).existsSync()) return path;
+  var dir = File.fromUri(Platform.script).absolute.parent;
+  for (var i = 0; i < 8; i++) {
+    final here = pathJoin(dir.path, name);
+    if (File(here).existsSync()) return here;
+    final parent = dir.parent;
+    if (parent.path == dir.path) break;
+    dir = parent;
   }
+  final fromCwd = pathJoin(Directory.current.path, 'tool', name);
+  if (File(fromCwd).existsSync()) return fromCwd;
   return null;
 }

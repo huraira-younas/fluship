@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'pipeline_picker/cache_io.dart';
-import 'pipeline_picker/catalog.dart';
-import 'pipeline_picker/host_actions.dart';
+import 'pipeline_picker/catalog/cache_io.dart';
+import 'pipeline_picker/catalog/catalog.dart';
+import 'pipeline_picker/catalog/readiness.dart';
+import 'pipeline_picker/host/host_actions.dart';
+import 'pipeline_picker/host/open_page.dart';
 import 'pipeline_picker/io_helpers.dart';
-import 'pipeline_picker/open_page.dart';
-import 'pipeline_picker/readiness.dart';
-import 'pipeline_picker/whatsapp.dart';
+import 'pipeline_picker/share/whatsapp.dart';
 
 const _help = '''
 Fluship agent pipeline picker.

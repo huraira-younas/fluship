@@ -20,7 +20,7 @@ from typing import Callable
 
 ROOT = Path(__file__).resolve().parent
 FONTS = ROOT / "pipeline_picker" / "web" / "fonts"
-CATALOG = ROOT / "pipeline_picker" / "catalog.dart"
+CATALOG = ROOT / "pipeline_picker" / "catalog" / "catalog.dart"
 MAX_BLOCK_LINES = 80
 
 _TITLE_RE = re.compile(

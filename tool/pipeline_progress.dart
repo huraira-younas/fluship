@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'pipeline_picker/progress.dart';
+import 'pipeline_picker/progress/progress.dart';
+import 'pipeline_picker/progress/progress_state.dart';
 
 /// Prints the live pipeline board. The agent must run this before the first
 /// job and again after every job, then paste the stdout into chat.
@@ -10,16 +11,48 @@ void main(List<String> args) {
     return;
   }
 
+  final progressPath = _value(args, '--progress');
+  final existing = progressPath.isEmpty
+      ? const PipelineProgressState()
+      : loadProgressState(progressPath);
+  final state = applyBoardUpdate(
+    existing: existing,
+    now: DateTime.now().toUtc(),
+    current: args.contains('--current') ? _value(args, '--current') : null,
+    app: _value(args, '--app'),
+    version: _value(args, '--version'),
+    buildNumber: _value(args, '--build'),
+    note: _value(args, '--note'),
+    selected: _csv(args, '--selected'),
+    done: _csv(args, '--done'),
+    results: _map(args, '--results'),
+    times: _map(args, '--times'),
+  );
+
+  if (progressPath.isNotEmpty) {
+    saveProgressState(progressPath, state);
+  }
+
+  final logPath = _value(args, '--log');
+  if (logPath.isNotEmpty) {
+    File(logPath).writeAsStringSync(
+      '${progressSnapshotLine(state)}\n',
+      mode: FileMode.append,
+    );
+  }
+
   stdout.writeln(
     formatProgressBoard(
-      selected: _csv(args, '--selected'),
-      done: _csv(args, '--done'),
-      current: _value(args, '--current'),
-      results: _map(args, '--results'),
-      times: _map(args, '--times'),
-      appName: _value(args, '--app'),
-      version: _value(args, '--version'),
-      buildNumber: _value(args, '--build'),
+      selected: state.selected,
+      done: state.done,
+      current: state.now,
+      results: state.results,
+      times: state.times,
+      appName: state.app,
+      version: state.version,
+      buildNumber: state.buildNumber,
+      uploadLabel: state.upload?.label ?? '',
+      note: state.note,
     ),
   );
 }
@@ -28,7 +61,7 @@ const _help = '''
 Print the live Fluship pipeline progress board.
 
 Usage:
-  dart tool/pipeline_progress.dart --selected id1,id2 --current id2 --done id1 --results id1=ok --times id1=0.3s --app Reelstay --version 1.8.2 --build 8205
+  dart tool/pipeline_progress.dart --selected id1,id2 --current id2 --done id1 --results id1=ok --times id1=0.3s --app Reelstay --version 1.8.2 --build 8205 --progress .fluship-agent/progress.json --log logs.txt
 ''';
 
 String _value(List<String> args, String flag) {

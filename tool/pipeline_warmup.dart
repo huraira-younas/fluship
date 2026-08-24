@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'pipeline_picker/host_permissions.dart';
+import 'pipeline_picker/host/host_permissions.dart';
 
 /// First command of every agent pipeline run.
 ///

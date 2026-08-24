@@ -44,6 +44,7 @@ class FakePlayStoreUploader implements PlayStoreUploader {
     required String saJsonPath,
     required String aabPath,
     String? releaseNotes,
+    UploadByteProgress? onProgress,
   }) async {
     uploadCalls++;
     lastAabPath = aabPath;

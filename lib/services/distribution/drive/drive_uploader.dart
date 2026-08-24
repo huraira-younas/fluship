@@ -3,6 +3,7 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:path/path.dart' as p;
 import 'dart:io' show File;
 
+import '../upload/counted_upload.dart';
 import 'drive_upload_outcome.dart';
 import 'drive_auth.dart';
 import 'drive_mime.dart';
@@ -11,6 +12,7 @@ abstract interface class DriveUploader {
   Future<DriveUploadOutcome> upload({
     Future<void> Function(String fileName)? onFileUploaded,
     required GoogleDriveConfig driveConfig,
+    UploadByteProgress? onProgress,
     required List<String> files,
     required String buildNumber,
     required String appName,
@@ -20,7 +22,7 @@ abstract interface class DriveUploader {
 
 class GoogleDriveUploader implements DriveUploader {
   const GoogleDriveUploader({DriveAuthClientFactory? authFactory})
-    : _authFactory = authFactory ?? const GoogleDriveAuthClientFactory();
+    : _authFactory = authFactory ?? const GoogleDriveTokenAuthClientFactory();
 
   static const _folderMime = 'application/vnd.google-apps.folder';
   final DriveAuthClientFactory _authFactory;
@@ -29,6 +31,7 @@ class GoogleDriveUploader implements DriveUploader {
   Future<DriveUploadOutcome> upload({
     Future<void> Function(String fileName)? onFileUploaded,
     required GoogleDriveConfig driveConfig,
+    UploadByteProgress? onProgress,
     required List<String> files,
     required String buildNumber,
     required String appName,
@@ -80,8 +83,16 @@ class GoogleDriveUploader implements DriveUploader {
         final length = await file.length();
         final mime = driveMimeForPath(file.path) ?? 'application/octet-stream';
 
+        final source = onProgress == null
+            ? file.openRead()
+            : countedFileStream(
+                file,
+                onProgress: onProgress,
+                fileName: name,
+                total: length,
+              );
         await api.files.create(
-          uploadMedia: drive.Media(file.openRead(), length, contentType: mime),
+          uploadMedia: drive.Media(source, length, contentType: mime),
           drive.File()
             ..name = name
             ..parents = [folderId],

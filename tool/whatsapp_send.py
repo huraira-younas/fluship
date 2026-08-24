@@ -90,6 +90,39 @@ class BaseHost:
         return open_uri(desktop_chat_uri(phone))
 
 
+def share_text(
+    host: Host,
+    number: str,
+    caption: str,
+    send: bool = True,
+    sleep: Callable[[float], None] = time.sleep,
+) -> str:
+    phone = digits_only(number)
+    if not is_valid_number(phone):
+        return "bad-number"
+    text = caption.strip()
+    if not text:
+        return "no-text"
+    if not host.copy_text(text):
+        return "failed"
+    if not host.open_chat(phone):
+        return "no-whatsapp"
+    sleep(2.8)
+    host.activate()
+    sleep(0.8)
+    host.clear_composer()
+    sleep(0.2)
+    if not host.paste():
+        return "failed"
+    sleep(0.7)
+    if send:
+        if not host.press_send():
+            return "failed"
+        sleep(0.9)
+        return "sent"
+    return "attached"
+
+
 def share(
     host: Host,
     number: str,
@@ -97,7 +130,10 @@ def share(
     files: list[str],
     send: bool = True,
     sleep: Callable[[float], None] = time.sleep,
+    text_only: bool = False,
 ) -> str:
+    if text_only:
+        return share_text(host, number, caption, send=send, sleep=sleep)
     phone = digits_only(number)
     if not is_valid_number(phone):
         return "bad-number"
@@ -421,6 +457,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--number", required=True)
     parser.add_argument("--caption", default="")
     parser.add_argument("--caption-file", default="")
+    parser.add_argument("--text", default="")
+    parser.add_argument("--text-only", action="store_true")
     parser.add_argument("--file", action="append", default=[])
     parser.add_argument("--no-send", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
@@ -428,6 +466,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def caption_from(args: argparse.Namespace) -> str:
+    if args.text:
+        return args.text
     if args.caption_file:
         return Path(args.caption_file).read_text(encoding="utf-8")
     return args.caption
@@ -437,9 +477,15 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     caption = caption_from(args)
     files = existing_files(args.file)
+    text_only = args.text_only or (bool(args.text) and not files)
     if args.dry_run:
         print(f"WhatsApp number: {digits_only(args.number)}")
         print(f"Chat URI: {desktop_chat_uri(args.number)}")
+        if text_only:
+            print("Text only")
+            print(f"Caption: {caption}")
+            print("WhatsApp result: dry-run")
+            return 0 if caption.strip() else 2
         print("Attachments:")
         for path in files:
             print(f"  {path}")
@@ -451,6 +497,7 @@ def main(argv: list[str] | None = None) -> int:
         caption=caption,
         files=files,
         send=not args.no_send,
+        text_only=text_only,
     )
     print(f"WhatsApp result: {result}")
     if result in {"sent", "attached"}:

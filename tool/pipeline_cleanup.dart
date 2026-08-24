@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'pipeline_picker/cleanup.dart';
+import 'pipeline_picker/host/cleanup.dart';
 import 'pipeline_picker/io_helpers.dart';
+import 'pipeline_picker/progress/progress_state.dart';
 
 Future<void> main(List<String> args) async {
   if (args.contains('--help') || args.contains('-h')) {
@@ -24,6 +25,7 @@ Future<void> main(List<String> args) async {
       pids: const [],
       projectPath: parsed.project,
     );
+    deleteIfExists(pathJoin(agentDir, 'last-drive.json'));
     stdout.writeln('Prepared $pidsPath');
     return;
   }
@@ -63,6 +65,7 @@ Future<void> main(List<String> args) async {
   if (parsed.dryRun) return;
 
   final killed = await killPids(plan.pidsToKill);
+  writeProgressIdle(pathJoin(agentDir, 'progress.json'));
   saveTrackedPids(path: pidsPath, pids: const [], projectPath: project);
   if (parsed.closePicker) {
     deleteIfExists(lockPath);
