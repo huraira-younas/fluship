@@ -1,25 +1,63 @@
 ---
 name: fluship-pipeline
-description: Runs the Fluship release pipeline with all-optional checkbox selection, selection cache, run logs, optional log email, and fix-and-retry. Use when the user mentions run pipeline, ship, build AAB, APK, IPA, Fluship options, checkbox pipeline, or references AGENTS.md or this skill.
+description: Runs the Fluship release pipeline with a local picker dialog, selection cache, run logs, optional log email, WhatsApp share, always-on process cleanup, and fix-and-retry. Use when the user mentions run pipeline, ship, build AAB, APK, IPA, Fluship options, checkbox pipeline, or references AGENTS.md or this skill.
 ---
 
 # Fluship Pipeline
 
-Read and obey [AGENTS.md](../../../AGENTS.md) before anything else. That file is the only catalog. Do not invent extra steps and do not hide Fluship steps.
+Read and obey [AGENTS.md](../../../AGENTS.md). Do not invent extra steps. Do not hide a step that belongs on this host OS.
 
-## First actions (in this order)
+## First actions
 
-1. Read `.fluship-agent/pipeline-cache.json` if it exists.
-2. Ask with checkboxes. Do not run pipeline commands before the answer.
-   - Cache present: ask Reuse last selection or Customize.
-   - Customize or no cache: `AskQuestion` with `allow_multiple: true` and every catalog id. Mark last-run ids `[saved]`.
-3. Write `.fluship-agent/pipeline-cache.json` immediately after they pick.
-4. Create `{workspace}/outputs/{project}/v{version}/{buildNumber}/` and `logs.txt`. Write `.fluship-agent/last-run.json`.
-5. Run only selected steps in catalog order. On failure, fix, then `dart format .` and `flutter analyze` if Dart changed, then retry (max 3).
-6. If `report` is selected, send logs at the end even when earlier steps failed:
+The user must stay until the picker is visible. Ask for every permission now so later steps do not wait on Allow.
+
+0. Warmup with full host permissions (`required_permissions: ["all"]`):
 
 ```bash
-dart run tool/send_pipeline_report.dart --log {logFilePath} --app-name {name} --version {version} --build-number {buildNumber} --success true --elapsed 2m10s --platforms Android --steps Clean:ok:1.2s,BuildAab:ok:3m4s
+dart tool/pipeline_warmup.dart
+```
+
+Repeat the warmup board in chat. If it exits 4, wait for Accessibility, run it again. Do not start the picker while a prompt is pending.
+
+1. Launch the picker in the background. Do not paste the catalog into chat. Do not run pipeline commands before it exits 0.
+
+```bash
+dart tool/pipeline_picker.dart
+```
+
+Read `Pipeline picker:` and `open-in:` from stdout, or `.fluship-agent/picker-open.json`.
+
+- `cursor-ide`: open that URL in the Cursor IDE browser panel now (`browser_navigate`, `position: "active"`, `newTab: true`). Do not lock it. Do not open Chrome.
+- `chrome`: the tool already opened Chrome.
+
+Exit 0: submitted. Exit 2: cancel, then cleanup and stop. Exit 3: timeout, then cleanup and stop.
+
+Every later shell command in this run must also use `required_permissions: ["all"]`.
+
+2. Read `.fluship-agent/pipeline-cache.json`. Create the outputs folder and `logs.txt`. Write `.fluship-agent/last-run.json`. Prepare cleanup:
+
+```bash
+dart tool/pipeline_cleanup.dart --prepare --project {targetProjectPath}
+```
+
+3. Print the live progress board in chat, then run only selected enabled ids in catalog order, in `targetProjectPath`. Update the board before and after every step. The user must see NOW, DONE, and WAIT at all times:
+
+```bash
+dart tool/pipeline_progress.dart --selected id1,id2,id3 --current id2 --done id1 --results id1=ok
+```
+
+After each spawned build PID: `dart tool/pipeline_cleanup.dart --track {pid} --project {targetProjectPath}`. On failure, fix, then `dart format .` and `flutter analyze` if Dart changed, then retry (max 3).
+4. If `report` is selected, send logs at the end even when earlier steps failed.
+5. If `whatsappShare` is selected, run even when earlier steps failed. Never type the WhatsApp text. Never send a comma-separated Steps dump. Always run this tool so a PDF is written and attached:
+
+```bash
+dart tool/whatsapp_share.dart --log {logFilePath} --output-dir {outputDir} --project {targetProjectPath} --number {whatsappNumber} --app-name {name} --version {version} --build-number {buildNumber} --success true --steps Clean:ok:1.2s,BuildAab:ok:3m4s
+```
+
+6. Always cleanup last (success, fail, cancel, timeout, or user close/stop):
+
+```bash
+dart tool/pipeline_cleanup.dart --project {targetProjectPath}
 ```
 
 Do not pass the Gmail password on the command line. Read `.fluship-agent/secrets.json`.
