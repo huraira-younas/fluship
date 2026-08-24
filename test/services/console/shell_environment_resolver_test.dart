@@ -58,30 +58,26 @@ flutter.sdk=/Users/dev/flutter
     });
   });
 
-  group(
-    'ShellEnvironmentResolver.ensureUtf8Locale',
-    () {
-      test('sets LANG and LC_ALL when missing', () {
-        final env = <String, String>{};
-        ShellEnvironmentResolver.ensureUtf8Locale(env);
-        expect(env['LANG'], 'en_US.UTF-8');
-        expect(env['LC_ALL'], 'en_US.UTF-8');
-      });
+  group('ShellEnvironmentResolver.ensureUtf8Locale', () {
+    test('sets LANG and LC_ALL when missing', () {
+      final env = <String, String>{};
+      ShellEnvironmentResolver.ensureUtf8Locale(env);
+      expect(env['LANG'], 'en_US.UTF-8');
+      expect(env['LC_ALL'], 'en_US.UTF-8');
+    });
 
-      test('replaces non UTF-8 locales', () {
-        final env = <String, String>{'LANG': 'C', 'LC_ALL': 'POSIX'};
-        ShellEnvironmentResolver.ensureUtf8Locale(env);
-        expect(env['LANG'], 'en_US.UTF-8');
-        expect(env['LC_ALL'], 'en_US.UTF-8');
-      });
+    test('replaces non UTF-8 locales', () {
+      final env = <String, String>{'LANG': 'C', 'LC_ALL': 'POSIX'};
+      ShellEnvironmentResolver.ensureUtf8Locale(env);
+      expect(env['LANG'], 'en_US.UTF-8');
+      expect(env['LC_ALL'], 'en_US.UTF-8');
+    });
 
-      test('keeps existing UTF-8 locales', () {
-        final env = <String, String>{'LANG': 'C.UTF-8', 'LC_ALL': 'en_GB.utf8'};
-        ShellEnvironmentResolver.ensureUtf8Locale(env);
-        expect(env['LANG'], 'C.UTF-8');
-        expect(env['LC_ALL'], 'en_GB.utf8');
-      });
-    },
-    skip: Platform.isWindows ? 'UTF-8 locale fix is Unix-only' : false,
-  );
+    test('keeps existing UTF-8 locales', () {
+      final env = <String, String>{'LANG': 'C.UTF-8', 'LC_ALL': 'en_GB.utf8'};
+      ShellEnvironmentResolver.ensureUtf8Locale(env);
+      expect(env['LANG'], 'C.UTF-8');
+      expect(env['LC_ALL'], 'en_GB.utf8');
+    });
+  }, skip: Platform.isWindows ? 'UTF-8 locale fix is Unix-only' : false);
 }

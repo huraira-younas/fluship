@@ -438,62 +438,54 @@ void main() {
       await bloc.close();
     });
 
-    test(
-      'retries a failed step with its recovery command',
-      () async {
-        final config = FakePipelineConfigSource(_configWithPodInstall());
-        final console = FakePipelineConsolePort(
-          failCommand: '(cd ios && pod install --repo-update)',
-        );
-        final bloc = PipelineBloc(
-          FakePipelineLogWriter(),
-          configSource: config,
-          consolePort: console,
-          executor: const _StubPipelineExecutor(),
-        );
+    test('retries a failed step with its recovery command', () async {
+      final config = FakePipelineConfigSource(_configWithPodInstall());
+      final console = FakePipelineConsolePort(
+        failCommand: '(cd ios && pod install --repo-update)',
+      );
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+        executor: const _StubPipelineExecutor(),
+      );
 
-        bloc.add(const RunPipeline());
-        await _runToCompletion(bloc);
+      bloc.add(const RunPipeline());
+      await _runToCompletion(bloc);
 
-        expect(console.commands, [
-          '(cd ios && pod install --repo-update)',
-          '(cd ios && pod deintegrate && pod repo update && sleep 3 && pod install)',
-        ]);
-        expect(
-          console.logLines.any((line) => line.contains('retrying with')),
-          isTrue,
-        );
-        expect(bloc.state.steps.single.status, PipelineStepStatus.completed);
-        expect(bloc.state.runStatus, PipelineRunStatus.completed);
+      expect(console.commands, [
+        '(cd ios && pod install --repo-update)',
+        '(cd ios && pod deintegrate && pod repo update && sleep 3 && pod install)',
+      ]);
+      expect(
+        console.logLines.any((line) => line.contains('retrying with')),
+        isTrue,
+      );
+      expect(bloc.state.steps.single.status, PipelineStepStatus.completed);
+      expect(bloc.state.runStatus, PipelineRunStatus.completed);
 
-        await bloc.close();
-      },
-      skip: Platform.isMacOS ? null : 'iOS steps only resolve on macOS',
-    );
+      await bloc.close();
+    }, skip: Platform.isMacOS ? null : 'iOS steps only resolve on macOS');
 
-    test(
-      'fails the step when the recovery command also fails',
-      () async {
-        final config = FakePipelineConfigSource(_configWithPodInstall());
-        final console = FakePipelineConsolePort(failAll: true);
-        final bloc = PipelineBloc(
-          FakePipelineLogWriter(),
-          configSource: config,
-          consolePort: console,
-          executor: const _StubPipelineExecutor(),
-        );
+    test('fails the step when the recovery command also fails', () async {
+      final config = FakePipelineConfigSource(_configWithPodInstall());
+      final console = FakePipelineConsolePort(failAll: true);
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+        executor: const _StubPipelineExecutor(),
+      );
 
-        bloc.add(const RunPipeline());
-        await _runToCompletion(bloc);
+      bloc.add(const RunPipeline());
+      await _runToCompletion(bloc);
 
-        expect(console.commands, hasLength(2));
-        expect(bloc.state.steps.single.status, PipelineStepStatus.failed);
-        expect(bloc.state.runStatus, PipelineRunStatus.failed);
+      expect(console.commands, hasLength(2));
+      expect(bloc.state.steps.single.status, PipelineStepStatus.failed);
+      expect(bloc.state.runStatus, PipelineRunStatus.failed);
 
-        await bloc.close();
-      },
-      skip: Platform.isMacOS ? null : 'iOS steps only resolve on macOS',
-    );
+      await bloc.close();
+    }, skip: Platform.isMacOS ? null : 'iOS steps only resolve on macOS');
 
     test('cancel marks pipeline as cancelled', () async {
       final config = FakePipelineConfigSource(_configWithSteps());
