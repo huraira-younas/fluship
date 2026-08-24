@@ -21,6 +21,7 @@ void main() {
   _check(board.contains('Stay in Cursor'), 'stay here');
   _check(board.contains('Cursor browser panel'), 'panel copy');
   _check(board.contains('Chrome stays closed.'), 'no chrome');
+  _check(board.contains('Do not open a second picker tab'), 'one tab');
   _check(!board.contains('\u2014'), 'board em-dash');
 
   final blocked = runWarmupProbes(

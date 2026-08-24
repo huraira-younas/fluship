@@ -37,6 +37,10 @@ void main() {
   _check(!chat.contains('Steps:'), 'chat has no step dump');
   _check(!chat.contains('BumpVersion:ok'), 'chat has no ids');
 
+  final chatUri = whatsappDesktopChatUri(number: defaultWhatsAppNumber);
+  _check(chatUri == 'whatsapp://send?phone=923096547269', 'chat uri');
+  _check(!chatUri.contains('text='), 'chat uri has no text');
+
   final uri = whatsappDesktopUri(
     number: defaultWhatsAppNumber,
     text: 'hello world',
@@ -54,20 +58,11 @@ void main() {
     fileNameOf('/tmp/pipeline-report.pdf') == 'pipeline-report.pdf',
     'name',
   );
-  _check(whatsAppSendScript.contains('writeObjects'), 'copies file urls');
-  _check(
-    whatsAppSendScript.contains('fileURLWithPath'),
-    'uses file urls not aliases',
-  );
-  _check(
-    !whatsAppSendScript.contains('as alias'),
-    'does not put aliases on clipboard',
-  );
-  _check(
-    whatsAppSendScript.indexOf('copyFilesToClipboard') <
-        whatsAppSendScript.indexOf('set the clipboard to captionText'),
-    'files hit the clipboard before caption',
-  );
+  _check(resolveWhatsAppSendPy() != null, 'python sender');
+  final sender = File(resolveWhatsAppSendPy()!).readAsStringSync();
+  _check(sender.contains('NSFilenamesPboardType'), 'finder file list');
+  _check(!sender.contains('osascript'), 'no applescript');
+  _check(sender.contains('desktop_chat_uri'), 'phone-only uri');
   _check(
     errorExcerptFromLog('ok\nGradle failed.\n') == 'Gradle failed.',
     'excerpt',

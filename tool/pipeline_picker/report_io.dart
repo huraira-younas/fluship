@@ -46,15 +46,4 @@ Future<bool> writeHtmlReportPdf({
       File(pdfPath).lengthSync() >= 64;
 }
 
-String? resolvePipelineReportPy() {
-  final scriptDir = File.fromUri(Platform.script).parent;
-  final candidates = <String>[
-    pathJoin(scriptDir.path, 'pipeline_report.py'),
-    pathJoin(scriptDir.parent.path, 'pipeline_report.py'),
-    pathJoin(Directory.current.path, 'tool', 'pipeline_report.py'),
-  ];
-  for (final path in candidates) {
-    if (File(path).existsSync()) return path;
-  }
-  return null;
-}
+String? resolvePipelineReportPy() => resolveToolScript('pipeline_report.py');

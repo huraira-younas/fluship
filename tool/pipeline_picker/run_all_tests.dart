@@ -7,6 +7,7 @@ import 'progress_test.dart' as progress;
 import 'readiness_test.dart' as readiness;
 import 'report_html_test.dart' as report_html;
 import 'report_pdf_test.dart' as report_pdf;
+import 'whatsapp_send_test.dart' as whatsapp_send;
 import 'whatsapp_test.dart' as whatsapp;
 
 void main() {
@@ -15,6 +16,7 @@ void main() {
   permissions.main();
   open_page.main();
   whatsapp.main();
+  whatsapp_send.main();
   pdf.main();
   report_html.main();
   report_pdf.main();

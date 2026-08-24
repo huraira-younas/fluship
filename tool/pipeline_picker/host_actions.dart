@@ -2,6 +2,28 @@ import 'dart:io';
 
 /// Opens a system URL such as WhatsApp. Do not use this for the picker page.
 /// The picker uses open_page.dart so Cursor stays in the IDE panel.
+Future<void> revealOutput(String path) async {
+  final file = File(path);
+  final folder = file.parent.path;
+  if (Platform.isMacOS) {
+    if (file.existsSync()) {
+      await Process.run('open', ['-R', path]);
+    } else {
+      await Process.run('open', [folder]);
+    }
+    return;
+  }
+  if (Platform.isWindows) {
+    if (file.existsSync()) {
+      await Process.run('explorer', ['/select,', path]);
+    } else {
+      await Process.run('explorer', [folder]);
+    }
+    return;
+  }
+  await Process.run('xdg-open', [folder]);
+}
+
 Future<void> openBrowser(String url) async {
   if (Platform.isMacOS) {
     await Process.start('open', [url], mode: ProcessStartMode.detached);

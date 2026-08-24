@@ -86,15 +86,7 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  if (!Platform.isMacOS) {
-    await openBrowser(whatsappWebUri(number: parsed.number, text: chatText));
-    stdout.writeln(
-      'Opened wa.me. Attach the PDF and APKs from ${parsed.outputDir}.',
-    );
-    return;
-  }
-
-  final result = await sendFilesOnMac(
+  final result = await sendWhatsAppFiles(
     number: parsed.number,
     caption: chatText,
     files: attachments,
@@ -110,10 +102,10 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  await Process.run('open', ['-R', pdfPath]);
+  await revealOutput(pdfPath);
   stderr.writeln(
     'WhatsApp did not receive the PDF. The file is $pdfPath. '
-    'Grant Accessibility to Cursor, then drag pipeline-report.pdf into the chat.',
+    'Grant Accessibility if asked, then drag pipeline-report.pdf into the chat.',
   );
   exitCode = 2;
 }

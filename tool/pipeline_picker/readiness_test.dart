@@ -332,6 +332,8 @@ void _noEmDash() {
     File(pathJoin(here.parent.path, 'pipeline_warmup.dart')),
     File(pathJoin(here.parent.path, 'pipeline_report.py')),
     File(pathJoin(here.parent.path, 'pipeline_report_test.py')),
+    File(pathJoin(here.parent.path, 'whatsapp_send.py')),
+    File(pathJoin(here.parent.path, 'whatsapp_send_test.py')),
     File(pathJoin(here.parent.parent.path, 'AGENTS.md')),
     File(
       pathJoin(

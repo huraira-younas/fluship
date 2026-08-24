@@ -65,6 +65,10 @@ String buildWhatsAppChatText({
       'PDF report and any APKs are attached.';
 }
 
+String whatsappDesktopChatUri({required String number}) {
+  return 'whatsapp://send?phone=${whatsappPhone(number)}';
+}
+
 String whatsappDesktopUri({required String number, required String text}) {
   final phone = whatsappPhone(number);
   return 'whatsapp://send?phone=$phone&text=${Uri.encodeComponent(text)}';
@@ -75,7 +79,9 @@ String whatsappWebUri({required String number, required String text}) {
   return 'https://wa.me/$phone?text=${Uri.encodeComponent(text)}';
 }
 
-Future<String> sendFilesOnMac({
+String? resolveWhatsAppSendPy() => resolveToolScript('whatsapp_send.py');
+
+Future<String> sendWhatsAppFiles({
   required String number,
   required String caption,
   required List<String> files,
@@ -86,118 +92,34 @@ Future<String> sendFilesOnMac({
       if (File(path).existsSync()) path,
   ];
   if (existing.isEmpty) return 'no-files';
-
+  final py = resolveWhatsAppSendPy();
+  if (py == null) return 'no-python';
   final stamp = '$pid-${DateTime.now().microsecondsSinceEpoch}';
-  final tmp = Directory.systemTemp.path;
-  final captionFile = File(pathJoin(tmp, 'fluship-wa-$stamp-caption.txt'));
-  final scriptFile = File(pathJoin(tmp, 'fluship-wa-$stamp.applescript'));
+  final captionFile = File(
+    pathJoin(Directory.systemTemp.path, 'fluship-wa-$stamp-caption.txt'),
+  );
   try {
     captionFile.writeAsStringSync(caption);
-    scriptFile.writeAsStringSync(whatsAppSendScript);
-    final result = await Process.run('osascript', [
-      scriptFile.path,
+    final result = await Process.run('python3', [
+      py,
+      '--number',
       whatsappPhone(number),
+      '--caption-file',
       captionFile.path,
-      send ? 'send' : 'draft',
-      ...existing,
+      if (!send) '--no-send',
+      for (final path in existing) ...['--file', path],
     ]);
-    final out = '${result.stdout}\n${result.stderr}'.trim();
-    if (out.contains('sent') || out.contains('attached')) {
-      return out.contains('sent') ? 'sent' : 'attached';
+    stdout.write(result.stdout);
+    if (result.stderr.toString().trim().isNotEmpty) {
+      stderr.write(result.stderr);
     }
-    if (result.exitCode == 0 && out.isNotEmpty) return out.split('\n').last;
+    final out = '${result.stdout}\n${result.stderr}'.toLowerCase();
+    if (out.contains('whatsapp result: sent')) return 'sent';
+    if (out.contains('whatsapp result: attached')) return 'attached';
+    if (out.contains('whatsapp result: no-whatsapp')) return 'no-whatsapp';
+    if (out.contains('whatsapp result: no-files')) return 'no-files';
     return 'failed';
   } finally {
     deleteIfExists(captionFile.path);
-    deleteIfExists(scriptFile.path);
   }
 }
-
-const whatsAppSendScript = r'''
-use framework "Foundation"
-use framework "AppKit"
-use scripting additions
-
-on run argv
-  if (count of argv) < 4 then return "bad-args"
-  set phone to item 1 of argv as text
-  set captionPath to item 2 of argv as text
-  set mode to item 3 of argv as text
-  set posixFiles to items 4 thru -1 of argv
-
-  do shell script "open " & quoted form of ("whatsapp://send?phone=" & phone)
-  delay 3.5
-  tell application "WhatsApp" to activate
-  delay 1.2
-
-  tell application "System Events"
-    if not (exists process "WhatsApp") then return "no-whatsapp"
-  end tell
-
-  if not my copyFilesToClipboard(posixFiles) then return "no-files"
-
-  tell application "System Events"
-    tell process "WhatsApp"
-      set frontmost to true
-      delay 0.4
-      try
-        set winPos to position of window 1
-        set winSize to size of window 1
-        set clickX to (item 1 of winPos) + ((item 1 of winSize) / 2)
-        set clickY to (item 2 of winPos) + (item 2 of winSize) - 58
-        click at {clickX as integer, clickY as integer}
-      end try
-      delay 0.3
-      keystroke "v" using command down
-    end tell
-  end tell
-
-  delay 2.5
-
-  set captionText to do shell script "cat " & quoted form of captionPath
-  set the clipboard to captionText
-  delay 0.2
-  tell application "System Events"
-    tell process "WhatsApp"
-      set frontmost to true
-      keystroke "v" using command down
-      delay 0.8
-      if mode is "send" then
-        keystroke return
-        delay 0.8
-        return "sent"
-      end if
-      return "attached"
-    end tell
-  end tell
-end run
-
-on copyFilesToClipboard(posixFiles)
-  try
-    set urls to current application's NSMutableArray's array()
-    repeat with p in posixFiles
-      set fileURL to current application's NSURL's fileURLWithPath:(p as text)
-      urls's addObject:fileURL
-    end repeat
-    if (urls's |count|()) is 0 then return false
-    set pb to current application's NSPasteboard's generalPasteboard()
-    pb's clearContents()
-    return (pb's writeObjects:urls) as boolean
-  on error
-    try
-      set fileList to {}
-      repeat with p in posixFiles
-        set end of fileList to POSIX file (p as text)
-      end repeat
-      if (count of fileList) is 0 then return false
-      if (count of fileList) is 1 then
-        set the clipboard to item 1 of fileList
-      else
-        set the clipboard to fileList
-      end if
-      return true
-    end try
-    return false
-  end try
-end copyFilesToClipboard
-''';

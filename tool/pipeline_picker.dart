@@ -150,7 +150,8 @@ Future<void> _announcePicker(
   stdout.writeln('open-in: $openIn');
   if (openIn == openInCursorIde) {
     stdout.writeln(
-      'Open that URL in the Cursor IDE browser panel now. Do not open Chrome.',
+      'Picker is already open in one Cursor IDE browser tab. '
+      'Do not open another tab. Do not open Chrome.',
     );
   }
 }

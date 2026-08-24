@@ -129,3 +129,16 @@ String asString(Object? value, [String fallback = '']) {
   final text = '$value'.trim();
   return text.isEmpty ? fallback : text;
 }
+
+String? resolveToolScript(String name) {
+  final scriptDir = File.fromUri(Platform.script).parent;
+  final candidates = <String>[
+    pathJoin(scriptDir.path, name),
+    pathJoin(scriptDir.parent.path, name),
+    pathJoin(Directory.current.path, 'tool', name),
+  ];
+  for (final path in candidates) {
+    if (File(path).existsSync()) return path;
+  }
+  return null;
+}

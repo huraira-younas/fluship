@@ -40,7 +40,7 @@ WarmupReport runWarmupProbes({
     systemEvents: systemEvents ?? (isMac ? probeSystemEvents() : true),
     finder: finder ?? (isMac ? probeFinder() : true),
     whatsApp: _resolveWhatsApp(
-      installed: whatsAppInstalled ?? (isMac && isWhatsAppInstalled()),
+      installed: whatsAppInstalled ?? isWhatsAppInstalled(),
       control: whatsAppControl,
     ),
   );
@@ -68,8 +68,8 @@ String formatWarmupBoard(WarmupReport report) {
     'Next for the agent:',
     '1. dart tool/pipeline_picker.dart',
     '2. Read Pipeline picker: URL and open-in: from stdout.',
-    '3. If open-in is cursor-ide, open that URL in the Cursor IDE browser panel now.',
-    '4. Do not open Chrome while Cursor is open.',
+    '3. If open-in is cursor-ide, the picker already opened one IDE tab. Do not open it again.',
+    '4. Do not open Chrome while Cursor is open. Do not open a second picker tab.',
     '5. Every later shell command in this run must use full host permissions.',
   ].join('\n');
 }
@@ -96,10 +96,25 @@ bool probeWhatsApp() {
 }
 
 bool isWhatsAppInstalled() {
-  final home = Platform.environment['HOME'] ?? '';
-  return Directory('/Applications/WhatsApp.app').existsSync() ||
-      (home.isNotEmpty &&
-          Directory('$home/Applications/WhatsApp.app').existsSync());
+  if (Platform.isMacOS) {
+    final home = Platform.environment['HOME'] ?? '';
+    return Directory('/Applications/WhatsApp.app').existsSync() ||
+        (home.isNotEmpty &&
+            Directory('$home/Applications/WhatsApp.app').existsSync());
+  }
+  if (Platform.isWindows) {
+    final local = Platform.environment['LOCALAPPDATA'] ?? '';
+    if (local.isEmpty) return false;
+    return Directory('$local\\WhatsApp').existsSync() ||
+        Directory('$local\\Programs\\WhatsApp').existsSync();
+  }
+  for (final name in ['whatsapp-desktop', 'whatsapp-for-linux', 'whatsapp']) {
+    try {
+      final result = Process.runSync('which', [name]);
+      if (result.exitCode == 0) return true;
+    } catch (_) {}
+  }
+  return File('/snap/bin/whatsapp-desktop-linux').existsSync();
 }
 
 bool _osascriptOk(String source) {
