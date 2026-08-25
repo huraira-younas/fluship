@@ -134,9 +134,10 @@ end if
 /// Closes the picker tab once the run is picked or cancelled.
 ///
 /// Only Chrome can be closed from here, and only on macOS. A Cursor tab has no
-/// external close API, so the agent closes that one with its browser tool.
-/// Never ask the page to close itself: `window.close()` inside the Cursor
-/// browser takes the whole Cursor window down with it.
+/// external close API, and the agent must not close it either, so the user
+/// closes that one in their own time. Never ask the page to close itself:
+/// `window.close()` inside the Cursor browser takes the whole Cursor window
+/// down with it.
 Future<int> closePickerTab(String url) async {
   if (!Platform.isMacOS) return 0;
   final needle = pickerTabNeedle(url);

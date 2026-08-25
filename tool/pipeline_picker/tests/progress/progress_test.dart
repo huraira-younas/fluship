@@ -109,7 +109,75 @@ void main() {
   _check(!capped.contains('Set app version'), 'oldest row dropped');
   _check(capped.contains('3/5 done'), 'count stays full');
 
+  final live = formatProgressBoard(
+    selected: const ['bumpVersion', 'buildSplits'],
+    done: const ['bumpVersion'],
+    current: 'buildSplits',
+    nowElapsed: '3m34s',
+  );
+  _check(live.contains('now: Build split APKs  3m34s'), 'current job clock');
+
+  final noisy = formatProgressBoard(
+    selected: const ['clean'],
+    done: const [],
+    current: 'clean',
+    note: 'gradle said\n${'boom ' * 40}',
+  );
+  final noisyNote = _noteText(noisy);
+  _check(noisyNote.startsWith('gradle said boom'), 'note newlines join');
+  _check(noisyNote.endsWith('.'), 'note is clipped');
+  _check(noisyNote.length <= 70, 'a note cannot widen the board');
+
+  const long = [
+    'preCommit',
+    'prePull',
+    'pubUpgrade',
+    'format',
+    'analyze',
+    'test',
+    'postCommit',
+    'postPush',
+    'whatsappShare',
+  ];
+  final ping = formatPingBoard(
+    selected: long,
+    done: const ['preCommit', 'prePull', 'pubUpgrade', 'format', 'analyze'],
+    current: 'test',
+    results: const {'preCommit': 'ok', 'prePull': 'ok'},
+    times: const {'prePull': '3.7s'},
+    appName: 'Reelstay',
+    version: '2.0.1',
+    buildNumber: '2001',
+    runElapsed: '7m26s',
+    nowElapsed: '3m52s',
+    note: 'compiling',
+  );
+  // WhatsApp markdown, never a monospace block: that renders large and wide on
+  // a phone, so it wraps whatever we do to the width.
+  _check(!ping.contains('```'), 'no monospace block');
+  _check(!ping.contains('\u2502'), 'no frame');
+  _check(ping.startsWith('*FLUSHIP  Reelstay  v2.0.1+2001*'), 'bold title');
+  _check(ping.contains('- DONE  Pull latest from git  3.7s'), 'done row');
+  _check(ping.contains('- *NOW  Run tests  3m52s*'), 'now row is bold');
+  _check(ping.contains('- WAIT  Push to git'), 'waiting row');
+  _check(ping.contains('- WAIT  Send PDF and APKs on WhatsApp'), 'full name');
+  _check(ping.contains('_5/9 done  56%  run 7m26s_'), 'italic summary');
+  _check(ping.contains('note: compiling'), 'note line');
+
+  final pingCapped = formatPingBoard(
+    selected: List.generate(20, (i) => 'format'),
+    done: const [],
+    current: '',
+  );
+  _check(pingCapped.contains('- +8 more'), 'long run is capped');
+
   stdout.writeln('progress tests: ok');
+}
+
+String _noteText(String board) {
+  final line = board.split('\n').firstWhere((l) => l.contains('note: '));
+  final start = line.indexOf('note: ') + 'note: '.length;
+  return line.substring(start, line.lastIndexOf('\u2502')).trim();
 }
 
 void _check(bool ok, String message) {

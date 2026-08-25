@@ -46,21 +46,7 @@ void main(List<String> args) {
     );
   }
 
-  stdout.writeln(
-    formatProgressBoard(
-      selected: state.selected,
-      done: state.done,
-      current: state.now,
-      results: state.results,
-      times: state.times,
-      appName: state.app,
-      version: state.version,
-      buildNumber: state.buildNumber,
-      uploadLabel: state.upload?.label ?? '',
-      note: state.note,
-      runElapsed: state.elapsedRun,
-    ),
-  );
+  stdout.writeln(boardFromState(state));
 }
 
 const _help = '''

@@ -5,12 +5,12 @@ description: Runs the Fluship release pipeline with a local picker, cache, logs,
 
 # Fluship Pipeline
 
-Read and obey [AGENTS.md](../../../AGENTS.md). That file is the protocol. Execute it step by step at full speed. Do not plan, invent steps, or open a second picker tab.
+Read and obey [AGENTS.md](../../../AGENTS.md). That file is the protocol. Execute it step by step at full speed. Do not plan or invent steps.
 
-Once the picker returns, stop thinking. Every job is run command, paste board, next job, with no deliberation in between. Reasoning is allowed only when a command fails or a required value is missing, and only about that one problem.
+Once the picker returns, stop thinking. Every job is run command, paste board, next job. Reasoning is only for a command that failed or a value that is missing.
 
-Slow jobs and the picker start in the background and get polled in 5 second checks until the terminal footer shows `exit_code`. Never sit on one long timer and never guess a duration.
+Slow jobs and the picker run in the background and get polled in 5 second checks until the footer shows `exit_code`. Never guess a duration.
 
-After every job, paste the progress board in chat before the next job. The user must see NOW / DONE / WAIT / FAIL / SKIP as chat text. A board left in your reasoning or in tool output does not count as reported.
+Paste the board into your own reply after every job, in a fenced code block. Running `pipeline_progress.dart` is not printing it: tool output sits in a collapsed block the user has to click open, and reasoning is never shown. The user must read NOW / DONE / WAIT / FAIL / SKIP as chat text every time.
 
-Never type the WhatsApp chat. `whatsapp_send.py` waits 5 seconds after open so the chat can load, even if WhatsApp was already open.
+Never touch the picker tab and never type into the WhatsApp chat.

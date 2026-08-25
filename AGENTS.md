@@ -6,29 +6,24 @@ This workspace holds the picker, the cache, and `outputs/`. The Flutter app is `
 
 ## Execution mode
 
-A run is mechanical, not a decision. Execute the steps below in order at full speed.
+A run is mechanical. Work through the steps in order at full speed.
 
-Do not think between jobs. No planning, no option comparison, no re-reading this file, no restating what the pipeline does, no asking what to do next. Reasoning is allowed in exactly one case: a command failed, or a required value is genuinely missing. Then reason about that one failure only, fix it, and return to running.
+Do not think between jobs. No planning, no options, no re-reading this file, no asking what comes next. Reasoning is for one case only: a command failed, or a needed value is missing.
 
-Every job is the same three-move loop, and it never varies:
+Every job is the same loop:
 
-1. Run the job command.
-2. Run `pipeline_progress.dart` and paste its stdout in chat.
-3. Start the next job in the same turn.
+1. Run the command. Background anything slow, then poll in 5 second checks (`block_until_ms: 5000`) until the footer shows `exit_code`. Never guess a duration.
+2. Run `pipeline_progress.dart`.
+3. Paste its stdout into your reply in a fenced code block. Running it is not printing the board: tool output sits in a collapsed block, and your reasoning is never shown at all.
+4. Start the next job in the same turn.
 
-The board belongs in chat as plain assistant text. A board that exists only in your reasoning or only in tool output is invisible to the user, so that job counts as unreported. Chat text per job is the board plus at most one short line when something needs saying. No step narration, no "next I will" sentences, no interim summaries.
-
-## Long jobs
-
-Never park a slow job behind one long timer and never guess how long it will take. Anything that can run for minutes, such as a build, `pubGet`, `pubUpgrade`, `podInstall`, a dist upload, or the picker waiting on the user, starts in the background with `block_until_ms: 0`. Then poll it in 5 second checks with `AwaitShell` and `block_until_ms: 5000` until the terminal footer shows `exit_code`.
-
-Polling is silent work. Do not think, comment, or write chat text between checks, and do not stop early on a guess that it is probably done. The second the command ends, read its result, paste the board, and start the next job. The same 5 second polling applies to anything you are waiting on from the user.
+Chat holds the board and nothing else, apart from one short line when something genuinely needs saying.
 
 ## Rules
 
 - Every shell command in a run uses full host permissions (`required_permissions: ["all"]`).
 - Run only the ids the picker returned, in catalog order. Never add or default an id.
-- Paste the board in chat after every job (ok, fail, skip) before starting the next one. Never batch boards. A long job gets one board at start (NOW) and one at end.
+- One board per job, ok, fail, or skip. Never batch them. A long job gets one at start and one at end.
 - Logs are mandatory. Create the run folder, `logs.txt`, and `progress.json` before the first job.
 - Critical ids abort the rest of the run: `bumpVersion`, `clean`, `pubGet`, `pubUpgrade`.
 - Never commit `.fluship-agent/secrets.json` or `outputs/`. Never print the app password. No em-dashes.
@@ -47,13 +42,13 @@ dart tool/pipeline_warmup.dart
 dart tool/pipeline_picker.dart
 ```
 
-Poll it in 5 second checks until it exits, since the user may sit on the form for a while.
+Poll it in 5 second checks; the user may sit on the form for a while.
 
 Read `Pipeline picker:` and `open-in:` from stdout or `.fluship-agent/picker-open.json`. The picker already opened its own tab, in the Cursor panel (`cursor-ide`) or Chrome (`chrome`). Do not open a second one.
 
 Exit 0 submit. Exit 2 cancel. Exit 3 timeout. Anything else is an error. On anything but 0, run cleanup and stop.
 
-The picker closes its own Chrome tab on exit. When `open-in` was `cursor-ide`, close that one tab yourself with your browser tool, matching the picker URL, right after the picker exits. Never make the page close itself: `window.close()` in the Cursor browser closes the whole Cursor window.
+Never close the picker tab. Chrome closes itself, a `cursor-ide` tab is the user's to close, and a leftover tab never blocks the run. Do not use your browser tool on it, and never make the page close itself: `window.close()` in the Cursor browser takes the whole window down.
 
 3. Read `.fluship-agent/pipeline-cache.json`, then prepare the host.
 
@@ -63,23 +58,23 @@ dart tool/pipeline_cleanup.dart --prepare --project {targetProjectPath}
 
 4. Create `outputs/{sanitizedProject}/v{version}/{buildNumber}/` and `logs.txt`. Sanitize the project folder to lowercase `[a-z0-9_]`. Write `.fluship-agent/last-run.json` with `logFilePath`, `outputDir`, `startedAt`, `success`.
 
-5. Print the board before the first job and after every job. Paste stdout in chat as-is, with no edits and no commentary around it.
+5. Print the board before the first job and after every job. Paste the stdout as-is, never edited.
 
 ```bash
 dart tool/pipeline_progress.dart --selected id1,id2 --current id2 --done id1 --results id1=ok --times id1=0.3s --app NAME --version VER --build NUM --progress .fluship-agent/progress.json --log {logFilePath}
 ```
 
-6. If `whatsappShare` is selected and the cache number is valid, start the heartbeat once logs exist, then track its PID. It pings every 3 minutes while the current job has run at least 3 minutes. Text only, and a failed ping never fails the build.
+6. If `whatsappShare` is selected and the cache number is valid, start the heartbeat once logs exist, then track its PID. It sends the same board, narrower, every 3 minutes while the current job has run at least 3 minutes. Text only, and a failed ping never fails the build.
 
 ```bash
 dart tool/pipeline_heartbeat.dart --progress .fluship-agent/progress.json --number {whatsappNumber} --interval-seconds 180
 ```
 
-7. Run the selected ids back to back with no pause for thought between them. Background every slow id and poll it in 5 second checks. Skip iOS ids off macOS. For a mutex pair, keep the first in catalog order and skip the other. Skip an id whose parent failed or was skipped. Append every command, output, exit code, and `[retry N]` to `logs.txt`. After each build PID: `dart tool/pipeline_cleanup.dart --track {pid} --project {targetProjectPath}`.
+7. Run the selected ids back to back. Skip iOS ids off macOS. For a mutex pair, keep the first in catalog order and skip the other. Skip an id whose parent failed or was skipped. Append every command, output, exit code, and `[retry N]` to `logs.txt`. After each build PID: `dart tool/pipeline_cleanup.dart --track {pid} --project {targetProjectPath}`.
 
 Ask only when something is genuinely missing: version, build, or branch for `bumpVersion` and git ids (default branch `master`); secrets for a dist id or `report`; a second confirm for a power id. Secrets normally arrive from the picker Setup panel, so only ask when a selected id still has none. Save answered secrets to `.fluship-agent/secrets.json`. If the user cancels a secrets ask, skip that id only.
 
-8. On failure, this is the one place to think. Read the error, fix the real cause, retry that id, max 3 times, then stop thinking and resume the loop. For any iOS pod error, delete `ios/Podfile.lock` first. After 3 failures, abort if the id is critical, otherwise continue.
+8. On failure, the one place to think: read the error, fix the real cause, retry that id, max 3 times, then resume the loop. For any iOS pod error, delete `ios/Podfile.lock` first. After 3 failures, abort if the id is critical, otherwise continue.
 
 9. `report` and `whatsappShare` run last, in that order, even when earlier jobs failed. Set the board current id to `whatsappShare` before the file send so the heartbeat does not collide. Never type into the WhatsApp chat.
 

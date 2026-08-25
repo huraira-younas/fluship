@@ -145,44 +145,16 @@ HeartbeatDecision decideHeartbeat({
   );
 }
 
-/// A ping is a status glance, not a report. The full board stays in the agent
-/// chat and the PDF, so keep this to a few short lines.
-const heartbeatNoteLimit = 70;
-
+/// The ping reports the same run as the chat board, in the phone layout.
 String formatHeartbeatMessage({
   required PipelineProgressState state,
   required Duration jobElapsed,
   Duration? runElapsed,
 }) {
-  final version = state.version.isEmpty
-      ? ''
-      : state.buildNumber.isEmpty
-      ? ' v${state.version}'
-      : ' v${state.version}+${state.buildNumber}';
-  final app = state.app.isEmpty ? 'Fluship' : state.app;
-  final step = state.now.isEmpty ? '-' : humanStepName(state.now);
-  final progress = boardProgress(
-    selected: state.selected,
-    done: state.done,
-    current: state.now,
+  return boardFromState(
+    state,
+    layout: BoardLayout.ping,
+    nowElapsed: formatElapsed(jobElapsed),
+    runElapsed: runElapsed == null ? '' : formatElapsed(runElapsed),
   );
-  final upload = state.upload?.label ?? '';
-  final note = _oneLine(state.note, heartbeatNoteLimit);
-  return [
-    'Fluship $app$version',
-    'NOW $step  ${formatElapsed(jobElapsed)}',
-    [
-      progress.label,
-      '${progress.percent}%',
-      if (runElapsed != null) 'run ${formatElapsed(runElapsed)}',
-    ].join('  '),
-    if (upload.isNotEmpty) 'upload: $upload',
-    if (note.isNotEmpty) 'note: $note',
-  ].join('\n');
-}
-
-String _oneLine(String raw, int limit) {
-  final text = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
-  if (text.length <= limit) return text;
-  return '${text.substring(0, limit - 1)}.';
 }

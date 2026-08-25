@@ -48,18 +48,17 @@ void main() {
     now: start.add(const Duration(seconds: 180)),
   );
   _check(ready.shouldPing, 'send at 180s');
-  _check(ready.message.contains('Fluship Reelstay v1.8.2+8206'), 'app line');
-  _check(ready.message.contains('NOW Build split APKs  3m'), 'now line');
-  _check(ready.message.contains('1/3 done  33%  run 3m'), 'progress line');
+  _check(ready.message.startsWith('*FLUSHIP  Reelstay  v1.8.2+8206*'), 'title');
+  _check(ready.message.contains('- DONE  Set app version  0.6s'), 'done row');
+  _check(ready.message.contains('- *NOW  Build split APKs  3m*'), 'now row');
+  _check(ready.message.contains('- WAIT  Send PDF and APKs'), 'waiting row');
+  _check(ready.message.contains('_1/3 done  33%  run 3m_'), 'summary');
   _check(ready.message.contains('upload: 30% app.apk'), 'upload');
   _check(ready.message.contains('note: Compiling dart'), 'note');
   _check(!ready.message.contains('\u2014'), 'no em-dash');
 
-  // A ping is a glance, not the board. Keep it small enough to skim.
-  _check(!ready.message.contains('```'), 'no monospace block');
-  _check(!ready.message.contains('FLUSHIP'), 'no board title');
-  _check(!ready.message.contains('WAIT'), 'no waiting rows');
-  _check(ready.message.split('\n').length == 5, 'five lines at most');
+  // A monospace block renders large and wide on a phone, so it always wraps.
+  _check(!ready.message.contains('```'), 'never a monospace block');
 
   final justBefore = decideHeartbeat(
     state: state,
@@ -170,11 +169,12 @@ void main() {
     now: start.add(const Duration(minutes: 3)),
   );
   _check(longNote.shouldPing, 'long note still pings');
+  _check(longNote.message.contains('note: gradle said boom'), 'newlines join');
   final noteLine = longNote.message
       .split('\n')
       .firstWhere((line) => line.startsWith('note: '));
-  _check(noteLine.length <= heartbeatNoteLimit + 6, 'note is clipped');
-  _check(noteLine.startsWith('note: gradle said boom'), 'newlines collapse');
+  _check(noteLine.length <= 'note: '.length + 70, 'note clipped');
+  _check(noteLine.endsWith('.'), 'clip marker');
 
   stdout.writeln('heartbeat tests: ok');
 }

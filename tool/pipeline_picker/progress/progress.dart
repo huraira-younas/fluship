@@ -56,8 +56,22 @@ String formatStepLines(String raw) {
   ].join('\n');
 }
 
+enum BoardLayout { chat, ping }
+
 const _maxNameWidth = 34;
 const _barWidth = 14;
+const _noteLimit = 70;
+
+/// A long run would turn every ping into a wall of text.
+const _pingRows = 12;
+
+/// Collapses whitespace and clips, so a stack trace in a note can never blow
+/// the board open.
+String oneLine(String raw, int limit) {
+  final text = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (text.length <= limit) return text;
+  return '${text.substring(0, limit - 1)}.';
+}
 
 /// How much of the run is finished. The current job never counts as done, so
 /// the board and the WhatsApp ping always agree.
@@ -99,6 +113,7 @@ String formatProgressBoard({
   String uploadLabel = '',
   String note = '',
   String runElapsed = '',
+  String nowElapsed = '',
   int maxRows = 0,
 }) {
   final title = _boardTitle(
@@ -148,6 +163,8 @@ String formatProgressBoard({
   );
   final hidden = cells.length - shown.length;
   final progress = boardProgress(selected: selected, done: done, current: now);
+  final upload = oneLine(uploadLabel, _noteLimit);
+  final trimmedNote = oneLine(note, _noteLimit);
   return _frame([
     [title],
     [
@@ -156,16 +173,88 @@ String formatProgressBoard({
     ],
     [
       [
-        progressBar(progress.percent),
+        progressBar(progress.percent, width: _barWidth),
         progress.label,
         '${progress.percent}%',
         if (runElapsed.trim().isNotEmpty) 'run ${runElapsed.trim()}',
       ].join('  '),
-      'now: ${now.isEmpty ? '-' : humanStepName(now)}',
-      if (uploadLabel.trim().isNotEmpty) 'upload: ${uploadLabel.trim()}',
-      if (note.trim().isNotEmpty) 'note: ${note.trim()}',
+      [
+        'now: ${now.isEmpty ? '-' : humanStepName(now)}',
+        if (nowElapsed.trim().isNotEmpty) nowElapsed.trim(),
+      ].join('  '),
+      if (upload.isNotEmpty) 'upload: $upload',
+      if (trimmedNote.isNotEmpty) 'note: $trimmedNote',
     ],
   ]);
+}
+
+/// The same run as the chat board, written in WhatsApp markdown. A monospace
+/// block renders large and wide on a phone, so it wraps and breaks the frame no
+/// matter how narrow the board gets. Markdown renders at normal size in the
+/// proportional font, which drops the need to align columns at all: full step
+/// names fit, and the current job is the bold line the eye lands on.
+String formatPingBoard({
+  required List<String> selected,
+  required List<String> done,
+  String? current,
+  Map<String, String> results = const {},
+  Map<String, String> times = const {},
+  String appName = '',
+  String version = '',
+  String buildNumber = '',
+  String uploadLabel = '',
+  String note = '',
+  String runElapsed = '',
+  String nowElapsed = '',
+}) {
+  final title = _boardTitle(
+    appName: appName,
+    version: version,
+    buildNumber: buildNumber,
+  );
+  if (selected.isEmpty) return '*$title*\nNo jobs selected.';
+
+  final doneSet = {for (final id in done) normalizeStepId(id)};
+  final now = current == null || current.isEmpty
+      ? ''
+      : normalizeStepId(current);
+  final rows = <String>[];
+  var nowIndex = -1;
+  for (final raw in selected) {
+    final id = normalizeStepId(raw);
+    final isNow = now == id;
+    if (isNow) nowIndex = rows.length;
+    final mark = boardState(
+      isNow: isNow,
+      isDone: doneSet.contains(id),
+      result: results[id] ?? '',
+    ).trim();
+    // The current job has no stamped time yet, so it carries the live clock.
+    final time = isNow ? nowElapsed.trim() : times[id] ?? '';
+    final row = [mark, humanStepName(id), if (time.isNotEmpty) time].join('  ');
+    rows.add(isNow ? '- *$row*' : '- $row');
+  }
+
+  final shown = _window(rows, nowIndex: nowIndex, maxRows: _pingRows);
+  final hidden = rows.length - shown.length;
+  final progress = boardProgress(selected: selected, done: done, current: now);
+  final upload = oneLine(uploadLabel, _noteLimit);
+  final trimmedNote = oneLine(note, _noteLimit);
+  final summary = [
+    progress.label,
+    '${progress.percent}%',
+    if (runElapsed.trim().isNotEmpty) 'run ${runElapsed.trim()}',
+  ].join('  ');
+  return [
+    '*$title*',
+    '',
+    ...shown,
+    if (hidden > 0) '- +$hidden more',
+    '',
+    '_${summary}_',
+    if (upload.isNotEmpty) 'upload: $upload',
+    if (trimmedNote.isNotEmpty) 'note: $trimmedNote',
+  ].join('\n');
 }
 
 String progressBar(int percent, {int width = _barWidth}) {
@@ -211,10 +300,10 @@ class _BoardRow {
   }
 }
 
-/// Keeps the board short enough for a chat message while always showing the
-/// current job. `maxRows` of 0 or less shows everything.
-List<_BoardRow> _window(
-  List<_BoardRow> rows, {
+/// Keeps a board short enough to read while always showing the current job.
+/// `maxRows` of 0 or less shows everything.
+List<T> _window<T>(
+  List<T> rows, {
   required int nowIndex,
   required int maxRows,
 }) {
@@ -268,8 +357,10 @@ String _boardTitle({
   return bits.join('  ');
 }
 
-String _fit(String text, int width) {
-  if (text.length <= width) return text.padRight(width);
+String _clip(String text, int width) {
+  if (text.length <= width) return text;
   if (width <= 1) return text.substring(0, width);
   return '${text.substring(0, width - 1)}.';
 }
+
+String _fit(String text, int width) => _clip(text, width).padRight(width);

@@ -325,6 +325,50 @@ void patchUploadProgress({
   );
 }
 
+/// The one place a state turns into a board, so the chat card and the WhatsApp
+/// ping always report the same run. `runElapsed` and `nowElapsed` override the
+/// stamped values when the caller has a live clock.
+String boardFromState(
+  PipelineProgressState state, {
+  BoardLayout layout = BoardLayout.chat,
+  String runElapsed = '',
+  String nowElapsed = '',
+}) {
+  final run = runElapsed.isNotEmpty ? runElapsed : state.elapsedRun;
+  final job = nowElapsed.isNotEmpty ? nowElapsed : state.elapsedJob;
+  final upload = state.upload?.label ?? '';
+  return switch (layout) {
+    BoardLayout.chat => formatProgressBoard(
+      selected: state.selected,
+      done: state.done,
+      current: state.now,
+      results: state.results,
+      times: state.times,
+      appName: state.app,
+      version: state.version,
+      buildNumber: state.buildNumber,
+      uploadLabel: upload,
+      note: state.note,
+      runElapsed: run,
+      nowElapsed: job,
+    ),
+    BoardLayout.ping => formatPingBoard(
+      selected: state.selected,
+      done: state.done,
+      current: state.now,
+      results: state.results,
+      times: state.times,
+      appName: state.app,
+      version: state.version,
+      buildNumber: state.buildNumber,
+      uploadLabel: upload,
+      note: state.note,
+      runElapsed: run,
+      nowElapsed: job,
+    ),
+  };
+}
+
 String progressSnapshotLine(PipelineProgressState state) {
   final upload = state.upload?.label ?? '';
   return [
