@@ -4,7 +4,19 @@ Run this file when the user says run pipeline, ship, or build AAB / APK / IPA.
 
 This workspace holds the picker, the cache, and `outputs/`. The Flutter app is `targetProjectPath` from the cache. Never edit `lib/` during a run.
 
-Execute the steps below in order. Do not plan, compare options, or explain the pipeline. Think only when a command fails, and only about that failure.
+## Execution mode
+
+A run is mechanical, not a decision. Execute the steps below in order at full speed.
+
+Do not think between jobs. No planning, no option comparison, no re-reading this file, no restating what the pipeline does, no asking what to do next. Reasoning is allowed in exactly one case: a command failed, or a required value is genuinely missing. Then reason about that one failure only, fix it, and return to running.
+
+Every job is the same three-move loop, and it never varies:
+
+1. Run the job command.
+2. Run `pipeline_progress.dart` and paste its stdout in chat.
+3. Start the next job in the same turn.
+
+The board belongs in chat as plain assistant text. A board that exists only in your reasoning or only in tool output is invisible to the user, so that job counts as unreported. Chat text per job is the board plus at most one short line when something needs saying. No step narration, no "next I will" sentences, no interim summaries.
 
 ## Rules
 
@@ -43,7 +55,7 @@ dart tool/pipeline_cleanup.dart --prepare --project {targetProjectPath}
 
 4. Create `outputs/{sanitizedProject}/v{version}/{buildNumber}/` and `logs.txt`. Sanitize the project folder to lowercase `[a-z0-9_]`. Write `.fluship-agent/last-run.json` with `logFilePath`, `outputDir`, `startedAt`, `success`.
 
-5. Print the board before the first job and after every job. Paste stdout as-is.
+5. Print the board before the first job and after every job. Paste stdout in chat as-is, with no edits and no commentary around it.
 
 ```bash
 dart tool/pipeline_progress.dart --selected id1,id2 --current id2 --done id1 --results id1=ok --times id1=0.3s --app NAME --version VER --build NUM --progress .fluship-agent/progress.json --log {logFilePath}
@@ -55,11 +67,11 @@ dart tool/pipeline_progress.dart --selected id1,id2 --current id2 --done id1 --r
 dart tool/pipeline_heartbeat.dart --progress .fluship-agent/progress.json --number {whatsappNumber} --interval-seconds 180
 ```
 
-7. Run the selected ids. Skip iOS ids off macOS. For a mutex pair, keep the first in catalog order and skip the other. Skip an id whose parent failed or was skipped. Append every command, output, exit code, and `[retry N]` to `logs.txt`. After each build PID: `dart tool/pipeline_cleanup.dart --track {pid} --project {targetProjectPath}`.
+7. Run the selected ids back to back with no pause for thought between them. Skip iOS ids off macOS. For a mutex pair, keep the first in catalog order and skip the other. Skip an id whose parent failed or was skipped. Append every command, output, exit code, and `[retry N]` to `logs.txt`. After each build PID: `dart tool/pipeline_cleanup.dart --track {pid} --project {targetProjectPath}`.
 
 Ask only when something is genuinely missing: version, build, or branch for `bumpVersion` and git ids (default branch `master`); secrets for a dist id or `report`; a second confirm for a power id. Secrets normally arrive from the picker Setup panel, so only ask when a selected id still has none. Save answered secrets to `.fluship-agent/secrets.json`. If the user cancels a secrets ask, skip that id only.
 
-8. On failure, read the error, fix the real cause, retry that id, max 3 times. For any iOS pod error, delete `ios/Podfile.lock` first. After 3 failures, abort if the id is critical, otherwise continue.
+8. On failure, this is the one place to think. Read the error, fix the real cause, retry that id, max 3 times, then stop thinking and resume the loop. For any iOS pod error, delete `ios/Podfile.lock` first. After 3 failures, abort if the id is critical, otherwise continue.
 
 9. `report` and `whatsappShare` run last, in that order, even when earlier jobs failed. Set the board current id to `whatsappShare` before the file send so the heartbeat does not collide. Never type into the WhatsApp chat.
 
