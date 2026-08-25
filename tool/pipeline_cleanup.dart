@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'pipeline_picker/host/cleanup.dart';
 import 'pipeline_picker/host/host_actions.dart';
+import 'pipeline_picker/host/open_page.dart';
 import 'pipeline_picker/io_helpers.dart';
 import 'pipeline_picker/progress/progress_state.dart';
 
@@ -85,6 +86,11 @@ Future<void> main(List<String> args) async {
       deleteIfExists(lockPath);
     }
   }
+
+  if (!parsed.closePicker) return;
+  final openedAt = pathJoin(agentDir, 'picker-open.json');
+  final closed = await closePickerTab(asString(readJsonFile(openedAt)['url']));
+  if (closed > 0) stdout.writeln('Closed $closed Chrome picker tab(s).');
 }
 
 const _help = '''

@@ -102,6 +102,17 @@ class SecretsFacts {
           secretPresent(asString(secrets['appPassword'])),
     );
   }
+
+  bool readyFor(String groupId) {
+    return switch (groupId) {
+      'play' => canPlay,
+      'appStore' => canAppStore,
+      'drive' => canDrive,
+      'slack' => canSlack,
+      'report' => canReport,
+      _ => false,
+    };
+  }
 }
 
 class StepReadiness {

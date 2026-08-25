@@ -5,6 +5,7 @@ import 'dart:io';
 import 'pipeline_picker/catalog/cache_io.dart';
 import 'pipeline_picker/catalog/catalog.dart';
 import 'pipeline_picker/catalog/readiness.dart';
+import 'pipeline_picker/catalog/secrets_io.dart';
 import 'pipeline_picker/host/host_actions.dart';
 import 'pipeline_picker/host/open_page.dart';
 import 'pipeline_picker/io_helpers.dart';
@@ -87,6 +88,7 @@ Future<void> main(List<String> args) async {
   final code = await picker.done.future;
   await picker.close();
   deleteIfExists(lockPath);
+  await closePickerTab(url);
   exit(code);
 }
 
@@ -226,6 +228,30 @@ class _PickerApp {
         await _json(request, _validate(body));
         return;
       }
+      if (request.method == 'GET' && path == '/api/secrets') {
+        await _json(request, _secretsPanel());
+        return;
+      }
+      if (request.method == 'POST' && path == '/api/secrets') {
+        final body = await _readJson(request);
+        await _json(request, _saveSecrets(body));
+        return;
+      }
+      if (request.method == 'POST' && path == '/api/browse-file') {
+        final body = await _readJson(request);
+        final picked = await browseFile(
+          prompt: asString(body['prompt']),
+          fileTypes: asStringList(body['fileTypes']),
+        );
+        if (picked == null || picked.isEmpty) {
+          await _json(request, {
+            'error': 'Browse cancelled or unavailable. Paste a path instead.',
+          });
+          return;
+        }
+        await _json(request, {'path': picked});
+        return;
+      }
       if (request.method == 'POST' && path == '/api/browse') {
         final body = await _readJson(request);
         final picked = await browseFolder();
@@ -308,6 +334,38 @@ class _PickerApp {
       isFirstRun: !cache.hasSavedProject,
       incomingNumber: asString(body['whatsappNumber']),
     );
+  }
+
+  Map<String, dynamic> _secretsPanel() {
+    return secretsPanelJson(
+      secrets: readJsonFile(secretsPath),
+      cacheValues: {
+        'emailRecipient': loadPipelineCache(cachePath).emailRecipient,
+      },
+      isMacOS: Platform.isMacOS,
+    );
+  }
+
+  Map<String, dynamic> _saveSecrets(Map<String, dynamic> body) {
+    final raw = body['values'];
+    final incoming = raw is Map
+        ? raw.map((key, value) => MapEntry('$key', value))
+        : <String, dynamic>{};
+    writeSecretsFile(
+      secretsPath,
+      mergeSecrets(existing: readJsonFile(secretsPath), incoming: incoming),
+    );
+    if (incoming.containsKey('emailRecipient')) {
+      final existing = loadPipelineCache(cachePath);
+      savePipelineCache(
+        cachePath,
+        existing.copyWith(
+          emailRecipient: asString(incoming['emailRecipient']),
+          updatedAt: DateTime.now().toUtc().toIso8601String(),
+        ),
+      );
+    }
+    return {..._secretsPanel(), 'saved': true};
   }
 
   Map<String, dynamic> _validate(Map<String, dynamic> body) {

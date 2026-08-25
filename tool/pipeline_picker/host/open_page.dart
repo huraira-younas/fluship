@@ -98,6 +98,61 @@ Future<void> openInChromeBrowser(String url) async {
   await Process.start('xdg-open', [url], mode: ProcessStartMode.detached);
 }
 
+/// Host and port of the picker page. Chrome tabs are matched on this, so a
+/// stale page from an older run on another port is left alone.
+String pickerTabNeedle(String url) {
+  final parsed = Uri.tryParse(url.trim());
+  if (parsed == null || parsed.host.isEmpty) return '';
+  return parsed.hasPort ? '${parsed.host}:${parsed.port}' : parsed.host;
+}
+
+/// Closes only the Chrome tabs showing the picker, and answers 0 when Chrome
+/// is not running so the script can never launch it.
+String chromeCloseTabScript(String needle) {
+  return '''
+if application "Google Chrome" is running then
+  tell application "Google Chrome"
+    set closedCount to 0
+    repeat with theWindow in windows
+      set tabIndex to (count of tabs of theWindow)
+      repeat while tabIndex > 0
+        if URL of tab tabIndex of theWindow contains "$needle" then
+          close tab tabIndex of theWindow
+          set closedCount to closedCount + 1
+        end if
+        set tabIndex to tabIndex - 1
+      end repeat
+    end repeat
+    return closedCount
+  end tell
+else
+  return 0
+end if
+''';
+}
+
+/// Closes the picker tab once the run is picked or cancelled.
+///
+/// Only Chrome can be closed from here, and only on macOS. A Cursor tab has no
+/// external close API, so the agent closes that one with its browser tool.
+/// Never ask the page to close itself: `window.close()` inside the Cursor
+/// browser takes the whole Cursor window down with it.
+Future<int> closePickerTab(String url) async {
+  if (!Platform.isMacOS) return 0;
+  final needle = pickerTabNeedle(url);
+  if (needle.isEmpty) return 0;
+  try {
+    final result = await Process.run('osascript', [
+      '-e',
+      chromeCloseTabScript(needle),
+    ]);
+    if (result.exitCode != 0) return 0;
+    return int.tryParse(result.stdout.toString().trim()) ?? 0;
+  } catch (_) {
+    return 0;
+  }
+}
+
 bool isCursorAppRunning() {
   try {
     if (Platform.isWindows) {

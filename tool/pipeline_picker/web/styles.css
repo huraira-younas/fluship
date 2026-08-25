@@ -241,6 +241,69 @@ button:focus-visible {
   gap: 8px;
 }
 
+.setup-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.secret-group {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.secret-group > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 500;
+  list-style: none;
+}
+
+.secret-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.secret-group > summary:focus-visible {
+  outline: none;
+  border-radius: 11px;
+  box-shadow: 0 0 0 3px rgba(76, 141, 255, 0.2);
+}
+
+.badge {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--track);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.badge.ok {
+  background: rgba(45, 198, 130, 0.16);
+  color: var(--ok);
+}
+
+.secret-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.secret-body .hint {
+  margin: 0;
+}
+
+.secret-field .path-row {
+  margin: 0;
+}
+
 .chapter {
   margin: 0 0 10px;
   overflow: hidden;

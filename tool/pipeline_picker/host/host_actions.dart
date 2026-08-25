@@ -56,6 +56,61 @@ if (\$d.ShowDialog() -eq 'OK') { \$d.SelectedPath }
   return null;
 }
 
+/// Native file picker for the Setup panel. macOS skips the type filter because
+/// AppleScript reads those strings as UTIs and a key file such as .p8 has none.
+Future<String?> browseFile({
+  required String prompt,
+  List<String> fileTypes = const <String>[],
+}) async {
+  final title = prompt.isEmpty ? 'Select a file' : prompt;
+  try {
+    if (Platform.isMacOS) {
+      final result = await Process.run('osascript', [
+        '-e',
+        'POSIX path of (choose file with prompt "${_escapeForOsa(title)}")',
+      ]);
+      if (result.exitCode != 0) return null;
+      final path = result.stdout.toString().trim();
+      return path.isEmpty ? null : path;
+    }
+    if (Platform.isWindows) {
+      final script =
+          '''
+Add-Type -AssemblyName System.Windows.Forms
+\$d = New-Object System.Windows.Forms.OpenFileDialog
+\$d.Title = "${_escapeForPowerShell(title)}"
+\$d.Filter = "${_windowsFilter(fileTypes)}"
+if (\$d.ShowDialog() -eq 'OK') { \$d.FileName }
+''';
+      final result = await Process.run('powershell', [
+        '-NoProfile',
+        '-STA',
+        '-Command',
+        script,
+      ]);
+      if (result.exitCode != 0) return null;
+      final path = result.stdout.toString().trim();
+      return path.isEmpty ? null : path;
+    }
+  } catch (_) {}
+  return null;
+}
+
+String _windowsFilter(List<String> fileTypes) {
+  const all = 'All files (*.*)|*.*';
+  if (fileTypes.isEmpty) return all;
+  final patterns = [for (final type in fileTypes) '*.$type'].join(';');
+  return '${fileTypes.join(', ').toUpperCase()} files ($patterns)|$patterns|$all';
+}
+
+String _escapeForOsa(String value) {
+  return value.replaceAll(r'\', r'\\').replaceAll('"', r'\"');
+}
+
+String _escapeForPowerShell(String value) {
+  return value.replaceAll('"', "'");
+}
+
 bool pidAlive(int pid) {
   if (pid <= 0) return false;
   try {

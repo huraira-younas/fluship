@@ -9,6 +9,9 @@ const pickedEl = $("picked");
 const submitBtn = $("submit");
 const lede = $("lede");
 const whatsappInput = $("whatsappNumber");
+const secretGroupsEl = $("secret-groups");
+const secretsStatus = $("secrets-status");
+const saveSecretsBtn = $("save-secrets");
 
 let mutex = [];
 let pathTimer = null;
@@ -34,7 +37,12 @@ function selectedIds() {
   );
 }
 
+function secretInput(key) {
+  return document.querySelector("[data-secret='" + key + "']");
+}
+
 function payload() {
+  const recipient = secretInput("emailRecipient");
   return {
     path: pathInput.value.trim(),
     selected: selectedIds(),
@@ -42,6 +50,7 @@ function payload() {
     buildNumber: $("buildNumber").value.trim(),
     gitBranch: $("gitBranch").value.trim() || "master",
     whatsappNumber: whatsappInput.value.trim(),
+    emailRecipient: recipient ? recipient.value.trim() : "",
   };
 }
 
@@ -87,6 +96,129 @@ function setProjectStatus(state) {
     return;
   }
   projectStatus.textContent = "Choose a Flutter app folder to unlock jobs.";
+}
+
+function setSecretsStatus(message, bad) {
+  secretsStatus.className = "status" + (bad ? " bad" : message ? " ok" : "");
+  secretsStatus.textContent = message;
+}
+
+function secretValues() {
+  const values = {};
+  for (const el of document.querySelectorAll("[data-secret]")) {
+    values[el.dataset.secret] = el.value.trim();
+  }
+  return values;
+}
+
+function openSecretGroups() {
+  return [...secretGroupsEl.querySelectorAll("details[open]")].map(
+    (el) => el.dataset.group,
+  );
+}
+
+async function onBrowseFile(field, input) {
+  try {
+    const data = await api("POST", "/api/browse-file", {
+      prompt: field.prompt,
+      fileTypes: field.fileTypes || [],
+    });
+    if (!data || !data.path) {
+      setSecretsStatus((data && data.error) || "Browse cancelled.", true);
+      return;
+    }
+    input.value = data.path;
+    setSecretsStatus("", false);
+  } catch (err) {
+    setSecretsStatus(err.message, true);
+  }
+}
+
+function makeSecretField(field) {
+  const wrap = document.createElement("div");
+  wrap.className = "secret-field";
+  const label = document.createElement("label");
+  label.className = "field grow";
+  const caption = document.createElement("span");
+  caption.textContent = field.optional ? field.label + " (optional)" : field.label;
+  const input = document.createElement("input");
+  input.dataset.secret = field.key;
+  input.type = field.kind === "password" ? "password" : "text";
+  input.spellcheck = false;
+  input.autocomplete = "off";
+  input.value = field.value || "";
+  input.placeholder =
+    field.kind === "password" && field.saved
+      ? "Saved. Type only to replace it."
+      : field.hint;
+  label.append(caption, input);
+
+  if (field.kind === "file") {
+    const row = document.createElement("div");
+    row.className = "path-row";
+    const browse = document.createElement("button");
+    browse.type = "button";
+    browse.className = "btn";
+    browse.textContent = "Browse";
+    browse.addEventListener("click", () => onBrowseFile(field, input));
+    row.append(label, browse);
+    wrap.appendChild(row);
+  } else {
+    wrap.appendChild(label);
+  }
+
+  if (field.missingFile) {
+    const warn = document.createElement("p");
+    warn.className = "reason";
+    warn.textContent = "No file at this path yet.";
+    wrap.appendChild(warn);
+  }
+  return wrap;
+}
+
+function makeSecretGroup(group, open) {
+  const box = document.createElement("details");
+  box.className = "secret-group";
+  box.dataset.group = group.id;
+  box.open = open;
+  const head = document.createElement("summary");
+  const title = document.createElement("span");
+  title.textContent = group.title;
+  const badge = document.createElement("span");
+  badge.className = "badge" + (group.ready ? " ok" : "");
+  badge.textContent = group.ready ? "Ready" : "Needs keys";
+  head.append(title, badge);
+  const body = document.createElement("div");
+  body.className = "secret-body";
+  const blurb = document.createElement("p");
+  blurb.className = "hint";
+  blurb.textContent = group.blurb;
+  body.appendChild(blurb);
+  for (const field of group.fields) body.appendChild(makeSecretField(field));
+  box.append(head, body);
+  return box;
+}
+
+function renderSecrets(panel, openIds) {
+  const open = openIds || [];
+  secretGroupsEl.innerHTML = "";
+  for (const group of (panel && panel.groups) || []) {
+    secretGroupsEl.appendChild(makeSecretGroup(group, open.includes(group.id)));
+  }
+}
+
+async function saveSecrets() {
+  saveSecretsBtn.disabled = true;
+  try {
+    const open = openSecretGroups();
+    renderSecrets(await api("POST", "/api/secrets", { values: secretValues() }), open);
+    setSecretsStatus("Keys saved on this machine.", false);
+    await refresh(false);
+  } catch (err) {
+    setSecretsStatus(err.message, true);
+  } finally {
+    saveSecretsBtn.disabled = false;
+  }
 }
 
 function mutexFor(id) {
@@ -271,6 +403,7 @@ async function boot() {
     lede.textContent =
       "This is the last app you used. Turn on the jobs you want, then start.";
   }
+  renderSecrets(await api("GET", "/api/secrets"), []);
   fillRecents(state.recentProjectPaths || [], state.projectPath);
   applyMeta(state, false);
   lastValidatedPath = state.projectValid ? state.projectPath : "";
@@ -295,6 +428,7 @@ whatsappInput.addEventListener("change", () => {
   });
 });
 $("validate").addEventListener("click", () => refresh(true));
+saveSecretsBtn.addEventListener("click", saveSecrets);
 $("browse").addEventListener("click", async () => {
   try {
     const state = await api("POST", "/api/browse", payload());

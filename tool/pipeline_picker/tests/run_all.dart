@@ -1,4 +1,5 @@
 import 'catalog/readiness_test.dart' as readiness;
+import 'catalog/secrets_io_test.dart' as secrets_io;
 import 'dist/dist_cli_test.dart' as dist_cli;
 import 'host/apk_collect_test.dart' as apk;
 import 'host/cleanup_test.dart' as cleanup;
@@ -17,6 +18,7 @@ import 'support/io_helpers_test.dart' as io_helpers;
 Future<void> main() async {
   io_helpers.main();
   readiness.main();
+  secrets_io.main();
   progress.main();
   progress_state.main();
   heartbeat.main();

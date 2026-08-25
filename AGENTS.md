@@ -33,6 +33,8 @@ Read `Pipeline picker:` and `open-in:` from stdout or `.fluship-agent/picker-ope
 
 Exit 0 submit. Exit 2 cancel. Exit 3 timeout. Anything else is an error. On anything but 0, run cleanup and stop.
 
+The picker closes its own Chrome tab on exit. When `open-in` was `cursor-ide`, close that one tab yourself with your browser tool, matching the picker URL, right after the picker exits. Never make the page close itself: `window.close()` in the Cursor browser closes the whole Cursor window.
+
 3. Read `.fluship-agent/pipeline-cache.json`, then prepare the host.
 
 ```bash
@@ -55,7 +57,7 @@ dart tool/pipeline_heartbeat.dart --progress .fluship-agent/progress.json --numb
 
 7. Run the selected ids. Skip iOS ids off macOS. For a mutex pair, keep the first in catalog order and skip the other. Skip an id whose parent failed or was skipped. Append every command, output, exit code, and `[retry N]` to `logs.txt`. After each build PID: `dart tool/pipeline_cleanup.dart --track {pid} --project {targetProjectPath}`.
 
-Ask only when something is genuinely missing: version, build, or branch for `bumpVersion` and git ids (default branch `master`); secrets for a dist id or `report`; a second confirm for a power id. Save answered secrets to `.fluship-agent/secrets.json`. If the user cancels a secrets ask, skip that id only.
+Ask only when something is genuinely missing: version, build, or branch for `bumpVersion` and git ids (default branch `master`); secrets for a dist id or `report`; a second confirm for a power id. Secrets normally arrive from the picker Setup panel, so only ask when a selected id still has none. Save answered secrets to `.fluship-agent/secrets.json`. If the user cancels a secrets ask, skip that id only.
 
 8. On failure, read the error, fix the real cause, retry that id, max 3 times. For any iOS pod error, delete `ios/Podfile.lock` first. After 3 failures, abort if the id is critical, otherwise continue.
 
@@ -124,7 +126,7 @@ Mutex pairs: `pubGet`/`pubUpgrade`, `buildApk`/`buildSplits`, `distPlayProductio
 
 `pipeline-cache.json` (written by the picker): `selected`, `version`, `buildNumber`, `gitBranch`, `targetProjectPath`, `recentProjectPaths`, commit messages (`{version}` replaced at run time), `releaseNotes`, `emailRecipient`, `playTrack`, `powerAction`, `powerDelaySeconds`, `driveRecipients`, `whatsappNumber`.
 
-`secrets.json` (asked once, never shown in the picker): `gmailAddress`, `appPassword`, `playSaJsonPath`, `playPackageName`, `appStoreIssuerId`, `appStoreApiKeyId`, `appStoreApiKeyPath`, `driveOauthJson`, `driveTokenJson`, `driveFolderId`, `slackWebhookUrl`.
+`secrets.json` (filled in the picker Setup panel, or asked once): `gmailAddress`, `appPassword`, `playSaJsonPath`, `playPackageName`, `appStoreIssuerId`, `appStoreApiKeyId`, `appStoreApiKeyPath`, `driveOauthJson`, `driveTokenJson`, `driveFolderId`, `slackWebhookUrl`. The panel reads every key back except `appPassword`, which stays write-only.
 
 ## Working on this repo
 

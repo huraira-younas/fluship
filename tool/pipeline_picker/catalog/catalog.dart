@@ -8,15 +8,13 @@ const reasonNoAndroid =
 const reasonNoIos =
     'This project has no ios/ folder. These steps enable after you add the iOS platform.';
 const reasonPlaySecrets =
-    'Enable when you add playSaJsonPath and playPackageName to secrets.json.';
+    'Add the package name and service account JSON in Setup above.';
 const reasonAppStoreSecrets =
-    'Enable when you add App Store issuer, key id, and .p8 path to secrets.json.';
-const reasonDriveSecrets =
-    'Enable when you add driveOauthJson to secrets.json.';
-const reasonSlackSecrets =
-    'Enable when you add slackWebhookUrl to secrets.json.';
+    'Add the App Store issuer id, key id, and .p8 path in Setup above.';
+const reasonDriveSecrets = 'Add the Drive OAuth client JSON in Setup above.';
+const reasonSlackSecrets = 'Add the Slack web request URL in Setup above.';
 const reasonReportSecrets =
-    'Enable when you add gmailAddress and appPassword to secrets.json.';
+    'Add the Gmail address and app password in Setup above.';
 const reasonNeedBuildAab = 'Enable when you select buildAab.';
 const reasonNeedApkBuild = 'Enable when you select buildApk or buildSplits.';
 const reasonNeedBuildIpa = 'Enable when you select buildIpa.';
