@@ -119,15 +119,6 @@ class Catalog {
     'distAppStore',
   };
 
-  static const criticalIds = <String>{
-    'bumpVersion',
-    'clean',
-    'pubGet',
-    'pubUpgrade',
-  };
-
-  static const alwaysRunIds = <String>{'report', 'whatsappShare'};
-
   static const mutexGroups = <List<String>>[
     ['pubGet', 'pubUpgrade'],
     ['buildApk', 'buildSplits'],

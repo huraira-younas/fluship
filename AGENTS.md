@@ -14,18 +14,16 @@ Every job is the same loop:
 
 1. Run the command. Background anything slow, then poll in 5 second checks (`block_until_ms: 5000`) until the footer shows `exit_code`. Never guess a duration.
 2. Run `pipeline_progress.dart`.
-3. Paste its stdout into your reply in a fenced code block. Running it is not printing the board: tool output sits in a collapsed block, and thinking is never shown. Never put the board in thinking.
-4. Stop. Do not start the next job. A Cursor hook continues the run after this reply.
+3. Paste its stdout into your reply in a fenced code block. Running it is not printing the board: tool output sits in a collapsed block, and your reasoning is never shown at all.
+4. Start the next job in the same turn.
 
-One job, one board, one reply, then stop. Never batch jobs in one turn. Chat holds the board and nothing else, apart from one short line when something genuinely needs saying.
-
-Keep `--current` on the job you just finished (also in `--done`) or on the next job. Never pass an empty `--current` until cleanup.
+Chat holds the board and nothing else, apart from one short line when something genuinely needs saying.
 
 ## Rules
 
 - Every shell command in a run uses full host permissions (`required_permissions: ["all"]`).
 - Run only the ids the picker returned, in catalog order. Never add or default an id.
-- One board per job, ok, fail, or skip. Never batch them. A long job gets one at start and one at end. Each board is its own reply, then stop.
+- One board per job, ok, fail, or skip. Never batch them. A long job gets one at start and one at end.
 - Logs are mandatory. Create the run folder, `logs.txt`, and `progress.json` before the first job.
 - Critical ids abort the rest of the run: `bumpVersion`, `clean`, `pubGet`, `pubUpgrade`.
 - Never commit `.fluship-agent/secrets.json` or `outputs/`. Never print the app password. No em-dashes.
@@ -60,7 +58,7 @@ dart tool/pipeline_cleanup.dart --prepare --project {targetProjectPath}
 
 4. Create `outputs/{sanitizedProject}/v{version}/{buildNumber}/` and `logs.txt`. Sanitize the project folder to lowercase `[a-z0-9_]`. Write `.fluship-agent/last-run.json` with `logFilePath`, `outputDir`, `startedAt`, `success`.
 
-5. Print the board before the first job and after every job. Paste the stdout as-is, never edited. Then stop so the hook can continue.
+5. Print the board before the first job and after every job. Paste the stdout as-is, never edited.
 
 ```bash
 dart tool/pipeline_progress.dart --selected id1,id2 --current id2 --done id1 --results id1=ok --times id1=0.3s --app NAME --version VER --build NUM --progress .fluship-agent/progress.json --log {logFilePath}
