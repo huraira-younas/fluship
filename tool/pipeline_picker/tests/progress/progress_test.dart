@@ -65,16 +65,29 @@ void main() {
     runElapsed: '2m30s',
   );
   final frameLines = framed.split('\n');
-  final rules = [
-    for (final line in frameLines)
-      if (line.trim().startsWith('---')) line,
-  ];
-  _check(rules.length == 2, 'two rules');
   final widest = frameLines.fold(0, (w, l) => l.length > w ? l.length : w);
-  _check(rules.first.length == widest, 'rule spans the widest row');
-  _check(rules.first == rules.last, 'rules match');
+  _check(frameLines.every((l) => l.length == widest), 'every line is boxed');
+  _check(frameLines.first.startsWith('\u250c'), 'top corner');
+  _check(frameLines.last.startsWith('\u2514'), 'bottom corner');
+  _check(
+    frameLines.where((l) => l.startsWith('\u251c')).length == 2,
+    'title and footer dividers',
+  );
   _check(framed.contains('run 2m30s'), 'run elapsed');
-  _check(framed.contains('1/2 done   run 2m30s   now:'), 'footer order');
+  _check(framed.contains('1/2 done  50%  run 2m30s'), 'footer order');
+  _check(framed.contains(progressBar(50)), 'progress bar');
+
+  _check(progressBar(0) == '\u2591' * 14, 'empty bar');
+  _check(progressBar(100) == '\u2588' * 14, 'full bar');
+  _check(
+    boardProgress(
+          selected: const ['a', 'b', 'c', 'd'],
+          done: const ['a', 'b', 'c'],
+          current: 'c',
+        ).done ==
+        2,
+    'current job is not counted done',
+  );
 
   final wide = formatProgressBoard(
     selected: const ['bumpVersion', 'buildSplits'],

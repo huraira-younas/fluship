@@ -144,17 +144,21 @@ class _Rgb {
       '${r.toStringAsFixed(3)} ${g.toStringAsFixed(3)} ${b.toStringAsFixed(3)}';
 }
 
-const navy = _Rgb(0.071, 0.086, 0.118);
-const blue = _Rgb(0.298, 0.553, 1.0);
-const green = _Rgb(0.176, 0.769, 0.510);
-const red = _Rgb(1.0, 0.361, 0.478);
-const ink = _Rgb(0.102, 0.118, 0.157);
-const muted = _Rgb(0.420, 0.463, 0.545);
-const white = _Rgb(1, 1, 1);
-const paper = _Rgb(0.973, 0.976, 0.984);
-const line = _Rgb(0.890, 0.902, 0.922);
+const sheet = _Rgb(0.043, 0.059, 0.086);
+const surface = _Rgb(0.078, 0.102, 0.141);
+const raised = _Rgb(0.106, 0.137, 0.192);
+const blue = _Rgb(0.431, 0.659, 1.0);
+const green = _Rgb(0.275, 0.827, 0.541);
+const red = _Rgb(1.0, 0.420, 0.506);
+const ink = _Rgb(0.910, 0.929, 0.965);
+const muted = _Rgb(0.553, 0.600, 0.678);
+const line = _Rgb(0.149, 0.188, 0.247);
 
 class _Page {
+  _Page() {
+    fill(0, 0, 612, 792, sheet);
+  }
+
   final StringBuffer buf = StringBuffer();
 
   void fill(double x, double y, double w, double h, _Rgb color) {
@@ -182,18 +186,17 @@ class _Page {
   }
 
   void titleBar(PipelineReport report, String badge) {
-    fill(0, 704, 612, 88, navy);
+    fill(0, 704, 612, 88, surface);
+    fill(0, 704, 612, 1, line);
     text('FLUSHIP PIPELINE', 40, 764, 9, blue, true);
     final name = report.appName.trim().isEmpty ? 'App' : report.appName.trim();
-    text(name, 40, 738, 22, white, true);
+    text(name, 40, 738, 22, ink, true);
     final version = report.versionLabel;
     if (version.isNotEmpty) {
-      text(version, 40, 716, 11, const _Rgb(0.75, 0.80, 0.90), false);
+      text(version, 40, 716, 11, muted, false);
     }
-    final ok = report.success;
-    final badgeColor = ok ? green : red;
-    fill(470, 736, 102, 22, badgeColor);
-    text(badge, 482, 743, 10, white, true);
+    fill(470, 736, 102, 22, report.success ? green : red);
+    text(badge, 482, 743, 10, sheet, true);
   }
 
   void section(String label, double x, double y) {
@@ -213,12 +216,12 @@ class _Page {
   }
 
   void callout(double x, double y, double w, double h) {
-    fill(x, y, w, h, const _Rgb(1, 0.945, 0.949));
+    fill(x, y, w, h, const _Rgb(0.114, 0.075, 0.098));
     fill(x, y, 4, h, red);
   }
 
   void tableHead(double x, double y) {
-    fill(x, y, 532, 18, paper);
+    fill(x, y, 532, 18, raised);
     text('#', x + 8, y + 5, 8, muted, true);
     text('JOB', x + 32, y + 5, 8, muted, true);
     text('RESULT', x + 360, y + 5, 8, muted, true);
@@ -234,7 +237,7 @@ class _Page {
     required String time,
     required bool alt,
   }) {
-    if (alt) fill(x, y, 532, 18, paper);
+    if (alt) fill(x, y, 532, 18, surface);
     text('$index', x + 8, y + 5, 9, muted, false);
     text(_clip(name, 46), x + 32, y + 5, 10, ink, false);
     final markColor = switch (mark) {

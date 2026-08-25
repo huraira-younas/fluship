@@ -564,21 +564,24 @@ def font_css() -> str:
 
 _CSS = """
 :root {
-  --ink: #12151c;
-  --muted: #5d6573;
-  --line: #e4e7ee;
-  --paper: #f6f7fb;
-  --navy: #121826;
-  --blue: #3d7dff;
-  --ok: #1ea36a;
-  --bad: #e24b66;
-  --skip: #8a8394;
+  --bg: #0b0f16;
+  --surface: #141a24;
+  --raised: #1b2331;
+  --ink: #e8edf6;
+  --muted: #8d99ad;
+  --line: #26303f;
+  --blue: #6ea8ff;
+  --ok: #46d38a;
+  --bad: #ff6b81;
+  --skip: #8d99ad;
 }
 * { box-sizing: border-box; }
-@page { size: A4; margin: 12mm 11mm 14mm; }
+/* No page margin so the dark sheet reaches every edge. Padding lives on
+   .page, and each page is a full A4 so Chrome paints the whole sheet. */
+@page { size: A4; margin: 0; }
 html, body {
   margin: 0;
-  background: #fff;
+  background: var(--bg);
   color: var(--ink);
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
   font-size: 12.5px;
@@ -586,11 +589,17 @@ html, body {
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
-.page { width: 100%; }
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 13mm 12mm 15mm;
+  background: var(--bg);
+}
 .page.first { page-break-after: always; }
 header.hero {
-  background: var(--navy);
-  color: #fff;
+  background: linear-gradient(135deg, #17203040, #6ea8ff1f), var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink);
   border-radius: 18px;
   padding: 22px 24px 20px;
 }
@@ -599,7 +608,7 @@ header.hero {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-size: 10px;
-  color: #8fb4ff;
+  color: var(--blue);
   font-weight: 600;
 }
 .hero-row {
@@ -611,7 +620,7 @@ header.hero {
 h1 { margin: 0; font-size: 30px; letter-spacing: -0.03em; font-weight: 600; }
 .ver {
   margin: 6px 0 0;
-  color: #c5d0e6;
+  color: var(--muted);
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 12px;
 }
@@ -622,7 +631,7 @@ h1 { margin: 0; font-size: 30px; letter-spacing: -0.03em; font-weight: 600; }
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #fff;
+  color: #0b0f16;
   white-space: nowrap;
 }
 .badge.ok { background: var(--ok); }
@@ -630,13 +639,13 @@ h1 { margin: 0; font-size: 30px; letter-spacing: -0.03em; font-weight: 600; }
 .lead {
   margin: 18px 0 0;
   padding-top: 16px;
-  border-top: 1px solid rgba(255,255,255,0.12);
+  border-top: 1px solid var(--line);
   font-size: 16px;
   font-weight: 500;
-  color: #fff;
+  color: var(--ink);
   letter-spacing: -0.01em;
 }
-.sub { margin: 6px 0 0; color: #9aa6bd; font-size: 11.5px; }
+.sub { margin: 6px 0 0; color: var(--muted); font-size: 11.5px; }
 .tiles {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -648,6 +657,7 @@ h1 { margin: 0; font-size: 30px; letter-spacing: -0.03em; font-weight: 600; }
 .tiles li {
   border: 1px solid var(--line);
   border-radius: 14px;
+  background: var(--surface);
   padding: 12px 12px 10px;
   text-align: center;
 }
@@ -664,7 +674,7 @@ h1 { margin: 0; font-size: 30px; letter-spacing: -0.03em; font-weight: 600; }
   letter-spacing: 0.09em;
 }
 .tiles li.bad strong { color: var(--bad); }
-.tiles li.bad { border-color: #f7c8d1; background: #fff7f9; }
+.tiles li.bad { border-color: #5a2733; background: #24151b; }
 h2 {
   margin: 0 0 12px;
   font-size: 11px;
@@ -677,7 +687,7 @@ h2 {
   padding: 16px 18px 12px;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
 }
 .bars { list-style: none; margin: 0; padding: 0; }
 .bars li {
@@ -688,7 +698,7 @@ h2 {
   padding: 7px 0;
 }
 .bar-name { font-weight: 500; }
-.track { background: var(--paper); border-radius: 999px; height: 8px; }
+.track { background: var(--raised); border-radius: 999px; height: 8px; }
 /* A sub-second job still gets a visible sliver. */
 .fill {
   display: block;
@@ -704,7 +714,7 @@ h2 {
   min-width: 52px;
   text-align: right;
 }
-.issue { background: #fff5f7; border-color: #f7c8d1; }
+.issue { background: #1d1319; border-color: #5a2733; }
 .issue h2 { color: var(--bad); }
 .who { margin: 0; font-weight: 600; font-size: 14px; }
 .what {
@@ -717,7 +727,7 @@ h2 {
 .next {
   margin: 12px 0 4px;
   padding-top: 10px;
-  border-top: 1px solid #f7c8d1;
+  border-top: 1px solid #5a2733;
   color: var(--ink);
 }
 .next b {
@@ -735,7 +745,7 @@ h2 {
   gap: 10px;
   align-items: center;
   padding: 10px 4px;
-  border-bottom: 1px solid var(--paper);
+  border-bottom: 1px solid var(--line);
 }
 .job:last-child { border-bottom: 0; }
 .n {
@@ -754,9 +764,9 @@ h2 {
   font-weight: 600;
   letter-spacing: 0.04em;
 }
-.pill.done { color: var(--ok); background: #e8f8f0; }
-.pill.fail { color: var(--bad); background: #fdecef; }
-.pill.skip { color: var(--skip); background: var(--paper); }
+.pill.done { color: var(--ok); background: #12291f; }
+.pill.fail { color: var(--bad); background: #2a1620; }
+.pill.skip { color: var(--skip); background: var(--raised); }
 .time {
   text-align: right;
   color: var(--muted);

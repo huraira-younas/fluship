@@ -88,7 +88,7 @@ HeartbeatDecision decideHeartbeat({
   required PipelineProgressState state,
   required HeartbeatClock clock,
   required DateTime now,
-  Duration interval = const Duration(minutes: 2),
+  Duration interval = const Duration(minutes: 3),
 }) {
   if (state.idle || state.now.isEmpty) {
     return const HeartbeatDecision(
@@ -145,9 +145,9 @@ HeartbeatDecision decideHeartbeat({
   );
 }
 
-/// WhatsApp renders a triple backtick block as monospace, so the board columns
-/// line up in the chat exactly like they do in the agent chat.
-const heartbeatBoardRows = 25;
+/// A ping is a status glance, not a report. The full board stays in the agent
+/// chat and the PDF, so keep this to a few short lines.
+const heartbeatNoteLimit = 70;
 
 String formatHeartbeatMessage({
   required PipelineProgressState state,
@@ -161,27 +161,28 @@ String formatHeartbeatMessage({
       : ' v${state.version}+${state.buildNumber}';
   final app = state.app.isEmpty ? 'Fluship' : state.app;
   final step = state.now.isEmpty ? '-' : humanStepName(state.now);
-  final board = formatProgressBoard(
+  final progress = boardProgress(
     selected: state.selected,
     done: state.done,
     current: state.now,
-    results: state.results,
-    times: state.times,
-    appName: app,
-    version: state.version,
-    buildNumber: state.buildNumber,
-    uploadLabel: state.upload?.label ?? '',
-    note: state.note,
-    runElapsed: runElapsed == null ? '' : formatElapsed(runElapsed),
-    maxRows: heartbeatBoardRows,
   );
+  final upload = state.upload?.label ?? '';
+  final note = _oneLine(state.note, heartbeatNoteLimit);
   return [
-    'Fluship: $app$version still running.',
-    '```',
-    // A note carrying its own fence would end the block early and leak the
-    // rest of the board as plain text.
-    board.replaceAll('```', "'''"),
-    '```',
+    'Fluship $app$version',
     'NOW $step  ${formatElapsed(jobElapsed)}',
+    [
+      progress.label,
+      '${progress.percent}%',
+      if (runElapsed != null) 'run ${formatElapsed(runElapsed)}',
+    ].join('  '),
+    if (upload.isNotEmpty) 'upload: $upload',
+    if (note.isNotEmpty) 'note: $note',
   ].join('\n');
+}
+
+String _oneLine(String raw, int limit) {
+  final text = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (text.length <= limit) return text;
+  return '${text.substring(0, limit - 1)}.';
 }

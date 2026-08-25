@@ -73,10 +73,10 @@ Future<void> main(List<String> args) async {
 }
 
 const _help = '''
-Ping WhatsApp every 2 minutes while a pipeline job is still running.
+Ping WhatsApp every 3 minutes while a pipeline job is still running.
 
 Usage:
-  dart tool/pipeline_heartbeat.dart --progress .fluship-agent/progress.json --number +923096547269 --interval-seconds 120
+  dart tool/pipeline_heartbeat.dart --progress .fluship-agent/progress.json --number +923096547269 --interval-seconds 180
 ''';
 
 class _Args {
@@ -100,8 +100,8 @@ _Args _parse(List<String> args) {
   return _Args(
     progress: resolveAgentPath(flags['progress'], 'progress.json'),
     number: flagString(flags, 'number'),
-    intervalSeconds: flagInt(flags, 'interval-seconds', 120, min: 1),
-    // Tight poll so the first ping lands within seconds of the 2 minute mark.
+    intervalSeconds: flagInt(flags, 'interval-seconds', 180, min: 1),
+    // Tight poll so the first ping lands within seconds of the interval mark.
     pollSeconds: flagInt(flags, 'poll-seconds', 2, min: 1),
     once: flags.containsKey('once'),
   );

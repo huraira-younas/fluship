@@ -32,9 +32,9 @@ void main() {
       lastPingAt: null,
       sending: false,
     ),
-    now: start.add(const Duration(seconds: 119)),
+    now: start.add(const Duration(seconds: 179)),
   );
-  _check(!early.shouldPing, 'no send before 120s');
+  _check(!early.shouldPing, 'no send before 180s');
   _check(early.skipReason == 'too-soon', 'too soon');
 
   final ready = decideHeartbeat(
@@ -45,26 +45,21 @@ void main() {
       lastPingAt: null,
       sending: false,
     ),
-    now: start.add(const Duration(seconds: 120)),
+    now: start.add(const Duration(seconds: 180)),
   );
-  _check(ready.shouldPing, 'send at 120s');
-  _check(ready.message.contains('Reelstay'), 'app');
-  _check(ready.message.contains('v1.8.2+8206'), 'version');
-  _check(ready.message.contains('NOW'), 'now');
+  _check(ready.shouldPing, 'send at 180s');
+  _check(ready.message.contains('Fluship Reelstay v1.8.2+8206'), 'app line');
+  _check(ready.message.contains('NOW Build split APKs  3m'), 'now line');
+  _check(ready.message.contains('1/3 done  33%  run 3m'), 'progress line');
   _check(ready.message.contains('upload: 30% app.apk'), 'upload');
-
-  // The ping carries the same board the agent pastes in chat.
-  _check(ready.message.split('```').length == 3, 'one monospace block');
-  _check(
-    ready.message.contains('FLUSHIP  Reelstay  v1.8.2+8206'),
-    'board title',
-  );
-  _check(RegExp(r'DONE\s+Set app version').hasMatch(ready.message), 'done row');
-  _check(RegExp(r'WAIT\s+Send PDF').hasMatch(ready.message), 'wait row');
-  _check(ready.message.contains('1/3 done'), 'board count');
-  _check(ready.message.contains('run 2m'), 'run elapsed');
   _check(ready.message.contains('note: Compiling dart'), 'note');
   _check(!ready.message.contains('\u2014'), 'no em-dash');
+
+  // A ping is a glance, not the board. Keep it small enough to skim.
+  _check(!ready.message.contains('```'), 'no monospace block');
+  _check(!ready.message.contains('FLUSHIP'), 'no board title');
+  _check(!ready.message.contains('WAIT'), 'no waiting rows');
+  _check(ready.message.split('\n').length == 5, 'five lines at most');
 
   final justBefore = decideHeartbeat(
     state: state,
@@ -74,9 +69,9 @@ void main() {
       lastPingAt: null,
       sending: false,
     ),
-    now: start.add(const Duration(milliseconds: 119999)),
+    now: start.add(const Duration(milliseconds: 179999)),
   );
-  _check(!justBefore.shouldPing, 'no send one ms before 120s');
+  _check(!justBefore.shouldPing, 'no send one ms before 180s');
 
   // The interval restarts when the previous send finished, not when it began.
   final afterSlowSend = decideHeartbeat(
@@ -84,10 +79,10 @@ void main() {
     clock: HeartbeatClock(
       nowId: 'buildSplits',
       jobStartedAt: start,
-      lastPingAt: start.add(const Duration(seconds: 140)),
+      lastPingAt: start.add(const Duration(seconds: 200)),
       sending: false,
     ),
-    now: start.add(const Duration(seconds: 259)),
+    now: start.add(const Duration(seconds: 379)),
   );
   _check(!afterSlowSend.shouldPing, 'second ping waits a full interval');
 
@@ -96,22 +91,22 @@ void main() {
     clock: HeartbeatClock(
       nowId: 'buildSplits',
       jobStartedAt: start,
-      lastPingAt: start.add(const Duration(seconds: 140)),
+      lastPingAt: start.add(const Duration(seconds: 200)),
       sending: false,
     ),
-    now: start.add(const Duration(seconds: 260)),
+    now: start.add(const Duration(seconds: 380)),
   );
-  _check(secondPing.shouldPing, 'second ping at 120s after the last send');
+  _check(secondPing.shouldPing, 'second ping at 180s after the last send');
 
   final again = decideHeartbeat(
     state: state,
     clock: HeartbeatClock(
       nowId: 'buildSplits',
       jobStartedAt: start,
-      lastPingAt: start.add(const Duration(seconds: 120)),
+      lastPingAt: start.add(const Duration(seconds: 180)),
       sending: false,
     ),
-    now: start.add(const Duration(seconds: 200)),
+    now: start.add(const Duration(seconds: 300)),
   );
   _check(!again.shouldPing, 'wait for next interval');
 
@@ -164,22 +159,22 @@ void main() {
   _check(synced.nowId == 'distDrive', 'reset now');
   _check(synced.lastPingAt == null, 'reset ping clock');
 
-  final fenced = decideHeartbeat(
-    state: state.copyWith(note: 'gradle said ``` boom'),
+  final longNote = decideHeartbeat(
+    state: state.copyWith(note: 'gradle said\n${'boom ' * 40}'),
     clock: HeartbeatClock(
       nowId: 'buildSplits',
       jobStartedAt: start,
       lastPingAt: null,
       sending: false,
     ),
-    now: start.add(const Duration(minutes: 2)),
+    now: start.add(const Duration(minutes: 3)),
   );
-  _check(fenced.shouldPing, 'fenced note still pings');
-  _check(
-    fenced.message.split('```').length == 3,
-    'a fence inside the note cannot split the block',
-  );
-  _check(fenced.message.contains("''' boom"), 'note survives escaped');
+  _check(longNote.shouldPing, 'long note still pings');
+  final noteLine = longNote.message
+      .split('\n')
+      .firstWhere((line) => line.startsWith('note: '));
+  _check(noteLine.length <= heartbeatNoteLimit + 6, 'note is clipped');
+  _check(noteLine.startsWith('note: gradle said boom'), 'newlines collapse');
 
   stdout.writeln('heartbeat tests: ok');
 }

@@ -57,6 +57,35 @@ String formatStepLines(String raw) {
 }
 
 const _maxNameWidth = 34;
+const _barWidth = 14;
+
+/// How much of the run is finished. The current job never counts as done, so
+/// the board and the WhatsApp ping always agree.
+class BoardProgress {
+  const BoardProgress({required this.done, required this.total});
+
+  final int done;
+  final int total;
+
+  int get percent => total == 0 ? 0 : (done * 100 / total).round();
+
+  String get label => '$done/$total done';
+}
+
+BoardProgress boardProgress({
+  required List<String> selected,
+  required List<String> done,
+  String current = '',
+}) {
+  final doneSet = {for (final id in done) normalizeStepId(id)};
+  final now = normalizeStepId(current);
+  var finished = 0;
+  for (final raw in selected) {
+    final id = normalizeStepId(raw);
+    if (doneSet.contains(id) && id != now) finished += 1;
+  }
+  return BoardProgress(done: finished, total: selected.length);
+}
 
 String formatProgressBoard({
   required List<String> selected,
@@ -78,8 +107,10 @@ String formatProgressBoard({
     buildNumber: buildNumber,
   );
   if (selected.isEmpty) {
-    final rule = _rule(24);
-    return '$title\n$rule\n  No jobs selected.\n$rule';
+    return _frame([
+      [title],
+      ['No jobs selected.'],
+    ]);
   }
 
   final doneSet = {for (final id in done) normalizeStepId(id)};
@@ -87,20 +118,17 @@ String formatProgressBoard({
       ? ''
       : normalizeStepId(current);
   final cells = <_BoardRow>[];
-  var finished = 0;
   var nowIndex = -1;
   for (final raw in selected) {
     final id = normalizeStepId(raw);
     final isNow = now == id;
-    final isDone = doneSet.contains(id);
-    if (isDone && !isNow) finished += 1;
     if (isNow) nowIndex = cells.length;
     cells.add(
       _BoardRow(
         index: cells.length + 1,
         mark: boardState(
           isNow: isNow,
-          isDone: isDone,
+          isDone: doneSet.contains(id),
           result: results[id] ?? '',
         ),
         name: _fit(humanStepName(id), _maxNameWidth),
@@ -118,26 +146,49 @@ String formatProgressBoard({
     0,
     (w, row) => row.time.length > w ? row.time.length : w,
   );
-  final rows = [for (final row in shown) row.render(nameWidth, timeWidth)];
-  final width = rows.fold(0, (w, row) => row.length > w ? row.length : w);
   final hidden = cells.length - shown.length;
+  final progress = boardProgress(selected: selected, done: done, current: now);
+  return _frame([
+    [title],
+    [
+      for (final row in shown) row.render(nameWidth, timeWidth),
+      if (hidden > 0) '+$hidden more',
+    ],
+    [
+      [
+        progressBar(progress.percent),
+        progress.label,
+        '${progress.percent}%',
+        if (runElapsed.trim().isNotEmpty) 'run ${runElapsed.trim()}',
+      ].join('  '),
+      'now: ${now.isEmpty ? '-' : humanStepName(now)}',
+      if (uploadLabel.trim().isNotEmpty) 'upload: ${uploadLabel.trim()}',
+      if (note.trim().isNotEmpty) 'note: ${note.trim()}',
+    ],
+  ]);
+}
 
-  final nowName = now.isEmpty ? '-' : humanStepName(now);
-  final footer = [
-    '$finished/${cells.length} done',
-    if (runElapsed.trim().isNotEmpty) 'run ${runElapsed.trim()}',
-    'now: $nowName',
-  ].join('   ');
-  return [
-    title,
-    _rule(width),
-    ...rows,
-    if (hidden > 0) '  +$hidden more',
-    _rule(width),
-    '  $footer',
-    if (uploadLabel.trim().isNotEmpty) '  upload: ${uploadLabel.trim()}',
-    if (note.trim().isNotEmpty) '  note: ${note.trim()}',
-  ].join('\n');
+String progressBar(int percent, {int width = _barWidth}) {
+  final clamped = percent.clamp(0, 100);
+  final filled = (width * clamped / 100).round().clamp(0, width);
+  return '${'\u2588' * filled}${'\u2591' * (width - filled)}';
+}
+
+/// Boxes the sections so the board reads as one card in chat. Sections are
+/// split by a divider, every line is padded to the widest line in the board.
+String _frame(List<List<String>> sections) {
+  final lines = [for (final section in sections) ...section];
+  final width = lines.fold(0, (w, line) => line.length > w ? line.length : w);
+  final out = <String>['\u250c${'\u2500' * (width + 2)}\u2510'];
+  for (final section in sections) {
+    if (section.isEmpty) continue;
+    if (out.length > 1) out.add('\u251c${'\u2500' * (width + 2)}\u2524');
+    for (final line in section) {
+      out.add('\u2502 ${line.padRight(width)} \u2502');
+    }
+  }
+  out.add('\u2514${'\u2500' * (width + 2)}\u2518');
+  return out.join('\n');
 }
 
 class _BoardRow {
@@ -154,7 +205,7 @@ class _BoardRow {
   final String time;
 
   String render(int nameWidth, int timeWidth) {
-    final head = '  ${index.toString().padLeft(2)}  $mark  ';
+    final head = '${index.toString().padLeft(2, '0')}  $mark  ';
     if (timeWidth == 0 || time.isEmpty) return '$head$name'.trimRight();
     return '$head${name.padRight(nameWidth)}  ${time.padLeft(timeWidth)}';
   }
@@ -216,8 +267,6 @@ String _boardTitle({
   }
   return bits.join('  ');
 }
-
-String _rule(int width) => '  ${'-' * (width < 4 ? 4 : width - 2)}';
 
 String _fit(String text, int width) {
   if (text.length <= width) return text.padRight(width);
