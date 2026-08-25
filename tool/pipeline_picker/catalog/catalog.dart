@@ -1,3 +1,5 @@
+import '../host/shell_wait.dart';
+
 const reasonSelectProject = 'Select a Flutter project first.';
 const reasonNoPubspec =
     'This folder is not a Flutter project (pubspec.yaml missing).';
@@ -118,6 +120,9 @@ class Catalog {
     'collectIpa',
     'distAppStore',
   };
+
+  /// Long steps waited on with fixed 30s polls via `tool/pipeline_wait.dart`.
+  static const longPollStepIds = pipelineLongPollStepIds;
 
   static const mutexGroups = <List<String>>[
     ['pubGet', 'pubUpgrade'],

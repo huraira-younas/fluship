@@ -12,7 +12,7 @@ Do not think between jobs. No planning, no options, no re-reading this file, no 
 
 Every job is the same loop:
 
-1. Run the command. Background anything slow, then poll in 5 second checks (`block_until_ms: 5000`) until the footer shows `exit_code`. Never guess a duration.
+1. Run the command. For long ids (`buildAab`, `buildApk`, `buildSplits`, `podInstall`, `buildIpa`, `distPlayProduction`, `distPlayInternal`, `distAppStore`, `distDrive`), wrap with `pipeline_wait.dart` so polling stays at 30 seconds every time. Never background those and chain `Await` with growing `block_until_ms`. Flutter builds use `--dir {targetProjectPath}`; store uploads run from the Fluship workspace (no `--dir` needed). For other slow jobs, including the picker, background and poll in 5 second checks (`block_until_ms: 5000`) until the footer shows `exit_code`. Never guess one long duration.
 2. Run `pipeline_progress.dart`.
 3. Paste its stdout into your reply in a fenced code block. Running it is not printing the board: tool output sits in a collapsed block, and your reasoning is never shown at all.
 4. Start the next job in the same turn.
@@ -113,20 +113,20 @@ Mutex pairs: `pubGet`/`pubUpgrade`, `buildApk`/`buildSplits`, `distPlayProductio
 | `format` | `dart format .` |
 | `analyze` | `flutter analyze` |
 | `test` | `flutter test` |
-| `buildAab` | `flutter build aab --release` |
+| `buildAab` | `dart tool/pipeline_wait.dart --dir {targetProjectPath} -- flutter build aab --release` |
 | `collectAab` | Copy this run's `*.aab` from `build/app/outputs/bundle/release/` (5s tolerance). |
-| `buildApk` | `flutter build apk --release` |
-| `buildSplits` | `flutter build apk --split-per-abi` |
+| `buildApk` | `dart tool/pipeline_wait.dart --dir {targetProjectPath} -- flutter build apk --release` |
+| `buildSplits` | `dart tool/pipeline_wait.dart --dir {targetProjectPath} -- flutter build apk --split-per-abi` |
 | `collectApk` | Copy this run's `*.apk` from `build/app/outputs/flutter-apk/`. |
-| `podInstall` | `cd ios && pod install --repo-update`. macOS. |
-| `buildIpa` | `flutter build ipa`. macOS. |
+| `podInstall` | `dart tool/pipeline_wait.dart --dir {targetProjectPath}/ios -- pod install --repo-update`. macOS. |
+| `buildIpa` | `dart tool/pipeline_wait.dart --dir {targetProjectPath} -- flutter build ipa`. macOS. |
 | `collectIpa` | Copy this run's `*.ipa` from `build/ios/ipa/`. macOS. |
 | `postCommit` | `git add . && git commit -m "{msg}"`. Fallback `{version} release`. Nothing to commit is ok. |
 | `postPush` | `git push origin {branch}`. Never force-push. |
-| `distPlayProduction` | `dart run tool/dist_play.dart --aab {aab} --track production --progress .fluship-agent/progress.json` |
-| `distPlayInternal` | Same as production with `--track internal`. |
-| `distAppStore` | `dart run tool/dist_app_store.dart --ipa {ipa} --progress .fluship-agent/progress.json`. macOS. |
-| `distDrive` | `dart run tool/dist_drive.dart --output-dir {outputDir} --progress .fluship-agent/progress.json`. Writes `.fluship-agent/last-drive.json`. |
+| `distPlayProduction` | `dart tool/pipeline_wait.dart -- dart run tool/dist_play.dart --aab {aab} --track production --progress .fluship-agent/progress.json` |
+| `distPlayInternal` | `dart tool/pipeline_wait.dart -- dart run tool/dist_play.dart --aab {aab} --track internal --progress .fluship-agent/progress.json` |
+| `distAppStore` | `dart tool/pipeline_wait.dart -- dart run tool/dist_app_store.dart --ipa {ipa} --progress .fluship-agent/progress.json`. macOS. |
+| `distDrive` | `dart tool/pipeline_wait.dart -- dart run tool/dist_drive.dart --output-dir {outputDir} --progress .fluship-agent/progress.json`. Writes `.fluship-agent/last-drive.json`. |
 | `slackNotify` | `dart run tool/slack_notify.dart --link {driveLink} --app-name {name} --version {ver} --build-number {num}` |
 | `report` | `dart run tool/send_pipeline_report.dart --log {logFilePath} --app-name {name} --version {version} --build-number {buildNumber} --success true --elapsed 2m10s --platforms Android --steps Clean:ok:1.2s`. Never pass the password on the command line. |
 | `whatsappShare` | `dart tool/whatsapp_share.dart` (see step 9). Number is 10 to 15 digits. |

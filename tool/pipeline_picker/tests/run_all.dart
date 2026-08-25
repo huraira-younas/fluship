@@ -3,6 +3,7 @@ import 'catalog/secrets_io_test.dart' as secrets_io;
 import 'dist/dist_cli_test.dart' as dist_cli;
 import 'host/apk_collect_test.dart' as apk;
 import 'host/cleanup_test.dart' as cleanup;
+import 'host/shell_wait_test.dart' as shell_wait;
 import 'host/host_permissions_test.dart' as permissions;
 import 'host/pipeline_reset_test.dart' as pipeline_reset;
 import 'host/open_page_test.dart' as open_page;
@@ -34,4 +35,5 @@ Future<void> main() async {
   report_pdf.main();
   apk.main();
   cleanup.main();
+  shell_wait.main();
 }
