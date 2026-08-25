@@ -57,7 +57,7 @@ Future<void> main(List<String> args) async {
     if (url.isNotEmpty) {
       // A picker is already on screen. Print where it is, never open a second
       // tab, per the one-tab rule in AGENTS.md.
-      await _announcePicker(agentDir, url, open: false);
+      await _announcePicker(agentDir, url, open: false, reattach: true);
     }
     exit(_waitForResult(resultPath, asInt(existing['pid']) ?? 0));
   }
@@ -83,7 +83,12 @@ Future<void> main(List<String> args) async {
     'startedAt': DateTime.now().toUtc().toIso8601String(),
   });
 
-  await _announcePicker(agentDir, url, open: parsed.openBrowser);
+  await _announcePicker(
+    agentDir,
+    url,
+    open: parsed.openBrowser,
+    reattach: false,
+  );
 
   final code = await picker.done.future;
   await picker.close();
@@ -127,19 +132,40 @@ Future<void> _announcePicker(
   String agentDir,
   String url, {
   required bool open,
+  required bool reattach,
 }) async {
-  final openIn = await openPickerPage(url, open: open);
+  final opened = open && await openPickerPage(url);
+  final openIn = planPickerOpen(url).target;
   writeJsonFile(pathJoin(agentDir, 'picker-open.json'), {
     'url': url,
     'openIn': openIn,
+    'opened': opened,
   });
   stdout.writeln('Pipeline picker: $url');
   stdout.writeln('open-in: $openIn');
-  if (openIn == openInCursorIde) {
+  if (reattach) {
     stdout.writeln(
-      'Picker is already open in one Cursor IDE browser tab. '
-      'Do not open another tab. Do not open Chrome.',
+      'Picker is still running from a previous session. '
+      'Switch to its tab or open the URL above.',
     );
+    return;
+  }
+  if (openIn == openInCursorIde) {
+    if (opened) {
+      stdout.writeln(
+        'Opened the picker in the Cursor browser panel. '
+        'Do not open a second tab. Do not open Chrome.',
+      );
+    } else {
+      stdout.writeln(
+        'Could not auto-open the Cursor browser panel. '
+        'Open the URL above in Simple Browser (Cmd+Shift+P: Simple Browser: Show).',
+      );
+    }
+    return;
+  }
+  if (!opened) {
+    stdout.writeln('Could not auto-open Chrome. Open the URL above manually.');
   }
 }
 

@@ -42,22 +42,28 @@ String cursorSimpleBrowserUri(String url) {
 }
 
 /// Opens the picker. Never opens Chrome while Cursor should host the page.
-Future<String> openPickerPage(
+/// Returns true when a browser open was attempted and succeeded.
+Future<bool> openPickerPage(
   String url, {
   PickerOpenPlan? plan,
   bool open = true,
 }) async {
   final resolved = plan ?? planPickerOpen(url);
-  if (!open) return resolved.target;
+  if (!open) return false;
   if (resolved.target == openInCursorIde) {
-    await openInCursorIdeBrowser(url);
-    return openInCursorIde;
+    return openInCursorIdeBrowser(url);
   }
   await openInChromeBrowser(url);
-  return openInChrome;
+  return true;
 }
 
 Future<bool> openInCursorIdeBrowser(String url) async {
+  if (Platform.isMacOS) {
+    await Process.run('osascript', [
+      '-e',
+      'tell application "Cursor" to activate',
+    ]);
+  }
   final uris = <String>[
     cursorSimpleBrowserUri(url),
     'cursor://vscode.simple-browser/show?url=${Uri.encodeComponent(url)}',
@@ -65,7 +71,8 @@ Future<bool> openInCursorIdeBrowser(String url) async {
   for (final uri in uris) {
     if (await _openCursorUri(uri)) return true;
   }
-  return _openCursorCommand(url);
+  if (await _openCursorCommand(url)) return true;
+  return _openHttpInCursor(url);
 }
 
 Future<void> openInChromeBrowser(String url) async {
@@ -197,6 +204,19 @@ Future<bool> _openCursorCommand(String url) async {
       'simpleBrowser.show',
       url,
     ]);
+    return result.exitCode == 0;
+  } catch (_) {
+    return false;
+  }
+}
+
+Future<bool> _openHttpInCursor(String url) async {
+  try {
+    if (Platform.isMacOS) {
+      final result = await Process.run('open', ['-a', 'Cursor', url]);
+      return result.exitCode == 0;
+    }
+    final result = await Process.run(_cursorBin(), ['--reuse-window', url]);
     return result.exitCode == 0;
   } catch (_) {
     return false;

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'pipeline_picker/host/cleanup.dart';
 import 'pipeline_picker/host/host_actions.dart';
 import 'pipeline_picker/host/open_page.dart';
+import 'pipeline_picker/host/pipeline_reset.dart';
 import 'pipeline_picker/io_helpers.dart';
 import 'pipeline_picker/progress/progress_state.dart';
 
@@ -20,6 +21,20 @@ Future<void> main(List<String> args) async {
   Directory(agentDir).createSync(recursive: true);
   final pidsPath = pathJoin(agentDir, 'run-pids.json');
   final lockPath = pathJoin(agentDir, 'picker.lock');
+
+  if (parsed.reset) {
+    final report = await runPipelineReset(
+      workspace: workspace,
+      selfPid: pid,
+      dryRun: parsed.dryRun,
+      fullProgressReset: true,
+    );
+    stdout.writeln(formatResetSummary(report));
+    for (final item in report.killed) {
+      stdout.writeln('  killed $item');
+    }
+    return;
+  }
 
   if (parsed.prepare) {
     saveTrackedPids(
@@ -68,8 +83,11 @@ Future<void> main(List<String> args) async {
 
   if (parsed.dryRun) return;
 
-  // The bookkeeping has to happen even if a process refuses to die, otherwise
-  // the heartbeat keeps pinging and the next run starts from a stale state.
+  final openedAt = pathJoin(agentDir, 'picker-open.json');
+  final pickerUrl = parsed.closePicker
+      ? asString(readJsonFile(openedAt)['url'])
+      : '';
+
   try {
     final killed = await killPids(plan.pidsToKill);
     stdout.writeln('Killed ${killed.length} process(es).');
@@ -78,18 +96,17 @@ Future<void> main(List<String> args) async {
       stderr.writeln('Still alive after cleanup: ${survivors.join(', ')}');
     }
   } finally {
-    writeProgressIdle(pathJoin(agentDir, 'progress.json'));
-    // A killed sender cannot release its own lock.
-    deleteIfExists(pathJoin(agentDir, 'whatsapp.lock'));
+    clearAgentState(
+      agentDir: agentDir,
+      fullProgressReset: parsed.closePicker,
+      progressPath: pathJoin(agentDir, 'progress.json'),
+      lockPath: lockPath,
+    );
     saveTrackedPids(path: pidsPath, pids: const [], projectPath: project);
-    if (parsed.closePicker) {
-      deleteIfExists(lockPath);
-    }
   }
 
   if (!parsed.closePicker) return;
-  final openedAt = pathJoin(agentDir, 'picker-open.json');
-  final closed = await closePickerTab(asString(readJsonFile(openedAt)['url']));
+  final closed = await closePickerTab(pickerUrl);
   if (closed > 0) stdout.writeln('Closed $closed Chrome picker tab(s).');
 }
 
@@ -100,9 +117,13 @@ Usage:
   dart tool/pipeline_cleanup.dart --project PATH [--workspace PATH]
   dart tool/pipeline_cleanup.dart --prepare --project PATH
   dart tool/pipeline_cleanup.dart --track PID --project PATH
-  dart tool/pipeline_cleanup.dart --close-picker --project PATH
+  dart tool/pipeline_cleanup.dart --close-picker [--project PATH]
+  dart tool/pipeline_cleanup.dart --reset [--workspace PATH]
 
-Always run this after success, fail, cancel, timeout, or close.
+--reset kills any live picker, heartbeat, and tracked builds, then clears
+stale agent state. Warmup runs this before every new pipeline.
+
+Always run cleanup after success, fail, cancel, timeout, or stop.
 ''';
 
 class _Args {
@@ -112,6 +133,7 @@ class _Args {
     required this.prepare,
     required this.trackPid,
     required this.closePicker,
+    required this.reset,
     required this.dryRun,
   });
 
@@ -120,6 +142,7 @@ class _Args {
   final bool prepare;
   final int? trackPid;
   final bool closePicker;
+  final bool reset;
   final bool dryRun;
 }
 
@@ -131,6 +154,7 @@ _Args _parse(List<String> args) {
     prepare: flags.containsKey('prepare'),
     trackPid: int.tryParse(flagString(flags, 'track')),
     closePicker: flags.containsKey('close-picker'),
+    reset: flags.containsKey('reset'),
     dryRun: flags.containsKey('dry-run'),
   );
 }

@@ -4,6 +4,7 @@ import 'dist/dist_cli_test.dart' as dist_cli;
 import 'host/apk_collect_test.dart' as apk;
 import 'host/cleanup_test.dart' as cleanup;
 import 'host/host_permissions_test.dart' as permissions;
+import 'host/pipeline_reset_test.dart' as pipeline_reset;
 import 'host/open_page_test.dart' as open_page;
 import 'progress/heartbeat_test.dart' as heartbeat;
 import 'progress/progress_state_test.dart' as progress_state;
@@ -24,6 +25,7 @@ Future<void> main() async {
   heartbeat.main();
   dist_cli.main();
   permissions.main();
+  await pipeline_reset.main();
   open_page.main();
   await whatsapp.main();
   whatsapp_send.main();

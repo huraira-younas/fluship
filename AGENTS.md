@@ -30,7 +30,7 @@ Chat holds the board and nothing else, apart from one short line when something 
 
 ## Run
 
-1. Warm up host permissions. Paste the board. Exit 4 means Accessibility is missing: wait, then run it again.
+1. Warm up host permissions. This also resets any stale picker, heartbeat, or progress from a prior run. Paste the board. Exit 4 means Accessibility is missing: wait, then run it again.
 
 ```bash
 dart tool/pipeline_warmup.dart
@@ -44,7 +44,7 @@ dart tool/pipeline_picker.dart
 
 Poll it in 5 second checks; the user may sit on the form for a while.
 
-Read `Pipeline picker:` and `open-in:` from stdout or `.fluship-agent/picker-open.json`. The picker already opened its own tab, in the Cursor panel (`cursor-ide`) or Chrome (`chrome`). Do not open a second one.
+Read `Pipeline picker:` and `open-in:` from stdout or `.fluship-agent/picker-open.json`. The picker already opened its own tab, in the Cursor panel (`cursor-ide`) or Chrome (`chrome`). Do not open a second one. If stdout says the panel could not auto-open, use the cursor `open_resource` tool with the picker http URL.
 
 Exit 0 submit. Exit 2 cancel. Exit 3 timeout. Anything else is an error. On anything but 0, run cleanup and stop.
 
@@ -84,7 +84,7 @@ dart tool/whatsapp_share.dart --log {logFilePath} --output-dir {outputDir} --pro
 
 Exit 2: run the warmup, then retry this command once. Never send the text without the PDF.
 
-10. Always cleanup last, on success, failure, cancel, timeout, or stop. Add `--close-picker` when stopping. Cleanup marks `progress.json` idle and kills the heartbeat PID.
+10. Always cleanup last, on success, failure, cancel, timeout, or stop. Add `--close-picker` when stopping. Cleanup marks `progress.json` idle and kills the heartbeat PID. A new run always starts with warmup, which resets picker and progress first.
 
 ```bash
 dart tool/pipeline_cleanup.dart --project {targetProjectPath}

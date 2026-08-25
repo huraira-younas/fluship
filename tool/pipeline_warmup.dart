@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'pipeline_picker/host/host_permissions.dart';
+import 'pipeline_picker/host/pipeline_reset.dart';
 
 /// First command of every agent pipeline run.
 ///
@@ -9,11 +10,16 @@ import 'pipeline_picker/host/host_permissions.dart';
 ///
 /// Exit 0: ready to launch the picker.
 /// Exit 4: user still needs to click Allow / enable Accessibility.
-void main(List<String> args) {
+Future<void> main(List<String> args) async {
   if (args.contains('--help') || args.contains('-h')) {
     stdout.writeln(_help);
     return;
   }
+
+  final toolDir = File.fromUri(Platform.script).parent;
+  final workspace = toolDir.parent.absolute.path;
+  final reset = await runPipelineReset(workspace: workspace, selfPid: pid);
+  stdout.writeln(formatResetSummary(reset));
 
   final report = runWarmupProbes();
   stdout.writeln(formatWarmupBoard(report));
@@ -38,5 +44,7 @@ Ask for Fluship host permissions at the start of a pipeline run.
 Usage:
   dart tool/pipeline_warmup.dart
 
-The agent must run this with full host permissions before the picker.
+Resets any stale picker, heartbeat, or progress, then asks for host
+permissions. The agent must run this with full host permissions before
+the picker.
 ''';
