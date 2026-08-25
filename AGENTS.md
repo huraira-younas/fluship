@@ -18,6 +18,12 @@ Every job is the same three-move loop, and it never varies:
 
 The board belongs in chat as plain assistant text. A board that exists only in your reasoning or only in tool output is invisible to the user, so that job counts as unreported. Chat text per job is the board plus at most one short line when something needs saying. No step narration, no "next I will" sentences, no interim summaries.
 
+## Long jobs
+
+Never park a slow job behind one long timer and never guess how long it will take. Anything that can run for minutes, such as a build, `pubGet`, `pubUpgrade`, `podInstall`, a dist upload, or the picker waiting on the user, starts in the background with `block_until_ms: 0`. Then poll it in 5 second checks with `AwaitShell` and `block_until_ms: 5000` until the terminal footer shows `exit_code`.
+
+Polling is silent work. Do not think, comment, or write chat text between checks, and do not stop early on a guess that it is probably done. The second the command ends, read its result, paste the board, and start the next job. The same 5 second polling applies to anything you are waiting on from the user.
+
 ## Rules
 
 - Every shell command in a run uses full host permissions (`required_permissions: ["all"]`).
@@ -40,6 +46,8 @@ dart tool/pipeline_warmup.dart
 ```bash
 dart tool/pipeline_picker.dart
 ```
+
+Poll it in 5 second checks until it exits, since the user may sit on the form for a while.
 
 Read `Pipeline picker:` and `open-in:` from stdout or `.fluship-agent/picker-open.json`. The picker already opened its own tab, in the Cursor panel (`cursor-ide`) or Chrome (`chrome`). Do not open a second one.
 
@@ -67,7 +75,7 @@ dart tool/pipeline_progress.dart --selected id1,id2 --current id2 --done id1 --r
 dart tool/pipeline_heartbeat.dart --progress .fluship-agent/progress.json --number {whatsappNumber} --interval-seconds 180
 ```
 
-7. Run the selected ids back to back with no pause for thought between them. Skip iOS ids off macOS. For a mutex pair, keep the first in catalog order and skip the other. Skip an id whose parent failed or was skipped. Append every command, output, exit code, and `[retry N]` to `logs.txt`. After each build PID: `dart tool/pipeline_cleanup.dart --track {pid} --project {targetProjectPath}`.
+7. Run the selected ids back to back with no pause for thought between them. Background every slow id and poll it in 5 second checks. Skip iOS ids off macOS. For a mutex pair, keep the first in catalog order and skip the other. Skip an id whose parent failed or was skipped. Append every command, output, exit code, and `[retry N]` to `logs.txt`. After each build PID: `dart tool/pipeline_cleanup.dart --track {pid} --project {targetProjectPath}`.
 
 Ask only when something is genuinely missing: version, build, or branch for `bumpVersion` and git ids (default branch `master`); secrets for a dist id or `report`; a second confirm for a power id. Secrets normally arrive from the picker Setup panel, so only ask when a selected id still has none. Save answered secrets to `.fluship-agent/secrets.json`. If the user cancels a secrets ask, skip that id only.
 
