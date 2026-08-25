@@ -5,7 +5,8 @@ import 'pipeline_picker/progress/progress.dart';
 import 'pipeline_picker/progress/progress_state.dart';
 
 /// Prints the live pipeline board. The agent must run this before the first
-/// job and again after every job, then paste the stdout into chat.
+/// job and again after every job, paste the stdout into the chat reply, then
+/// stop. Thinking and tool output do not count.
 void main(List<String> args) {
   final flags = parseCliFlags(args);
   if (flags.containsKey('help')) {

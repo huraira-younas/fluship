@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'pipeline_picker/host/board_reply.dart';
 import 'pipeline_picker/host/cleanup.dart';
 import 'pipeline_picker/host/host_actions.dart';
 import 'pipeline_picker/host/open_page.dart';
@@ -30,6 +31,7 @@ Future<void> main(List<String> args) async {
     deleteIfExists(pathJoin(agentDir, 'last-drive.json'));
     deleteIfExists(pathJoin(agentDir, 'whatsapp.lock'));
     resetProgressForRun(pathJoin(agentDir, 'progress.json'));
+    clearBoardGate(pathJoin(agentDir, boardGateFileName));
     stdout.writeln('Prepared $pidsPath');
     return;
   }
@@ -79,6 +81,7 @@ Future<void> main(List<String> args) async {
     }
   } finally {
     writeProgressIdle(pathJoin(agentDir, 'progress.json'));
+    clearBoardGate(pathJoin(agentDir, boardGateFileName));
     // A killed sender cannot release its own lock.
     deleteIfExists(pathJoin(agentDir, 'whatsapp.lock'));
     saveTrackedPids(path: pidsPath, pids: const [], projectPath: project);

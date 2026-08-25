@@ -1,6 +1,7 @@
 import 'catalog/readiness_test.dart' as readiness;
 import 'catalog/secrets_io_test.dart' as secrets_io;
 import 'dist/dist_cli_test.dart' as dist_cli;
+import 'host/board_reply_test.dart' as board_reply;
 import 'host/apk_collect_test.dart' as apk;
 import 'host/cleanup_test.dart' as cleanup;
 import 'host/host_permissions_test.dart' as permissions;
@@ -30,6 +31,7 @@ Future<void> main() async {
   pdf.main();
   report_html.main();
   report_pdf.main();
+  board_reply.main();
   apk.main();
   cleanup.main();
 }
