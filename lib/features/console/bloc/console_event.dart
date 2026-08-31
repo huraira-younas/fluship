@@ -140,8 +140,10 @@ class LogPipelineLine extends ConsoleEvent {
     required this.text,
     super.onSuccess,
     super.onError,
+    this.kind,
   }) : super(name: 'Log_Pipeline_Line');
 
+  final ConsoleLineKind? kind;
   final ConsoleStream stream;
   final String sessionId;
   final String text;
@@ -150,6 +152,7 @@ class LogPipelineLine extends ConsoleEvent {
   Map<String, dynamic> toJson() => {
     'session_id': sessionId,
     'stream': stream.name,
+    'kind': kind?.name,
     'text': text,
   };
 }

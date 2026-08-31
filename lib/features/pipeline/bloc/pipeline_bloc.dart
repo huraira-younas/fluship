@@ -1,4 +1,8 @@
+import 'dart:async' show unawaited;
+
+import 'package:fluship/features/console/utils/console_line_classifier.dart';
 import 'package:fluship/services/console/models/shell_run_result.dart';
+import 'package:fluship/features/console/models/console_line.dart';
 import 'package:fluship/services/distribution/distribution.dart';
 import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:fluship/core/base_bloc/base_bloc.dart';
@@ -37,9 +41,11 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
   /// Owned by the bloc rather than the run loop so that removing a step while
   /// the pipeline is running is not overwritten by the next step transition.
   var _commandSteps = const <CommandStep>[];
+  final _uploadGate = UploadProgressGate();
   final _stepViews = <PipelineStepView>[];
 
   var _cancelRequested = false;
+  int? _runningIndex;
   String? _sessionId;
 
   @override
@@ -94,6 +100,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     String? savedLogPath;
 
     final artifacts = PipelineRunArtifacts(startedAt: startedAt);
+    final emailTheme = ReportHtmlTheme.fromCurrentTheme();
 
     Future<DistributionContext> buildDistributionContext({
       required String logFilePath,
@@ -108,7 +115,8 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
       final contextFinishedAt = DateTime.now();
       return DistributionContext(
-        emailTheme: ReportHtmlTheme.fromCurrentTheme(),
+        onUploadProgress: (progress) => _applyUploadProgress(emit, progress),
+        emailTheme: emailTheme,
         config: configState.distribution,
         snapshot: PipelineRunSnapshot(
           platforms: DistributionPlatforms.fromArtifacts(artifacts.paths),
@@ -203,10 +211,16 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     );
 
     _sessionId = await _consolePort.createSession(projectRoot: projectRoot);
+    _uploadGate.reset();
     await _consolePort.logLine(
-      text: '[pipeline started]',
+      text: PipelineLogCopy.started(
+        build: buildNumber,
+        app: projectName,
+        version: version,
+      ),
       sessionId: _sessionId!,
       stream: .system,
+      kind: .info,
     );
 
     for (var index = 0; index < commandSteps.length; index++) {
@@ -230,12 +244,11 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       if (_cancelRequested || result.wasCancelled) {
         _stepViews[index] = _finalizeStepTiming(
           _stepViews[index],
-        ).copyWith(errorMessage: 'Cancelled', status: .failed);
+        ).copyWith(status: .cancelled);
         await _logStepTiming(
-          errorMessage: 'Cancelled',
           view: _stepViews[index],
           stepName: step.name,
-          success: false,
+          outcome: .cancelled,
         );
 
         summaryMessage = 'Pipeline cancelled.';
@@ -248,19 +261,19 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
       if (!result.success) {
         hadStepFailures = true;
-        _stepViews[index] = _finalizeStepTiming(_stepViews[index]).copyWith(
-          status: PipelineStepStatus.failed,
-          errorMessage: result.errorMessage,
-        );
+        final errorText = PipelineUtils.formatStepError(result.errorMessage);
+        _stepViews[index] = _finalizeStepTiming(
+          _stepViews[index],
+        ).copyWith(status: PipelineStepStatus.failed, errorMessage: errorText);
         await _logStepTiming(
-          errorMessage: result.errorMessage,
+          errorMessage: errorText,
           view: _stepViews[index],
           stepName: step.name,
-          success: false,
+          outcome: .failed,
         );
 
         summaryMessage = '${step.name} failed.';
-        failureMessage ??= result.errorMessage;
+        failureMessage ??= errorText;
         runStatus = PipelineRunStatus.failed;
 
         if (step.isCritical) {
@@ -280,7 +293,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       await _logStepTiming(
         view: _stepViews[index],
         stepName: step.name,
-        success: true,
+        outcome: .completed,
       );
 
       _emitSteps(emit, activeStepIndex: null);
@@ -293,9 +306,14 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     final sessionId = _sessionId;
     if (sessionId != null) {
       await _consolePort.logLine(
-        text: '[pipeline ${runStatus.name} in $totalFormatted]',
+        text: PipelineLogCopy.ended(runStatus, totalFormatted),
         sessionId: sessionId,
         stream: .system,
+        kind: switch (runStatus) {
+          .cancelled => .warn,
+          .failed => .error,
+          _ => .success,
+        },
       );
 
       if (savedLogPath == null) {
@@ -356,9 +374,10 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     );
 
     await _consolePort.logLine(
-      text: '[pipeline log saved to $relativePath]',
+      text: PipelineLogCopy.logSaved(relativePath),
       sessionId: sessionId,
       stream: .system,
+      kind: .info,
     );
 
     return logPath;
@@ -383,18 +402,19 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
   PipelineStepView _finalizeStepTiming(PipelineStepView view) {
     final started = view.startedAt;
-    if (started == null) return view;
+    if (started == null) return view.copyWith(clearUpload: true);
 
     return view.copyWith(
       elapsed: DateTime.now().difference(started),
       clearStartedAt: true,
+      clearUpload: true,
     );
   }
 
   Future<void> _logStepTiming({
     required PipelineStepView view,
     required String stepName,
-    required bool success,
+    required PipelineStepStatus outcome,
     String? errorMessage,
   }) async {
     final sessionId = _sessionId;
@@ -402,13 +422,25 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     if (sessionId == null || elapsed == null) return;
 
     final formatted = PipelineUtils.formatPipelineDuration(elapsed);
-    final text = success
-        ? '[$stepName completed in $formatted]'
-        : '[$stepName failed in $formatted${errorMessage != null ? ' — $errorMessage' : ''}]';
+    final (text, kind) = switch (outcome) {
+      .cancelled => (
+        PipelineLogCopy.stepCancelled(stepName, formatted),
+        ConsoleLineKind.warn,
+      ),
+      .failed => (
+        PipelineLogCopy.stepFailed(stepName, formatted, errorMessage),
+        ConsoleLineKind.error,
+      ),
+      _ => (
+        PipelineLogCopy.stepFinished(stepName, formatted),
+        ConsoleLineKind.success,
+      ),
+    };
 
     await _consolePort.logLine(
       sessionId: sessionId,
       stream: .system,
+      kind: kind,
       text: text,
     );
   }
@@ -438,9 +470,10 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     }
 
     await _consolePort.logLine(
-      text: '[${step.name} failed, retrying with recovery]',
+      text: PipelineLogCopy.stepRetry(step.name),
       sessionId: sessionId,
       stream: .system,
+      kind: .warn,
     );
 
     return _mapShellResult(
@@ -452,9 +485,10 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     final sessionId = _sessionId;
     if (sessionId != null) {
       await _consolePort.logLine(
-        text: '> [${step.name}] ${step.command}',
+        text: PipelineLogCopy.stepStarting(step.name),
         sessionId: sessionId,
-        stream: .input,
+        stream: .system,
+        kind: .info,
       );
     }
 
@@ -468,7 +502,7 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
     if (result.exitCode != 0) {
       return PipelineStepResult(
-        errorMessage: 'Exit code ${result.exitCode}',
+        errorMessage: _shellFailureMessage(result.exitCode),
         exitCode: result.exitCode,
         success: false,
       );
@@ -508,9 +542,10 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     final sessionId = _sessionId;
     if (sessionId != null) {
       await _consolePort.logLine(
-        text: '[${step.name} removed from this run]',
+        text: PipelineLogCopy.stepRemoved(step.name),
         sessionId: sessionId,
         stream: .system,
+        kind: .info,
       );
     }
 
@@ -536,11 +571,54 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
     _sessionId = null;
   }
 
+  void _applyUploadProgress(
+    Emitter<PipelineState> emit,
+    PipelineUploadProgress progress,
+  ) {
+    if (isClosed || _cancelRequested) return;
+    if (!_uploadGate.allow(progress)) return;
+
+    final index = _runningIndex ?? state.activeStepIndex;
+    if (index == null || index < 0 || index >= _stepViews.length) return;
+    if (_stepViews[index].status != .running) return;
+
+    _stepViews[index] = _stepViews[index].copyWith(upload: progress);
+    _emitSteps(emit, activeStepIndex: index);
+
+    final sessionId = _sessionId;
+    if (sessionId == null) return;
+    unawaited(
+      _consolePort.logLine(
+        text: progress.consoleLine,
+        sessionId: sessionId,
+        stream: .stdout,
+        kind: .progress,
+      ),
+    );
+  }
+
+  String _shellFailureMessage(int exitCode) {
+    final sessionId = _sessionId;
+    if (sessionId != null) {
+      final lines = _consolePort.sessionLines(sessionId);
+      for (var i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].displayKind != .error) continue;
+        final text = lines[i].text.trim();
+        if (text.isEmpty || text.startsWith('[exit')) continue;
+        return PipelineUtils.formatStepError(text);
+      }
+    }
+    return PipelineUtils.formatStepError('Exit code $exitCode');
+  }
+
   void _emitStepRunning(Emitter<PipelineState> emit, {required int index}) {
+    _uploadGate.reset();
+    _runningIndex = index;
     _stepViews[index] = _stepViews[index].copyWith(
       status: PipelineStepStatus.running,
       startedAt: DateTime.now(),
       clearElapsed: true,
+      clearUpload: true,
     );
     _emitSteps(emit, activeStepIndex: index);
   }

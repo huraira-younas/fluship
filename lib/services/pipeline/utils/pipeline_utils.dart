@@ -1,6 +1,11 @@
 import 'package:fluship/features/console/models/console_line.dart';
 
 class PipelineUtils {
+  static final _folderNonAlnum = RegExp(r'[^a-z0-9]+');
+  static final _pathUnsafe = RegExp(r'[<>:"/\\|?*]');
+  static final _folderEdges = RegExp(r'^_|_$');
+  static final _folderRepeat = RegExp(r'_+');
+
   static String formatPipelineDuration(Duration duration) {
     final ms = duration.inMilliseconds;
     if (ms < 1000) return '${ms}ms';
@@ -33,29 +38,59 @@ class PipelineUtils {
     if (normalized.isEmpty) return 'unknown';
 
     return normalized
-        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
-        .replaceAll(RegExp(r'_+'), '_')
-        .replaceAll(RegExp(r'^_|_$'), '');
+        .replaceAll(_folderNonAlnum, '_')
+        .replaceAll(_folderRepeat, '_')
+        .replaceAll(_folderEdges, '');
   }
 
   static String sanitizePathSegment(String value) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return 'unknown';
 
-    return trimmed.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+    return trimmed.replaceAll(_pathUnsafe, '_');
   }
 
   static String formatStepError(String? message) {
     if (message == null || message.trim().isEmpty) {
-      return 'Step failed without details. Check the Console tab for output.';
+      return 'Step failed without details. Check the Console tab.';
     }
 
     var text = message.trim();
-    const exceptionPrefix = 'Exception: ';
-    if (text.startsWith(exceptionPrefix)) {
-      text = text.substring(exceptionPrefix.length).trim();
+    const prefixes = ['Exception: ', 'StateError: ', 'Bad state: '];
+    for (final prefix in prefixes) {
+      if (text.startsWith(prefix)) {
+        text = text.substring(prefix.length).trim();
+      }
     }
 
+    return _withHint(text);
+  }
+
+  static String _withHint(String text) {
+    final lower = text.toLowerCase();
+    if (lower.contains('check play') ||
+        lower.contains('check app store') ||
+        lower.contains('check drive') ||
+        lower.contains('check the console')) {
+      return text;
+    }
+
+    if (lower.contains('exit code')) {
+      return '$text Check the Console tab.';
+    }
+    if (lower.contains('service account') ||
+        (lower.contains('play') &&
+            (lower.contains('403') || lower.contains('permission')))) {
+      return '$text Check Play credentials in Settings.';
+    }
+    if (lower.contains('issuer') ||
+        lower.contains('transporter') ||
+        lower.contains('auth key')) {
+      return '$text Check App Store credentials in Settings.';
+    }
+    if (lower.contains('oauth') && lower.contains('drive')) {
+      return '$text Check Drive credentials in Settings.';
+    }
     return text;
   }
 }

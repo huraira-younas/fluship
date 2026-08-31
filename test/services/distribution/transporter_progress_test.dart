@@ -8,4 +8,18 @@ void main() {
     expect(parseTransporterPercent('starting upload'), isNull);
     expect(parseTransporterPercent('120%'), isNull);
   });
+
+  test('treats debug transporter chatter as noise', () {
+    expect(isTransporterNoise('DBG-X: packet 12'), isTrue);
+    expect(isTransporterNoise('[DBG] verbose'), isTrue);
+    expect(isTransporterNoise(''), isTrue);
+    expect(isTransporterNoise('Uploading 12% complete'), isFalse);
+  });
+
+  test('logs only useful transporter lines', () {
+    expect(isTransporterLogLine('DBG-X: packet 12'), isFalse);
+    expect(isTransporterLogLine('Uploading 12% complete'), isFalse);
+    expect(isTransporterLogLine('ERROR ITMS-9000: Invalid bundle'), isTrue);
+    expect(isTransporterLogLine('Unable to authenticate'), isTrue);
+  });
 }

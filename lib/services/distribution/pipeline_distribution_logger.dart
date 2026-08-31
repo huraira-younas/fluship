@@ -16,9 +16,14 @@ class PipelineDistributionLogger implements DistributionLogger {
     return _consolePort.logLine(
       sessionId: _sessionId,
       stream: switch (result.status) {
-        .skipped => .stdout,
-        .success => .input,
+        .skipped => .system,
+        .success => .stdout,
         .failed => .stderr,
+      },
+      kind: switch (result.status) {
+        .skipped => .info,
+        .failed => .error,
+        .success => null,
       },
       text: result.message,
     );

@@ -39,28 +39,37 @@ class _ConsoleScreenState extends State<ConsoleScreen> {
           SyncProjectRoot(path: state.appInfo.flutterProjectPath),
         );
       },
-      child: AppCard(
-        border: .all(color: Colors.transparent),
-        expandedBody: true,
-        title: 'Console',
-        radius: .zero,
-        spacing: 0,
-        description:
-            'Run shell commands in your Flutter project directory. '
-            'Open up to 3 terminal tabs — each keeps its own session and path.',
-        children: [
-          const ConsoleToolbar(),
-          const SizedBox(height: 12),
-          Column(
-            crossAxisAlignment: .stretch,
+      child: BlocSelector<ConsoleBloc, ConsoleState, bool>(
+        selector: (state) {
+          final id = state.activeSessionId;
+          return id != null && isPipelineConsoleSession(id);
+        },
+        builder: (context, watchingPipeline) {
+          return AppCard(
+            border: .all(color: Colors.transparent),
+            expandedBody: true,
+            title: 'Console',
+            radius: .zero,
+            spacing: 0,
+            description: watchingPipeline
+                ? 'Follow this release here. Only real failures show in red.'
+                : 'Run shell commands in your Flutter project directory. '
+                      'Open up to 3 terminal tabs. Each keeps its own session and path.',
             children: [
-              const ConsoleSessionTabs(),
-              const ConsoleOutput().expanded(),
+              const ConsoleToolbar(),
+              const SizedBox(height: 12),
+              Column(
+                crossAxisAlignment: .stretch,
+                children: [
+                  const ConsoleSessionTabs(),
+                  const ConsoleOutput().expanded(),
+                ],
+              ).expanded(),
+              const SizedBox(height: 12),
+              const ConsoleInput(),
             ],
-          ).expanded(),
-          const SizedBox(height: 12),
-          const ConsoleInput(),
-        ],
+          );
+        },
       ),
     );
   }

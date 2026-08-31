@@ -45,6 +45,14 @@ class PlayStoreHandler implements DistributionHandler {
         saJsonPath: saJsonPath,
         logger: context.logger,
         aabPath: aabPath,
+        onProgress: (bytes, total, fileName) {
+          context.notifyUploadProgress(
+            fileName: fileName,
+            channel: .play,
+            bytes: bytes,
+            total: total,
+          );
+        },
       );
 
       return DistributionResult.success(

@@ -1,8 +1,9 @@
+import 'package:path/path.dart' as p;
 import 'dart:io' show Platform;
 
-import '../app_store/app_store_uploader.dart';
 import '../contracts/distribution_context.dart';
 import '../contracts/distribution_handler.dart';
+import '../app_store/app_store_uploader.dart';
 import '../models/distribution_result.dart';
 
 class AppStoreHandler implements DistributionHandler {
@@ -55,6 +56,14 @@ class AppStoreHandler implements DistributionHandler {
         appstore: appstore,
         ipaPath: ipaPath,
         logger: context.logger,
+        onLine: (line, percent) {
+          if (percent == null) return;
+          context.notifyUploadProgress(
+            fileName: p.basename(ipaPath),
+            channel: .appStore,
+            percent: percent,
+          );
+        },
       );
       return DistributionResult.success('Uploaded to App Store: $uploaded');
     } catch (error) {

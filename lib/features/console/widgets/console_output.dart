@@ -1,3 +1,4 @@
+import 'package:fluship/features/console/utils/console_line_classifier.dart';
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/features/console/models/console_line.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
@@ -29,10 +30,10 @@ class ConsoleOutputSnapshot extends Equatable {
     return ConsoleOutputSnapshot(
       headSignature: lines.isEmpty
           ? 0
-          : Object.hash(lines.first.stream, lines.first.text),
+          : Object.hash(lines.first.stream, lines.first.text, lines.first.kind),
       tailSignature: lines.isEmpty
           ? 0
-          : Object.hash(lines.last.stream, lines.last.text),
+          : Object.hash(lines.last.stream, lines.last.text, lines.last.kind),
       sessionId: state.activeSessionId,
       lineCount: lines.length,
       lines: lines,
@@ -209,7 +210,7 @@ class _ConsoleOutputViewState extends State<_ConsoleOutputView> {
                     key: isTail
                         ? const ValueKey('console-tail')
                         : ValueKey(dataIndex),
-                    color: _lineColor(line.stream, ft),
+                    color: _lineColor(line.displayKind, ft),
                     line: line,
                   );
                 },
@@ -222,12 +223,13 @@ class _ConsoleOutputViewState extends State<_ConsoleOutputView> {
   }
 }
 
-Color _lineColor(ConsoleStream stream, FlushipThemeExtension ft) {
-  return switch (stream) {
-    .stderr => ft.colors.danger,
-    .system => ft.colors.muted,
-    .input => ft.colors.accent,
-    .stdout => ft.colors.text,
+Color _lineColor(ConsoleLineKind kind, FlushipThemeExtension ft) {
+  return switch (kind) {
+    .success => ft.colors.success,
+    .progress => ft.colors.accent,
+    .error => ft.colors.danger,
+    .warn => ft.colors.warn,
+    .info => ft.colors.text,
   };
 }
 

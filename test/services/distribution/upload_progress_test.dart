@@ -1,48 +1,77 @@
-import 'package:fluship/services/distribution/upload/counted_upload.dart';
+import 'package:fluship/services/distribution/distribution.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'dart:io' show Directory, File;
 
 void main() {
-  test('uploadPercent is null when total is unknown', () {
-    expect(uploadPercent(50, 0), isNull);
-    expect(uploadPercent(50, -1), isNull);
+  test('formats play, drive, and app store labels from one model', () {
+    const play = PipelineUploadProgress(
+      channel: UploadChannel.play,
+      fileName: 'app.aab',
+      bytes: 12 * 1024 * 1024,
+      total: 45 * 1024 * 1024,
+      percent: 27,
+    );
+
+    expect(play.headerLabel, 'Play Store 27%');
+    expect(play.panelLabel, 'Uploading to Play Store 27%');
+    expect(play.caption, contains('27%'));
+    expect(play.caption, contains('app.aab'));
+    expect(play.consoleLine, startsWith('Play Store'));
+    expect(play.fraction, closeTo(0.27, 0.001));
+
+    const store = PipelineUploadProgress(
+      channel: UploadChannel.appStore,
+      fileName: 'app.ipa',
+      percent: 42,
+    );
+    expect(store.headerLabel, 'App Store 42%');
+    expect(store.consoleLine, contains('42%'));
+
+    const drive = PipelineUploadProgress(
+      channel: UploadChannel.drive,
+      fileName: 'app.apk',
+      bytes: 10,
+      total: 20,
+      percent: 50,
+      fileIndex: 2,
+      fileCount: 3,
+    );
+    expect(drive.caption, contains('file 2/3'));
   });
 
-  test('counted stream reports 50 of 100 bytes as 50 percent', () async {
-    final dir = await Directory.systemTemp.createTemp('fluship_upload_');
-    final file = File('${dir.path}/blob.bin');
-    await file.writeAsBytes(List<int>.filled(100, 7));
-    final reports = <(int, int, String)>[];
+  test('skips the same percent for the same file', () {
+    final gate = UploadProgressGate();
+    const first = PipelineUploadProgress(
+      channel: UploadChannel.play,
+      fileName: 'app.aab',
+      percent: 10,
+      bytes: 10,
+      total: 100,
+    );
+    const samePercent = PipelineUploadProgress(
+      channel: UploadChannel.play,
+      fileName: 'app.aab',
+      percent: 10,
+      bytes: 11,
+      total: 100,
+    );
+    const nextPercent = PipelineUploadProgress(
+      channel: UploadChannel.play,
+      fileName: 'app.aab',
+      percent: 11,
+      bytes: 11,
+      total: 100,
+    );
+    const nextFile = PipelineUploadProgress(
+      channel: UploadChannel.drive,
+      fileName: 'app-arm64.apk',
+      percent: 11,
+      fileIndex: 2,
+      fileCount: 2,
+    );
 
-    try {
-      final chunks = <int>[];
-      await for (final chunk in countedFileStream(
-        file,
-        total: 100,
-        fileName: 'blob.bin',
-        onProgress: (bytes, total, name) {
-          reports.add((bytes, total, name));
-        },
-      )) {
-        chunks.addAll(chunk);
-      }
-
-      expect(chunks.length, 100);
-      expect(reports, isNotEmpty);
-      expect(reports.last.$1, 100);
-      expect(reports.last.$2, 100);
-      expect(uploadPercent(50, 100), 50);
-      expect(
-        formatUploadProgress(
-          prefix: 'play',
-          bytes: 50,
-          total: 100,
-          fileName: 'blob.bin',
-        ),
-        contains('50%'),
-      );
-    } finally {
-      await dir.delete(recursive: true);
-    }
+    expect(gate.allow(first), isTrue);
+    expect(gate.allow(samePercent), isFalse);
+    expect(gate.allow(nextPercent), isTrue);
+    expect(gate.allow(nextFile), isTrue);
   });
 }

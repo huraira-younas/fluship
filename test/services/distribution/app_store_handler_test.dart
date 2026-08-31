@@ -2,7 +2,7 @@ import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
 import 'package:fluship/services/distribution/distribution.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'dart:io' show Directory, File;
+import 'dart:io' show Directory, File, Platform;
 
 const _testTheme = ReportHtmlTheme(
   borderLr: 'border-left:1px solid #1e293b;border-right:1px solid #1e293b;',
@@ -45,6 +45,7 @@ class FakeAppStoreUploader implements AppStoreUploader {
     uploadCalls++;
     lastIpaPath = ipaPath;
     if (throwError != null) throw throwError!;
+    onLine?.call('Uploading 40% complete', 40);
     return uploadedName;
   }
 }
@@ -72,6 +73,7 @@ PipelineRunSnapshot _snapshot({
 DistributionContext _context({
   required PipelineRunSnapshot snapshot,
   DistributionConfigModel? config,
+  void Function(PipelineUploadProgress progress)? onUploadProgress,
 }) {
   return DistributionContext(
     emailTheme: _testTheme,
@@ -88,6 +90,7 @@ DistributionContext _context({
           ),
         ),
     logger: FakeDistributionLogger(),
+    onUploadProgress: onUploadProgress,
   );
 }
 
@@ -210,6 +213,25 @@ void main() {
     expect(uploader.lastIpaPath, ipaPath);
     expect(result.message, contains('Uploaded to App Store'));
   });
+
+  test('forwards transporter percent to the context', () async {
+    await File(ipaPath).writeAsBytes([1, 2, 3]);
+    PipelineUploadProgress? last;
+
+    final result = await handler.run(
+      _context(
+        snapshot: _snapshot(
+          artifactsDir: artifactsDir.path,
+          collected: [ipaPath],
+        ),
+        onUploadProgress: (progress) => last = progress,
+      ),
+    );
+
+    expect(result.isSuccess, isTrue);
+    expect(last?.channel, UploadChannel.appStore);
+    expect(last?.percent, 40);
+  }, skip: Platform.isMacOS ? null : 'App Store upload requires macOS');
 
   test('returns failed when upload throws', () async {
     uploader.throwError = Exception('transporter failed');

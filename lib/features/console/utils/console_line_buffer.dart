@@ -1,4 +1,5 @@
 import 'package:fluship/services/console/console_limits.dart';
+import 'console_line_classifier.dart';
 import '../models/console_line.dart';
 
 class ConsoleLineBuffer {
@@ -30,11 +31,19 @@ class ConsoleLineBuffer {
     required ConsoleStream stream,
     required String chunk,
   }) {
-    if (lines.isNotEmpty && lines.last.stream == stream) {
-      final merged = limitText(lines.last.text + chunk);
-      lines[lines.length - 1] = lines.last.copyWith(text: merged);
+    final chunkKind = classifyConsoleLine(chunk, stream);
+    if (lines.isNotEmpty &&
+        lines.last.stream == stream &&
+        !lines.last.complete) {
+      final last = lines.last;
+      lines[lines.length - 1] = last.copyWith(
+        kind: upgradeConsoleLineKind(last.kind, chunkKind),
+        text: limitText(last.text + chunk),
+      );
     } else {
-      lines.add(ConsoleLine(stream: stream, text: limitText(chunk)));
+      lines.add(
+        ConsoleLine(stream: stream, text: limitText(chunk), kind: chunkKind),
+      );
     }
     trimLinesInPlace(lines);
   }
@@ -42,9 +51,18 @@ class ConsoleLineBuffer {
   static List<ConsoleLine> appendLine({
     required List<ConsoleLine> lines,
     required ConsoleStream stream,
+    ConsoleLineKind? kind,
     required String text,
   }) {
-    return trimLines([...lines, ConsoleLine(stream: stream, text: text)]);
+    return trimLines([
+      ...lines,
+      ConsoleLine(
+        kind: kind ?? classifyConsoleLine(text, stream),
+        complete: true,
+        stream: stream,
+        text: text,
+      ),
+    ]);
   }
 
   static List<ConsoleLine> trimLines(List<ConsoleLine> lines) {

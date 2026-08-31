@@ -15,25 +15,6 @@ String formatMegabytes(int bytes) {
   return (bytes / (1024 * 1024)).toStringAsFixed(1);
 }
 
-String formatUploadProgress({
-  required String fileName,
-  required String prefix,
-  required int bytes,
-  required int total,
-  int? fileIndex,
-  int? fileCount,
-}) {
-  final percent = uploadPercent(bytes, total);
-  final amount = total > 0
-      ? '${formatMegabytes(bytes)} / ${formatMegabytes(total)} MB'
-      : '${formatMegabytes(bytes)} MB';
-  final pct = percent == null ? '' : '  $percent%';
-  final files = fileIndex != null && fileCount != null
-      ? '  file $fileIndex/$fileCount'
-      : '';
-  return '[$prefix] $amount$pct$files  $fileName';
-}
-
 Stream<List<int>> countedFileStream(
   File file, {
   UploadByteProgress? onProgress,

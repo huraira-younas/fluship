@@ -1,8 +1,16 @@
+import 'package:fluship/services/distribution/upload/pipeline_upload_progress.dart';
 import 'package:equatable/equatable.dart';
 
 enum PipelineRunStatus { idle, running, completed, failed, cancelled }
 
-enum PipelineStepStatus { pending, running, completed, failed, skipped }
+enum PipelineStepStatus {
+  completed,
+  cancelled,
+  pending,
+  running,
+  skipped,
+  failed,
+}
 
 class PipelineStepView extends Equatable {
   const PipelineStepView({
@@ -12,8 +20,10 @@ class PipelineStepView extends Equatable {
     this.errorMessage,
     this.startedAt,
     this.elapsed,
+    this.upload,
   });
 
+  final PipelineUploadProgress? upload;
   final PipelineStepStatus status;
   final String? errorMessage;
   final DateTime? startedAt;
@@ -24,9 +34,11 @@ class PipelineStepView extends Equatable {
   bool get isTimingActive => status == .running && startedAt != null;
 
   PipelineStepView copyWith({
+    PipelineUploadProgress? upload,
     bool clearStartedAt = false,
     PipelineStepStatus? status,
     bool clearElapsed = false,
+    bool clearUpload = false,
     String? errorMessage,
     DateTime? startedAt,
     Duration? elapsed,
@@ -35,6 +47,7 @@ class PipelineStepView extends Equatable {
     return PipelineStepView(
       startedAt: clearStartedAt ? null : (startedAt ?? this.startedAt),
       elapsed: clearElapsed ? null : (elapsed ?? this.elapsed),
+      upload: clearUpload ? null : (upload ?? this.upload),
       errorMessage: errorMessage ?? this.errorMessage,
       status: status ?? this.status,
       description: description,
@@ -48,6 +61,7 @@ class PipelineStepView extends Equatable {
     description,
     startedAt,
     elapsed,
+    upload,
     status,
     name,
   ];

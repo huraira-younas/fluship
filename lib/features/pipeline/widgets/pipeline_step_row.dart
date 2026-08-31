@@ -1,5 +1,4 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
-import 'package:fluship/services/pipeline/utils/pipeline_utils.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
@@ -31,13 +30,24 @@ class PipelineStepRow extends StatelessWidget {
     final ft = context.flushipTheme;
     final colors = ft.colors;
 
+    final isCancelled = step.status == .cancelled;
+    final statusColor = step.status.color(colors);
     final isRunning = step.status == .running;
     final isSkipped = step.status == .skipped;
     final isFailed = step.status == .failed;
-    final statusColor = step.status.color(colors);
+    final upload = step.upload;
+
+    final caption = isSkipped
+        ? 'Skipped, not run in this pipeline'
+        : isCancelled
+        ? 'Cancelled'
+        : isRunning && upload != null
+        ? upload.caption
+        : step.description;
 
     final background = switch (step.status) {
       .running || .pending when isActive => colors.consoleInner,
+      .cancelled => colors.warn.withValues(alpha: 0.06),
       .failed => colors.danger.withValues(alpha: 0.06),
       .skipped => colors.muted.withValues(alpha: 0.04),
       _ => Colors.transparent,
@@ -54,6 +64,8 @@ class PipelineStepRow extends StatelessWidget {
               ? colors.accent.withValues(alpha: 0.45)
               : isFailed
               ? colors.danger.withValues(alpha: 0.35)
+              : isCancelled
+              ? colors.warn.withValues(alpha: 0.35)
               : colors.consoleBorder.withValues(alpha: 0.45),
         ),
         color: background,
@@ -75,16 +87,14 @@ class PipelineStepRow extends StatelessWidget {
                 step.name,
               ),
               AppText(
-                isSkipped
-                    ? 'Skipped — not run in this pipeline'
-                    : step.description,
+                caption,
                 color: colors.textDim,
                 overflow: .ellipsis,
                 variant: .custom,
                 size: .caption,
                 maxLines: 2,
               ),
-              if (isFailed)
+              if (isFailed && (step.errorMessage?.isNotEmpty ?? false))
                 Row(
                   crossAxisAlignment: .start,
                   spacing: 6,
@@ -95,7 +105,7 @@ class PipelineStepRow extends StatelessWidget {
                       size: 14,
                     ),
                     AppText(
-                      PipelineUtils.formatStepError(step.errorMessage),
+                      step.errorMessage!,
                       color: colors.danger,
                       variant: .custom,
                       size: .caption,
@@ -124,6 +134,7 @@ class PipelineStepRow extends StatelessWidget {
                   child: LinearProgressIndicator(
                     backgroundColor: colors.bg.withValues(alpha: 0.65),
                     borderRadius: .circular(10),
+                    value: upload?.fraction,
                     color: statusColor,
                   ),
                 )

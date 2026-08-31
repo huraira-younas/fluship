@@ -14,6 +14,42 @@ void main() {
 
       expect(merged, hasLength(1));
       expect(merged.first.text, 'ab');
+      expect(merged.first.kind, ConsoleLineKind.info);
+    });
+
+    test('mergeChunk upgrades kind when a later chunk is an error', () {
+      const lines = [
+        ConsoleLine(
+          stream: ConsoleStream.stderr,
+          text: 'Running Gradle task',
+          kind: ConsoleLineKind.info,
+        ),
+      ];
+      final merged = ConsoleLineBuffer.mergeChunk(
+        stream: .stderr,
+        lines: lines,
+        chunk: ' FAILURE: Build failed with an exception.',
+      );
+
+      expect(merged, hasLength(1));
+      expect(merged.first.kind, ConsoleLineKind.error);
+    });
+
+    test('appendLine does not merge with later process chunks', () {
+      final lines = ConsoleLineBuffer.appendLine(
+        lines: const [],
+        stream: .system,
+        text: 'Play Store: creating edit for com.example',
+      );
+      final merged = ConsoleLineBuffer.mergeChunk(
+        stream: .system,
+        lines: lines,
+        chunk: ' extra',
+      );
+
+      expect(merged, hasLength(2));
+      expect(lines.single.complete, isTrue);
+      expect(lines.single.kind, ConsoleLineKind.info);
     });
 
     test('trimLines caps output', () {

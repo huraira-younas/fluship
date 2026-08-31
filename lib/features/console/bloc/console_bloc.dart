@@ -330,6 +330,7 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
           lines: session.lines,
           stream: event.stream,
           text: event.text,
+          kind: event.kind,
         ),
       ),
     );

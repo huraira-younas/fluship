@@ -69,6 +69,7 @@ class FakeDriveUploader implements DriveUploader {
     lastFiles = files;
     if (throwError != null) throw throwError!;
     await onFileUploaded?.call('Demo.apk');
+    onProgress?.call(25, 50, 'Demo.apk');
     return outcome;
   }
 }
@@ -96,6 +97,7 @@ PipelineRunSnapshot _snapshot({
 DistributionContext _context({
   required PipelineRunSnapshot snapshot,
   DistributionConfigModel? config,
+  void Function(PipelineUploadProgress progress)? onUploadProgress,
 }) {
   return DistributionContext(
     emailTheme: _testTheme,
@@ -117,6 +119,7 @@ DistributionContext _context({
           ),
         ),
     logger: FakeDistributionLogger(),
+    onUploadProgress: onUploadProgress,
   );
 }
 
@@ -227,6 +230,21 @@ void main() {
     expect(emailClient.sendCalls, 0);
   });
 
+  test('forwards file progress to the context', () async {
+    PipelineUploadProgress? last;
+    final result = await handler.run(
+      _context(
+        snapshot: withArtifacts(),
+        onUploadProgress: (progress) => last = progress,
+      ),
+    );
+
+    expect(result.isSuccess, isTrue);
+    expect(last?.channel, UploadChannel.drive);
+    expect(last?.percent, 50);
+    expect(last?.fileName, 'Demo.apk');
+  });
+
   test('uploads only when email is not configured', () async {
     final result = await handler.run(
       _context(
@@ -258,7 +276,7 @@ void main() {
     expect(emailClient.sendCalls, 1);
     expect(emailClient.lastMessage?.recipients, ['tester@example.com']);
     expect(emailClient.lastMessage?.subject, contains('Download Link'));
-    expect(logger.lines, contains('[drive] uploading: Demo.apk\n'));
+    expect(logger.lines, contains('Google Drive: uploading Demo.apk\n'));
   });
 
   test('posts slack after upload when webhook is set', () async {

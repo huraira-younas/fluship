@@ -33,12 +33,6 @@ class ITmsTransporterUploader implements AppStoreUploader {
     TransporterLine? onLine,
   }) async {
     final args = await _validatedArgs(appstore: appstore, ipaPath: ipaPath);
-
-    // The Fluship app still uses Process.run, same as before this work.
-    // Streaming is only for the agent CLI when it asks for live lines.
-    if (onLine == null && startProcess == null) {
-      return _runToCompletion(args: args, logger: logger, ipaPath: ipaPath);
-    }
     return _streamToCompletion(
       args: args,
       logger: logger,
@@ -86,32 +80,6 @@ class ITmsTransporterUploader implements AppStoreUploader {
     ];
   }
 
-  Future<String> _runToCompletion({
-    required List<String> args,
-    required String ipaPath,
-    DistributionLogger? logger,
-  }) async {
-    final result = await Process.run('xcrun', args);
-    final stdoutText = result.stdout.toString().trim();
-    final stderrText = result.stderr.toString().trim();
-
-    if (logger != null) {
-      for (final line in [
-        ...stdoutText.split('\n'),
-        ...stderrText.split('\n'),
-      ]) {
-        final trimmed = line.trim();
-        if (trimmed.isEmpty) continue;
-        await logger.logLine(DistributionResult.success('$trimmed\n'));
-      }
-    }
-
-    if (result.exitCode != 0) {
-      throw StateError(_failureDetail(stderrText, stdoutText, result.exitCode));
-    }
-    return p.basename(ipaPath);
-  }
-
   Future<String> _streamToCompletion({
     required List<String> args,
     required String ipaPath,
@@ -131,10 +99,15 @@ class ITmsTransporterUploader implements AppStoreUploader {
         final trimmed = line.trim();
         if (trimmed.isEmpty) continue;
         _keepTail(tail, trimmed);
-        onLine?.call(trimmed, parseTransporterPercent(trimmed));
-        if (logger != null) {
-          await logger.logLine(DistributionResult.success('$trimmed\n'));
+
+        final percent = parseTransporterPercent(trimmed);
+        onLine?.call(trimmed, percent);
+        if (logger == null ||
+            percent != null ||
+            !isTransporterLogLine(trimmed)) {
+          continue;
         }
+        await logger.logLine(DistributionResult.success('$trimmed\n'));
       }
     }
 
@@ -160,15 +133,16 @@ class ITmsTransporterUploader implements AppStoreUploader {
   }
 
   String _failureDetail(String stderrText, String stdoutText, int exitCode) {
-    final detail = _trimOutput(stderrText).isNotEmpty
-        ? _trimOutput(stderrText)
-        : _trimOutput(stdoutText);
+    final stderr = _trimOutput(stderrText);
+    final stdout = _trimOutput(stdoutText);
+    final detail = stderr.isNotEmpty ? stderr : stdout;
     return detail.isEmpty
         ? 'iTMSTransporter exited with code $exitCode.'
         : detail;
   }
 
   void _keepTail(List<String> tail, String line) {
+    if (isTransporterNoise(line)) return;
     tail.add(line);
     if (tail.length > 8) tail.removeAt(0);
   }

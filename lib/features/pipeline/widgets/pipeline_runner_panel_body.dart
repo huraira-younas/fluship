@@ -118,6 +118,13 @@ class _PipelineRunStatus extends StatelessWidget {
                   variant: .custom,
                   size: .caption,
                 ),
+              if (state.isRunning && state.activeStep?.upload != null)
+                AppText(
+                  state.activeStep!.upload!.panelLabel,
+                  color: colors.accent,
+                  variant: .custom,
+                  size: .caption,
+                ),
               if (state.startedAt != null)
                 PipelineTotalElapsed(
                   finishedAt: state.finishedAt,

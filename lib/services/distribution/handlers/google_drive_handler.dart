@@ -44,15 +44,29 @@ class GoogleDriveHandler implements DistributionHandler {
     DriveUploadOutcome upload;
 
     try {
+      var fileIndex = 0;
       upload = await uploader.upload(
         files: apks,
         buildNumber: snapshot.buildNumber,
         appName: snapshot.appName,
         version: snapshot.version,
         driveConfig: drive,
-        onFileUploaded: (name) => context.logger.logLine(
-          DistributionResult.success('[drive] uploading: $name\n'),
-        ),
+        onFileUploaded: (name) async {
+          fileIndex++;
+          await context.logger.logLine(
+            DistributionResult.success('Google Drive: uploading $name\n'),
+          );
+        },
+        onProgress: (bytes, total, name) {
+          context.notifyUploadProgress(
+            fileIndex: fileIndex == 0 ? 1 : fileIndex,
+            fileCount: apks.length,
+            channel: .drive,
+            fileName: name,
+            bytes: bytes,
+            total: total,
+          );
+        },
       );
     } catch (error) {
       return DistributionResult.failed('Google Drive upload failed: $error');

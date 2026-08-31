@@ -11,4 +11,5 @@ export 'resolver/step_resolvers.dart';
 export 'resolver/command_step.dart';
 
 export 'paths/fluship_workspace_paths.dart';
+export 'utils/pipeline_log_copy.dart';
 export 'utils/pipeline_utils.dart';

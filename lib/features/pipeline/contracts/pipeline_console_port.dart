@@ -14,6 +14,7 @@ abstract interface class PipelineConsolePort {
   Future<void> logLine({
     required ConsoleStream stream,
     required String sessionId,
+    ConsoleLineKind? kind,
     required String text,
   });
 
@@ -46,9 +47,15 @@ final class ConsoleBlocPipelinePort implements PipelineConsolePort {
     required ConsoleStream stream,
     required String sessionId,
     required String text,
+    ConsoleLineKind? kind,
   }) {
     return _dispatch<void>(
-      LogPipelineLine(sessionId: sessionId, stream: stream, text: text),
+      LogPipelineLine(
+        sessionId: sessionId,
+        stream: stream,
+        text: text,
+        kind: kind,
+      ),
     );
   }
 
@@ -103,6 +110,7 @@ final class ConsoleBlocPipelinePort implements PipelineConsolePort {
         sessionId: event.sessionId,
         stream: event.stream,
         text: event.text,
+        kind: event.kind,
         onSuccess: (_) {
           if (!completer.isCompleted) completer.complete(null as T);
         },

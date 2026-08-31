@@ -7,6 +7,9 @@ export 'email/exports.dart';
 export 'utils/exports.dart';
 export 'drive/exports.dart';
 export 'slack/exports.dart';
+
+export 'upload/pipeline_upload_progress.dart';
+export 'upload/upload_progress_gate.dart';
 export 'upload/counted_upload.dart';
 
 export 'pipeline_distribution_logger.dart';

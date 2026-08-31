@@ -97,9 +97,10 @@ class FakePipelineConsolePort implements PipelineConsolePort {
     required String sessionId,
     required ConsoleStream stream,
     required String text,
+    ConsoleLineKind? kind,
   }) async {
     logLines.add(text);
-    capturedLines.add(ConsoleLine(stream: stream, text: text));
+    capturedLines.add(ConsoleLine(stream: stream, text: text, kind: kind));
   }
 
   @override
@@ -247,11 +248,11 @@ void main() {
       );
       expect(bloc.state.steps.every((step) => step.elapsed != null), isTrue);
       expect(
-        console.logLines.any((line) => line.contains('completed in')),
+        console.logLines.any((line) => line.contains('finished in')),
         isTrue,
       );
       expect(
-        console.logLines.any((line) => line.contains('[pipeline completed in')),
+        console.logLines.any((line) => line.contains('Pipeline completed')),
         isTrue,
       );
 
@@ -507,6 +508,8 @@ void main() {
       }
 
       expect(bloc.state.runStatus, PipelineRunStatus.cancelled);
+      expect(bloc.state.steps.any((step) => step.status == .cancelled), isTrue);
+      expect(bloc.state.steps.every((step) => step.status != .failed), isTrue);
       expect(console.cancelCalls, greaterThan(0));
       expect(console.disposeCalls, 0);
 
@@ -578,7 +581,7 @@ void main() {
       );
       expect(
         console.logLines.any(
-          (line) => line.contains('Bump Version completed in'),
+          (line) => line.contains('Bump Version finished in'),
         ),
         isTrue,
       );
@@ -615,10 +618,58 @@ void main() {
       );
       expect(
         console.logLines.any(
-          (line) => line.contains('[pipeline log saved to outputs/reelstay/'),
+          (line) => line.contains('Log saved to outputs/reelstay/'),
         ),
         isTrue,
       );
+
+      await bloc.close();
+    });
+
+    test('surfaces upload progress on the running step', () async {
+      final config = FakePipelineConfigSource(
+        ConfigState.empty().copyWith(
+          appInfo: const AppInfoModel(
+            flushipWorkspacePath: '/fluship',
+            flutterProjectPath: '/project',
+          ),
+          commonCmd: const CommonCmdModel(enabled: false),
+          android: const AndroidConfigModel(enabled: false),
+          distribution: const DistributionConfigModel(
+            enabled: true,
+            playstore: GooglePlayConsoleConfig(
+              distribution: PlayStoreDistribution.internal,
+              packageName: 'com.example.demo',
+              saJsonPath: '/secrets/play-sa.json',
+            ),
+          ),
+        ),
+      );
+      final console = FakePipelineConsolePort();
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+        distributions: {
+          DistributionStepKind.playStore: const _ProgressDistributionHandler(),
+        },
+      );
+
+      bloc.add(const RunPipeline());
+      await _pumpBloc(bloc);
+
+      PipelineUploadProgress? seen;
+      while (bloc.state.isRunning) {
+        for (final step in bloc.state.steps) {
+          seen ??= step.upload;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+
+      expect(seen?.channel, UploadChannel.play);
+      expect(seen?.percent, 50);
+      expect(console.logLines.any((line) => line.contains('50%')), isTrue);
+      expect(bloc.state.steps.single.status, PipelineStepStatus.completed);
 
       await bloc.close();
     });
@@ -643,4 +694,24 @@ class _FakeDistributionHandler implements DistributionHandler {
   @override
   Future<DistributionResult> run(DistributionContext context) async =>
       DistributionResult.success('ok');
+}
+
+class _ProgressDistributionHandler implements DistributionHandler {
+  const _ProgressDistributionHandler();
+
+  @override
+  String get name => 'Play Store Upload';
+
+  @override
+  Future<DistributionResult> run(DistributionContext context) async {
+    context.notifyUploadProgress(
+      channel: .play,
+      fileName: 'app.aab',
+      bytes: 50,
+      total: 100,
+      percent: 50,
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    return DistributionResult.success('ok');
+  }
 }

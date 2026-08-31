@@ -50,6 +50,7 @@ class FakePlayStoreUploader implements PlayStoreUploader {
     lastAabPath = aabPath;
     lastReleaseNotes = releaseNotes;
     if (throwError != null) throw throwError!;
+    onProgress?.call(50, 100, uploadedName);
     return uploadedName;
   }
 }
@@ -77,6 +78,7 @@ PipelineRunSnapshot _snapshot({
 DistributionContext _context({
   required PipelineRunSnapshot snapshot,
   DistributionConfigModel? config,
+  void Function(PipelineUploadProgress progress)? onUploadProgress,
 }) {
   return DistributionContext(
     emailTheme: _testTheme,
@@ -92,6 +94,7 @@ DistributionContext _context({
           ),
         ),
     logger: FakeDistributionLogger(),
+    onUploadProgress: onUploadProgress,
   );
 }
 
@@ -266,6 +269,26 @@ void main() {
     );
 
     expect(uploader.lastReleaseNotes, isNull);
+  });
+
+  test('forwards byte progress to the context', () async {
+    await File(aabPath).writeAsBytes([1, 2, 3]);
+    PipelineUploadProgress? last;
+
+    final result = await handler.run(
+      _context(
+        snapshot: _snapshot(
+          artifactsDir: artifactsDir.path,
+          collected: [aabPath],
+        ),
+        onUploadProgress: (progress) => last = progress,
+      ),
+    );
+
+    expect(result.isSuccess, isTrue);
+    expect(last?.channel, UploadChannel.play);
+    expect(last?.percent, 50);
+    expect(last?.fileName, 'Demo.aab');
   });
 
   test('returns failed when upload throws', () async {

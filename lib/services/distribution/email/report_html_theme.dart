@@ -24,6 +24,20 @@ class ReportHtmlTheme {
   static const flushipName = 'Fluship';
   static const badgeText = '#ffffff';
 
+  static const fallback = ReportHtmlTheme(
+    borderLr: 'border-left:1px solid #1e293b;border-right:1px solid #1e293b;',
+    bodyOpen: '<!DOCTYPE html><html><head></head><body><div>',
+    cardBorder: '#1e293b',
+    success: '#a3be8c',
+    section: '#94a3b8',
+    textDim: '#64748b',
+    accent: '#81a1c1',
+    cardBg: '#3b4252',
+    error: '#bf616a',
+    text: '#eceff4',
+    bg: '#2e3440',
+  );
+
   final String cardBorder;
   final String borderLr;
   final String bodyOpen;
@@ -49,6 +63,14 @@ class ReportHtmlTheme {
       'text-transform:uppercase;letter-spacing:0.4px;text-align:$align;"';
 
   static ReportHtmlTheme fromCurrentTheme() {
+    try {
+      return _fromActivePrefs();
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  static ReportHtmlTheme _fromActivePrefs() {
     ThemePresetRegistry.registerAll();
 
     final presetKey = SharedPrefs.i.themeMode;

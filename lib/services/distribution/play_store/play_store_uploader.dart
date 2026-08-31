@@ -46,7 +46,7 @@ class GooglePlayPublisherUploader implements PlayStoreUploader {
     try {
       final api = androidpublisher.AndroidPublisherApi(client);
 
-      await _log(logger, '[play] creating edit for $packageName');
+      await _log(logger, 'Play Store: creating edit for $packageName');
       final edit = await api.edits.insert(
         androidpublisher.AppEdit(),
         packageName,
@@ -58,7 +58,7 @@ class GooglePlayPublisherUploader implements PlayStoreUploader {
       }
 
       final aabName = p.basename(aabPath);
-      await _log(logger, '[play] uploading: $aabName');
+      await _log(logger, 'Play Store: uploading $aabName');
 
       final length = await aabFile.length();
       final source = onProgress == null
@@ -86,7 +86,7 @@ class GooglePlayPublisherUploader implements PlayStoreUploader {
 
       await _log(
         logger,
-        '[play] uploaded $aabName (versionCode: $versionCode)',
+        'Play Store: uploaded $aabName (versionCode: $versionCode)',
       );
 
       final trackName = switch (distribution) {
@@ -94,7 +94,7 @@ class GooglePlayPublisherUploader implements PlayStoreUploader {
         .internal => 'internal',
       };
 
-      await _log(logger, '[play] assigning to $trackName track');
+      await _log(logger, 'Play Store: assigning to $trackName');
 
       final notes = releaseNotes?.trim();
       await api.edits.tracks.update(
@@ -120,7 +120,7 @@ class GooglePlayPublisherUploader implements PlayStoreUploader {
         trackName,
       );
 
-      await _log(logger, '[play] committing edit');
+      await _log(logger, 'Play Store: committing edit');
       try {
         await api.edits.commit(packageName, editId);
       } on androidpublisher.DetailedApiRequestError catch (ce) {
@@ -131,7 +131,7 @@ class GooglePlayPublisherUploader implements PlayStoreUploader {
 
         await _log(
           logger,
-          '[play] retrying commit with changesNotSentForReview=true',
+          'Play Store: retrying commit with changesNotSentForReview',
         );
         await api.edits.commit(
           changesNotSentForReview: true,

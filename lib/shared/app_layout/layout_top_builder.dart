@@ -1,4 +1,4 @@
-import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
+import 'package:fluship/features/pipeline/widgets/pipeline_status_style.dart';
 import 'package:fluship/features/pipeline/bloc/pipeline_bloc.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/features/file_manager/routes.dart';
@@ -30,26 +30,22 @@ class LayoutTopBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pipeline =
-        BlocSelector<PipelineBloc, PipelineState, PipelineStepView?>(
-          selector: (state) {
-            if (state.activeStepIndex == null) return null;
-            return state.steps[state.activeStepIndex!];
-          },
-          builder: (context, step) {
-            final running = step?.status == .running;
-            return AppButton.primary(
-              label: running ? 'Running: ${step?.name}' : 'Run Pipeline',
-              isExpanded: sidePanel,
-              onPressed: running
-                  ? null
-                  : () {
-                      getIt<PipelineBloc>().add(const RunPipeline());
-                      context.read<NavigatorCubit>().navigate(.console);
-                    },
-            );
-          },
+    final pipeline = BlocSelector<PipelineBloc, PipelineState, (bool, String)>(
+      selector: (state) => (state.isRunning, state.runButtonLabel),
+      builder: (context, selected) {
+        final (running, label) = selected;
+        return AppButton.primary(
+          label: label,
+          isExpanded: sidePanel,
+          onPressed: running
+              ? null
+              : () {
+                  getIt<PipelineBloc>().add(const RunPipeline());
+                  context.read<NavigatorCubit>().navigate(.console);
+                },
         );
+      },
+    );
 
     final fileManager = AppButton.icon(
       onPressed: () => FileManagerRoutes.openFileManager(),
