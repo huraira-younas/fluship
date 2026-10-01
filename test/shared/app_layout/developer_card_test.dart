@@ -27,4 +27,40 @@ void main() {
     expect(find.text('GitHub'), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('keeps the name and socials on one row when the card is wide', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: const OneDarkPreset().lightTheme.toThemeData(brightness: .light),
+        home: const Scaffold(
+          body: SizedBox(width: 640, child: DeveloperCard()),
+        ),
+      ),
+    );
+
+    await tester.pump();
+
+    expect(find.text('Senpai'), findsOneWidget);
+    expect(find.text('Creator of Fluship'), findsOneWidget);
+    expect(find.byTooltip('GitHub'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('does not overflow in a narrow side panel', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: const OneDarkPreset().darkTheme.toThemeData(brightness: .dark),
+        home: const Scaffold(
+          body: SizedBox(width: 140, child: DeveloperCard()),
+        ),
+      ),
+    );
+
+    await tester.pump();
+
+    expect(find.text('Senpai'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
