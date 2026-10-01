@@ -2,7 +2,7 @@ import 'package:fluship/core/app_theme/registry/app_theme_registry.dart';
 import 'package:fluship/core/app_theme/theme_cubit.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../widgets/theme_mode_toggle.dart';
 import '../widgets/theme_card.dart';
@@ -17,8 +17,7 @@ class ThemeSelector extends StatelessWidget {
 
     return AppCard(
       title: 'Theme',
-      description:
-          'Switch between light, dark, or system appearance and pick a color palette to match your preferred coding environment. Changes apply immediately across the entire app.',
+      description: 'Switch between light, dark, or system appearance and pick a color palette to match your preferred coding environment. Changes apply immediately across the entire app.',
       children: [
         BlocBuilder<ThemeCubit, ThemeState>(
           builder: (context, state) {

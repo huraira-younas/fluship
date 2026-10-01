@@ -27,10 +27,8 @@ class ProcessRow extends Equatable {
   };
 
   String get kindDescription => switch (kind) {
-    .active =>
-      'Linked to a running Fluship pipeline or console shell. Killing may stop your build.',
-    .orphan =>
-      'Leftover from a previous Fluship run. No active shell owns it — safe to kill.',
+    .active => 'Linked to a running Fluship pipeline or console shell. Killing may stop your build.',
+    .orphan => 'Leftover from a previous Fluship run. No active shell owns it — safe to kill.',
   };
 
   @override

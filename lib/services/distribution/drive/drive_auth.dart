@@ -1,6 +1,8 @@
 import 'dart:convert' show jsonDecode, jsonEncode;
+
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
+
 import 'dart:io' show File;
 
 const driveScope = 'https://www.googleapis.com/auth/drive';
@@ -41,9 +43,9 @@ class GoogleDriveTokenAuthClientFactory implements DriveAuthClientFactory {
 }
 
 Future<ClientId> loadDriveClientId(String oauthJsonPath) async {
-  final raw =
-      jsonDecode(await File(oauthJsonPath).readAsString())
-          as Map<String, dynamic>;
+  final raw = jsonDecode(
+    await File(oauthJsonPath).readAsString(),
+  ) as Map<String, dynamic>;
   final installed =
       raw['installed'] as Map<String, dynamic>? ??
       raw['web'] as Map<String, dynamic>?;

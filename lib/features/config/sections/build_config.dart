@@ -6,7 +6,8 @@ import 'package:fluship/shared/widgets/app_text_field.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 
 import 'package:fluship/di/locator.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
 import '../bloc/config_bloc.dart';
 
 class BuildConfig extends StatefulWidget {

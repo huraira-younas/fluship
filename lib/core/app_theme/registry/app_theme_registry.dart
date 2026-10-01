@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' show Brightness;
+import 'package:material_ui/material_ui.dart' show Brightness;
 
 import '../models/app_themes.dart';
 import '../models/theme.dart';

@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:fluship/core/json_parser/exports.dart';
+
 import 'base_config.dart';
 
 final class IosConfigModel extends BaseConfig {

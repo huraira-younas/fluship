@@ -4,7 +4,7 @@ import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/features/file_manager/routes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluship/di/locator.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:fluship/core/responsive/responsive.dart';
@@ -14,6 +14,7 @@ import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_tabs.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:fluship/shared/models/app_info.dart';
+
 import 'navigator_cubit.dart';
 
 class LayoutTopBuilder extends StatelessWidget {

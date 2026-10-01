@@ -1,7 +1,8 @@
 import 'package:fluship/core/responsive/widgets/responsive_builder.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/widgets/app_tabs.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
 import 'switch_label.dart';
 
 class SwitchLabelsRow<T> extends StatelessWidget {

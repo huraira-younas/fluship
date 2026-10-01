@@ -2,7 +2,7 @@ import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluship/di/locator.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:fluship/app.dart';
 
 void main() {

@@ -7,7 +7,7 @@ import 'package:fluship/shared/widgets/app_toast.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluship/di/locator.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../bloc/process_manager_bloc.dart';
 import '../widgets/process_row.dart';
@@ -203,8 +203,7 @@ class _ProcessManagerView extends StatelessWidget {
       children: [
         if (state.actives.isNotEmpty) ...[
           _sectionHeader(
-            subtitle:
-                'Running under Fluship pipeline or console - killing stops the build.',
+            subtitle: 'Running under Fluship pipeline or console - killing stops the build.',
             color: ft.colors.success,
             title: 'Active',
             ft,
@@ -218,8 +217,7 @@ class _ProcessManagerView extends StatelessWidget {
         ],
         if (state.orphans.isNotEmpty) ...[
           _sectionHeader(
-            subtitle:
-                'Leftover from a previous Fluship run. Not linked to any shell - safe to kill.',
+            subtitle: 'Leftover from a previous Fluship run. Not linked to any shell - safe to kill.',
             color: ft.colors.warn,
             title: 'Orphans',
             ft,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'models/breakpoint_config.dart';
 import 'models/responsive_info.dart';

@@ -1,5 +1,6 @@
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:path/path.dart' as p;
+
 import 'dart:convert' show LineSplitter, Utf8Decoder;
 import 'dart:io' show File, Process;
 
@@ -8,8 +9,10 @@ import '../models/distribution_result.dart';
 import 'transporter_progress.dart';
 
 typedef TransporterLine = void Function(String line, int? percent);
-typedef TransporterStarter =
-    Future<Process> Function(String executable, List<String> arguments);
+typedef TransporterStarter = Future<Process> Function(
+  String executable,
+  List<String> arguments,
+);
 
 abstract interface class AppStoreUploader {
   Future<String> upload({

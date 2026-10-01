@@ -1,10 +1,11 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:fluship/shared/widgets/app_text.dart';
+
 import '../bloc/file_manager_bloc.dart';
 
 class FileManagerBreadcrumb extends StatefulWidget {

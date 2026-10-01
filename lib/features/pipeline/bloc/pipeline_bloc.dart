@@ -242,9 +242,8 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
           : await _runShellStep(step);
 
       if (_cancelRequested || result.wasCancelled) {
-        _stepViews[index] = _finalizeStepTiming(
-          _stepViews[index],
-        ).copyWith(status: .cancelled);
+        _stepViews[index] = _finalizeStepTiming(_stepViews[index])
+            .copyWith(status: .cancelled);
         await _logStepTiming(
           view: _stepViews[index],
           stepName: step.name,
@@ -286,9 +285,8 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
         continue;
       }
 
-      _stepViews[index] = _finalizeStepTiming(
-        _stepViews[index],
-      ).copyWith(status: .completed);
+      _stepViews[index] = _finalizeStepTiming(_stepViews[index])
+          .copyWith(status: .completed);
 
       await _logStepTiming(
         view: _stepViews[index],

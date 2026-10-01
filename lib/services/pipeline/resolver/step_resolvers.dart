@@ -165,8 +165,7 @@ List<CommandStep> resolveIos(
       const CommandStep(
         description: 'Install and update iOS CocoaPods dependencies',
         command: '(cd ios && pod install --repo-update)',
-        recoveryCommand:
-            '(cd ios && pod deintegrate && pod repo update && sleep 3 && pod install)',
+        recoveryCommand: '(cd ios && pod deintegrate && pod repo update && sleep 3 && pod install)',
         name: 'Pod Install',
         id: .podInstall,
       ),

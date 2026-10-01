@@ -1,7 +1,7 @@
 import 'package:fluship/core/app_theme/mappers/app_theme_data_mapper.dart';
 import 'package:fluship/core/app_theme/presets/one_dark.dart';
 import 'package:fluship/shared/app_layout/developer_card.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

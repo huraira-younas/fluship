@@ -4,7 +4,7 @@ import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_toast.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class DeveloperCard extends StatelessWidget {
   const DeveloperCard({super.key});

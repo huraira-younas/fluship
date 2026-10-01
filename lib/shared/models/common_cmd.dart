@@ -1,4 +1,5 @@
 import 'package:fluship/core/json_parser/exports.dart';
+
 import 'base_config.dart';
 
 enum FlutterGetType {

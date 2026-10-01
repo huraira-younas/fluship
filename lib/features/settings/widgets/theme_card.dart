@@ -3,7 +3,7 @@ import 'package:fluship/shared/extensions/context_extensions.dart';
 import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ThemeCard extends StatelessWidget {
   const ThemeCard({

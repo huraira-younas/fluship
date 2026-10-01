@@ -4,7 +4,7 @@ import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AppTabs<T> extends StatefulWidget {
   const AppTabs({

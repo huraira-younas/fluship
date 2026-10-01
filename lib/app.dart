@@ -1,8 +1,8 @@
 import 'package:fluship/core/responsive/responsive.dart';
 import 'package:toastification/toastification.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:fluship/core/navigator.dart';
-import 'package:flutter/material.dart';
 
 import 'shared/app_layout/app_layout.dart';
 import 'core/app_theme/theme_cubit.dart';
@@ -22,10 +22,17 @@ class App extends StatelessWidget {
               lock: .portrait,
               child: MaterialApp(
                 navigatorKey: appNavigatorKey,
-                builder: (context, child) => GestureDetector(
-                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-                  child: child,
-                ),
+                builder: (context, child) {
+                  // toastification 3.2.0 still reads Theme from the SDK material library.
+                  // ignore: deprecated_member_use
+                  return MaterialUiCompatibilityBridge(
+                    child: GestureDetector(
+                      onTap: () =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
+                      child: child,
+                    ),
+                  );
+                },
                 debugShowCheckedModeBanner: false,
                 darkTheme: state.darkThemeData,
                 theme: state.lightThemeData,

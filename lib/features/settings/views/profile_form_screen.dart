@@ -3,7 +3,7 @@ import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_toast.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../sections/exports.dart';
 

@@ -2,7 +2,7 @@ import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/features/config/bloc/config_bloc.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../widgets/console_session_tabs.dart';
 import '../widgets/console_toolbar.dart';

@@ -11,7 +11,7 @@ import 'package:fluship/shared/app_layout/navigator_cubit.dart';
 import 'package:fluship/shared/app_layout/developer_card.dart';
 import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../extensions/widget_extensions.dart';
 import '../widgets/app_text.dart';
@@ -47,9 +47,8 @@ class _LayoutScreenState extends State<LayoutScreen> {
           final viewportWidth = constraints.maxWidth;
 
           if (viewportWidth.isFinite && viewportWidth < w.minWidth) {
-            return const AppText.danger(
-              "Anni Diya Kitna Chota krega?",
-            ).center();
+            return const AppText.danger("Anni Diya Kitna Chota krega?")
+                .center();
           }
 
           if (viewportWidth.isFinite && viewportWidth > w.maxWidth) {

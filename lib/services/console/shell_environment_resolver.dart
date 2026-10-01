@@ -1,4 +1,5 @@
 import 'dart:io' show File, Platform, Process;
+
 import 'package:path/path.dart' as p;
 
 class ShellEnvironmentResolver {

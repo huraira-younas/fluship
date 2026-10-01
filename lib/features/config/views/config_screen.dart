@@ -4,7 +4,7 @@ import 'package:fluship/shared/extensions/widget_extensions.dart';
 import 'package:fluship/shared/app_layout/navigator_cubit.dart';
 import 'package:fluship/shared/widgets/app_cta_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../bloc/config_bloc.dart';
 import '../sections/exports.dart';
@@ -20,9 +20,8 @@ class ConfigScreen extends StatelessWidget {
     return BlocBuilder<ConfigBloc, ConfigState>(
       builder: (context, state) {
         if (state.loading) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          ).padOnly(t: pad * 1.35);
+          return const Center(child: CircularProgressIndicator())
+              .padOnly(t: pad * 1.35);
         }
 
         if (state.error != null) {

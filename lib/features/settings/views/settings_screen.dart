@@ -1,5 +1,5 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../sections/exports.dart';
 

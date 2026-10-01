@@ -1,6 +1,6 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ThemeModeToggle extends StatelessWidget {
   const ThemeModeToggle({

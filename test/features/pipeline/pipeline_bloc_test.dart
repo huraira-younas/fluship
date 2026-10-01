@@ -14,6 +14,7 @@ import 'package:fluship/shared/models/ios_config.dart';
 import 'package:fluship/shared/models/app_info.dart';
 import 'package:fluship/shared/models/common_cmd.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'dart:io' show Platform;
 
 class FakePipelineConfigSource implements PipelineConfigSource {

@@ -1,9 +1,10 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/di/locator.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:fluship/shared/widgets/app_text.dart';
+
 import '../repository/file_manager_repository.dart';
 
 class TextFileViewer extends StatefulWidget {

@@ -2,7 +2,7 @@ import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:toastification/toastification.dart';
 import 'package:fluship/core/navigator.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 abstract final class AppToast {
   AppToast._();

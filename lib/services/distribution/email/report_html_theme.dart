@@ -1,7 +1,7 @@
 import 'package:fluship/core/app_theme/registry/theme_preset_registry.dart';
 import 'package:fluship/core/app_theme/registry/app_theme_registry.dart';
 import 'package:fluship/core/app_theme/models/app_themes.dart';
-import 'package:flutter/material.dart' show Brightness, Color;
+import 'package:material_ui/material_ui.dart' show Brightness, Color;
 import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 
 class ReportHtmlTheme {

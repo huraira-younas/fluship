@@ -5,7 +5,7 @@ import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_card.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../bloc/pipeline_bloc.dart';
 import 'pipeline_status_style.dart';
@@ -33,8 +33,7 @@ class PipelineRunnerPanelBody extends StatelessWidget {
       expandedBody: true,
       title: 'Pipeline',
       radius: .zero,
-      description:
-          'Track each build step here. Full command output stays in the Console tab.',
+      description: 'Track each build step here. Full command output stays in the Console tab.',
       children: [
         Column(
           crossAxisAlignment: .stretch,

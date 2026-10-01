@@ -1,7 +1,7 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:fluship/services/pipeline/pipeline.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models/pipeline_step_view.dart';
 import 'pipeline_live_timer_mixin.dart';

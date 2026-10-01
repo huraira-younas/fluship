@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart' show WidgetsFlutterBinding;
+import 'package:material_ui/material_ui.dart' show WidgetsFlutterBinding;
+
 import 'core/shared_prefs/shared_prefs.dart';
 import 'core/logger.dart';
 import 'di/locator.dart';

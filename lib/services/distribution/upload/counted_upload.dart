@@ -1,7 +1,10 @@
 import 'dart:io' show File;
 
-typedef UploadByteProgress =
-    void Function(int bytes, int total, String fileName);
+typedef UploadByteProgress = void Function(
+  int bytes,
+  int total,
+  String fileName,
+);
 
 int? uploadPercent(int bytes, int total) {
   if (total <= 0) return null;

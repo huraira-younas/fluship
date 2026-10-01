@@ -5,7 +5,7 @@ import 'package:fluship/shared/widgets/app_cta_button.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_toast.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'add_recipient_sheet.dart';
 
@@ -48,8 +48,7 @@ class DistributionRecipientsPanel extends StatelessWidget {
     if (emails.isEmpty) {
       return AppCtaButton(
         onTap: () => _openAddSheet(context),
-        text:
-            'Add people who should receive build artifacts and distribution\n emails after each run.',
+        text: 'Add people who should receive build artifacts and distribution\n emails after each run.',
         icon: Icons.people_outline_rounded,
         title: 'No recipients yet',
         btnText: 'Add recipient',

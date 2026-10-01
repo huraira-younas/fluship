@@ -5,7 +5,7 @@ import 'package:fluship/shared/widgets/app_text_field.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:fluship/core/validator_builder.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AddRecipientSheet extends StatefulWidget {
   const AddRecipientSheet({super.key});

@@ -1,5 +1,6 @@
 import 'package:fluship/core/json_parser/json_map_parser.dart';
 import 'package:equatable/equatable.dart';
+
 import 'base_config.dart';
 
 enum PowerAction {

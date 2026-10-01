@@ -3,7 +3,7 @@ import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:fluship/core/app_theme/app_theme.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AppCardState extends Equatable {
   final ValueChanged<bool> onEnable;

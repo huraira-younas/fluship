@@ -1,5 +1,5 @@
 import 'package:fluship/core/navigator.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'views/file_manager_screen.dart';
 import 'views/text_file_viewer.dart';

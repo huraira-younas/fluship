@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluship/core/logger.dart';
 import 'package:equatable/equatable.dart';
+
 import 'dart:async' show FutureOr;
 
 part 'base_bloc_event.dart';

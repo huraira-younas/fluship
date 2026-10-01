@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Flutter-^3.12.0-02569B?logo=flutter&logoColor=white" alt="Flutter">
-  <img src="https://img.shields.io/badge/platforms-Android%20%7C%20iOS%20%7C%20macOS%20%7C%20Windows%20%7C%20Web-lightgrey" alt="Platforms">
+  <img src="https://img.shields.io/badge/Flutter-3.47.5-02569B?logo=flutter&logoColor=white" alt="Flutter">
+  <img src="https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-lightgrey" alt="Platforms">
   <img src="https://img.shields.io/badge/state-management-flutter__bloc-8B5CF6" alt="flutter_bloc">
   <img src="https://img.shields.io/badge/license-MIT-22C55E" alt="MIT License">
   <img src="https://img.shields.io/badge/open%20source-yes-FF6B6B" alt="Open Source">
@@ -116,8 +116,10 @@ Fluship isn't just a pipeline runner. It's a whole dev workspace.
 | **Files** | Browse and inspect files in your Flutter project |
 | **Processes** | Monitor and terminate running system processes |
 
-**Mobile:** Config, Console, and Settings in the bottom nav.  
-**Desktop:** All five tabs in the side panel. Bigger screen, bigger pipeline energy.
+**Narrow window:** Config, Console, and Settings.  
+**Wide window:** All five tabs in the side panel. Bigger screen, bigger pipeline energy.
+
+Fluship itself does not run as an Android or iOS app. Android and iOS below are the target project.
 
 ---
 
@@ -180,7 +182,8 @@ That's the whole onboarding. Low effort, high reward.
 
 **Core (non-negotiable):**
 
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) `^3.12.0`
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.47.5 (Dart `^3.13.4`)
+- macOS, Windows, Linux, or Web to run Fluship. Not Android or iOS.
 - A Flutter project with a valid `pubspec.yaml`
 
 **Platform specific:**
@@ -204,7 +207,7 @@ The app is built with the good stuff:
 
 | Layer | Tools |
 | --- | --- |
-| UI | Flutter, Material Design |
+| UI | Flutter, `material_ui` |
 | State | `flutter_bloc`, `equatable` |
 | DI | `get_it` |
 | Distribution | `googleapis`, `googleapis_auth`, `mailer` |

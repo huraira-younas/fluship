@@ -73,9 +73,8 @@ void main() {
           'release',
         );
         expect(
-          await File(
-            p.join(outputDir.path, 'app-arm64-v8a-release.apk'),
-          ).readAsString(),
+          await File(p.join(outputDir.path, 'app-arm64-v8a-release.apk'))
+              .readAsString(),
           'arm64',
         );
       },
@@ -138,9 +137,8 @@ void main() {
         content: 'new',
       );
 
-      final d = await File(
-        p.join(outputDir.path, 'app-release.apk'),
-      ).create(recursive: true);
+      final d = await File(p.join(outputDir.path, 'app-release.apk'))
+          .create(recursive: true);
 
       d.writeAsStringSync('old');
 
@@ -228,9 +226,8 @@ void main() {
       expect(copied, hasLength(1));
       expect(p.basename(copied.single), 'app-release.apk');
       expect(
-        await File(
-          p.join(outputDir.path, 'app-armeabi-v7a-release.apk'),
-        ).exists(),
+        await File(p.join(outputDir.path, 'app-armeabi-v7a-release.apk'))
+            .exists(),
         isFalse,
       );
     });
