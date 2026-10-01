@@ -12,38 +12,31 @@ class App extends StatelessWidget {
   const App({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: AppBlocProviders.providers,
-      child: BlocBuilder<ThemeCubit, ThemeState>(
-        builder: (context, state) {
-          return ToastificationWrapper(
-            child: OrientationLockScope(
-              lock: .portrait,
-              child: MaterialApp(
-                navigatorKey: appNavigatorKey,
-                builder: (context, child) {
-                  // toastification 3.2.0 still reads Theme from the SDK material library.
-                  // ignore: deprecated_member_use
-                  return MaterialUiCompatibilityBridge(
-                    child: GestureDetector(
-                      onTap: () =>
-                          FocusManager.instance.primaryFocus?.unfocus(),
-                      child: child,
-                    ),
-                  );
-                },
-                debugShowCheckedModeBanner: false,
-                darkTheme: state.darkThemeData,
-                theme: state.lightThemeData,
-                home: const LayoutScreen(),
-                themeMode: state.mode,
-                title: 'Fluship',
-              ),
-            ),
-          );
-        },
+  Widget build(BuildContext context) => MultiBlocProvider(
+    providers: AppBlocProviders.providers,
+    child: BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, state) => ToastificationWrapper(
+        child: OrientationLockScope(
+          lock: .portrait,
+          child: MaterialApp(
+            builder: (context, child) =>
+                // ignore: deprecated_member_use
+                MaterialUiCompatibilityBridge(
+                  child: GestureDetector(
+                    onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                    child: child,
+                  ),
+                ),
+            debugShowCheckedModeBanner: false,
+            darkTheme: state.darkThemeData,
+            navigatorKey: appNavigatorKey,
+            theme: state.lightThemeData,
+            home: const LayoutScreen(),
+            themeMode: state.mode,
+            title: 'Fluship',
+          ),
+        ),
       ),
-    );
-  }
+    ),
+  );
 }
