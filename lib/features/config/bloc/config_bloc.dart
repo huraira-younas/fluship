@@ -90,6 +90,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
   ) async {
     final updated = _applyConfig(state, event.config);
     emit(updated);
+    if (updated.pendingImport) return;
     await _persist(updated);
   }
 
@@ -103,6 +104,7 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     }
 
     emit(updated);
+    if (updated.pendingImport) return;
     await _persist(updated);
   }
 
@@ -207,6 +209,11 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
       base: state.appInfo,
     );
 
+    if (state.pendingImport) {
+      emit(state.copyWith(appInfo: appInfo));
+      return;
+    }
+
     final projectName = appInfo.projectName;
     final savedProfile = state.activeProject == null && projectName != null
         ? _profilesStore.getProfile(projectName)
@@ -236,25 +243,47 @@ class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
     Emitter<ConfigState> emit,
     ImportConfig event,
   ) async {
-    final export = ConfigState.fromJson(event.data);
-    var imported = export;
+    var imported = ConfigState.fromJson(event.data);
+    final path = imported.appInfo.flutterProjectPath?.trim() ?? '';
+    if (path.isNotEmpty && await _projectService.projectDirectoryExists(path)) {
+      imported = await _refreshProjectInfo(imported);
+    }
 
-    imported = await _refreshProjectInfo(imported);
+    final projectName = imported.appInfo.projectName?.trim();
+    final hasName = projectName != null && projectName.isNotEmpty;
+    final names = {...state.projectNames, if (hasName) projectName}.toList()
+      ..sort();
 
-    imported = await _activateProfile(
-      imported,
-      missingProjectMessage:
-          'Imported config must contain a valid Flutter project path',
+    emit(
+      imported.copyWith(
+        activeProject: hasName ? projectName : state.activeProject,
+        pendingImport: true,
+        projectNames: names,
+        loading: false,
+      ),
     );
-    emit(imported);
-    await _persist(imported);
   }
 
   Future<void> _saveConfig(Emitter<ConfigState> emit, SaveConfig event) async {
-    if (state.activeProject == null) {
+    await _projectService.ensureProjectDirectoryExists(
+      state.appInfo.flutterProjectPath ?? '',
+    );
+
+    var next = state;
+    if (state.pendingImport) {
+      next = await _refreshProjectInfo(state);
+      next = await _activateProfile(
+        next,
+        missingProjectMessage:
+            'Imported config must contain a valid Flutter project path',
+      );
+    } else if (next.activeProject == null) {
       throw StateError('Select or import a Flutter project before saving');
     }
-    await _persist(state);
+
+    next = next.copyWith(pendingImport: false);
+    emit(next);
+    await _persist(next);
   }
 
   Future<ConfigState> _refreshProjectInfo(ConfigState config) async {

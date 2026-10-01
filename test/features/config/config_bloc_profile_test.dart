@@ -145,6 +145,94 @@ version: 1.5.7+5795
     expect(bloc.state.ios.enabled, isFalse);
   });
 
+  Future<void> saveConfig(ConfigBloc bloc) async {
+    final completer = Completer<void>();
+    bloc.add(
+      SaveConfig(
+        onSuccess: (_) => completer.complete(),
+        onError: (error) => completer.completeError(error.message),
+      ),
+    );
+    await completer.future;
+  }
+
+  test('import stays unsaved until Save Profile', () async {
+    await saveProfile('reelstay');
+    final bloc = ConfigBloc(store);
+    addTearDown(bloc.close);
+    await loadConfig(bloc);
+
+    final projectDir = Directory('${tempDir.path}/reelstay');
+    await importConfig(bloc, {
+      'app_info': {
+        'flutter_project_path': projectDir.path,
+        'project_name': 'reelstay',
+      },
+      'distribution': {'releaseNotes': 'Imported notes', 'enabled': true},
+    });
+
+    expect(bloc.state.pendingImport, isTrue);
+    expect(bloc.state.distribution.releaseNotes, 'Imported notes');
+    expect(
+      ConfigState.fromJson(store.getProfile('reelstay')!)
+          .distribution
+          .releaseNotes,
+      isNot('Imported notes'),
+    );
+
+    final edited = Completer<void>();
+    bloc.add(
+      UpdateConfig(
+        config: bloc.state.distribution.copyWith(releaseNotes: 'Edited notes'),
+        onSuccess: (_) => edited.complete(),
+        onError: (error) => edited.completeError(error.message),
+      ),
+    );
+    await edited.future;
+    expect(
+      ConfigState.fromJson(store.getProfile('reelstay')!)
+          .distribution
+          .releaseNotes,
+      isNot('Edited notes'),
+    );
+
+    await saveConfig(bloc);
+
+    expect(bloc.state.pendingImport, isFalse);
+    expect(
+      ConfigState.fromJson(store.getProfile('reelstay')!)
+          .distribution
+          .releaseNotes,
+      'Edited notes',
+    );
+  });
+
+  test('save rejects an imported project path that does not exist', () async {
+    final bloc = ConfigBloc(store);
+    addTearDown(bloc.close);
+
+    await importConfig(bloc, {
+      'app_info': {
+        'flutter_project_path': '${tempDir.path}/missing_project',
+        'project_name': 'missing',
+      },
+    });
+
+    expect(bloc.state.pendingImport, isTrue);
+    expect(store.getProfile('missing'), isNull);
+
+    expect(
+      saveConfig(bloc),
+      throwsA(
+        contains(
+          'Flutter project path does not exist: ${tempDir.path}/missing_project',
+        ),
+      ),
+    );
+    expect(store.getProfile('missing'), isNull);
+    expect(bloc.state.pendingImport, isTrue);
+  });
+
   test('deleting active profile selects first remaining profile', () async {
     await saveProfile('call_it');
     await saveProfile('reelstay');

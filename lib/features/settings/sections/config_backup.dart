@@ -58,7 +58,10 @@ class ConfigBackup extends StatelessWidget {
         ImportConfig(
           data: data,
           onError: (e) => AppToast.error(e.message),
-          onSuccess: (_) => AppToast.success('Config imported successfully.'),
+          onSuccess: (_) => AppToast.info(
+            'Save the profile to keep these settings.',
+            title: 'Config loaded',
+          ),
         ),
       );
     } catch (e) {
@@ -73,9 +76,9 @@ class ConfigBackup extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: ft.colors.cardBg,
-        title: const AppText.title('Replace current config?'),
+        title: const AppText.title('Load this config?'),
         content: const AppText.body(
-          'Importing will overwrite all your current pipeline settings.',
+          'The form will show the imported settings. Nothing is stored until you click Save Profile.',
         ),
         actions: [
           TextButton(

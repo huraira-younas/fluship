@@ -9,6 +9,7 @@ class ConfigState extends BaseBlocState {
   final String? activeProject;
   final PostGitModel postGit;
   final AppInfoModel appInfo;
+  final bool pendingImport;
   final IosConfigModel ios;
   final PreGitModel preGit;
 
@@ -23,6 +24,7 @@ class ConfigState extends BaseBlocState {
     required this.ios,
 
     this.projectNames = const [],
+    this.pendingImport = false,
     super.loading = false,
     this.activeProject,
     super.error,
@@ -43,6 +45,7 @@ class ConfigState extends BaseBlocState {
   @override
   List<Object?> get props => [
     activeProject,
+    pendingImport,
     projectNames,
     distribution,
     postBuild,
@@ -66,6 +69,7 @@ class ConfigState extends BaseBlocState {
     String? activeProject,
     PostGitModel? postGit,
     AppInfoModel? appInfo,
+    bool? pendingImport,
     IosConfigModel? ios,
     PreGitModel? preGit,
     CustomState? error,
@@ -73,6 +77,7 @@ class ConfigState extends BaseBlocState {
   }) {
     return ConfigState(
       activeProject: activeProject ?? this.activeProject,
+      pendingImport: pendingImport ?? this.pendingImport,
       distribution: distribution ?? this.distribution,
       projectNames: projectNames ?? this.projectNames,
       postBuild: postBuild ?? this.postBuild,
@@ -88,11 +93,11 @@ class ConfigState extends BaseBlocState {
   }
 
   Map<String, dynamic> toJson() => {
-    'activeProject': activeProject,
     'distribution': distribution.toJson(),
-    'projectNames': projectNames,
     'postBuild': postBuild.toJson(),
     'commonCmd': commonCmd.toJson(),
+    'activeProject': activeProject,
+    'projectNames': projectNames,
     'android': android.toJson(),
     'postGit': postGit.toJson(),
     'appInfo': appInfo.toJson(),

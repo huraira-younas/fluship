@@ -26,19 +26,33 @@ class FlutterProjectService {
 
   final PubspecParser _parser;
 
-  Future<PubspecInfo> readPubspec(String flutterProjectPath) async {
-    final directory = Directory(flutterProjectPath);
-    if (!await directory.exists()) {
-      throw FlutterProjectException(
-        'Flutter project path does not exist: $flutterProjectPath',
+  Future<void> ensureProjectDirectoryExists(String flutterProjectPath) async {
+    final path = flutterProjectPath.trim();
+    if (path.isEmpty) {
+      throw const FlutterProjectException(
+        'Choose a Flutter project path before saving',
       );
     }
-
-    final pubspecFile = File(p.join(flutterProjectPath, 'pubspec.yaml'));
-    if (!await pubspecFile.exists()) {
+    if (!await Directory(path).exists()) {
       throw FlutterProjectException(
-        'pubspec.yaml not found in: $flutterProjectPath',
+        'Flutter project path does not exist: $path',
       );
+    }
+  }
+
+  Future<bool> projectDirectoryExists(String flutterProjectPath) {
+    final path = flutterProjectPath.trim();
+    if (path.isEmpty) return Future.value(false);
+    return Directory(path).exists();
+  }
+
+  Future<PubspecInfo> readPubspec(String flutterProjectPath) async {
+    await ensureProjectDirectoryExists(flutterProjectPath);
+    final path = flutterProjectPath.trim();
+
+    final pubspecFile = File(p.join(path, 'pubspec.yaml'));
+    if (!await pubspecFile.exists()) {
+      throw FlutterProjectException('pubspec.yaml not found in: $path');
     }
 
     final content = await pubspecFile.readAsString();
