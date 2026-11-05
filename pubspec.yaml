@@ -41,7 +41,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   url_launcher: ^6.3.2
   googleapis: ^17.0.0
-  equatable: ^2.0.8
+  equatable: ^3.0.0
   mailer: ^7.1.0
   get_it: ^9.0.5
   intl: ^0.20.2
