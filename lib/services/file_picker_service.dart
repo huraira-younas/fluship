@@ -25,14 +25,11 @@ class FilePickerService {
   }
 
   Future<String?> saveFile({
-    List<String>? allowedExtensions,
     required String fileName,
     required Uint8List bytes,
     String? dialogTitle,
   }) {
     return FilePicker.saveFile(
-      type: allowedExtensions != null ? FileType.custom : FileType.any,
-      allowedExtensions: allowedExtensions,
       dialogTitle: dialogTitle,
       fileName: fileName,
       bytes: bytes,

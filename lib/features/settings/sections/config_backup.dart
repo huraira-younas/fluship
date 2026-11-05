@@ -28,7 +28,6 @@ class ConfigBackup extends StatelessWidget {
       fileName: '${projectName}_config.json',
       dialogTitle: 'Export Fluship Config',
       bytes: utf8.encode(content),
-      allowedExtensions: ['json'],
     );
 
     if (path == null) return;
