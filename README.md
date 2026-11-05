@@ -158,6 +158,19 @@ Pick your vibe in **Settings**. Each preset ships with light and dark modes:
 
 ---
 
+## Install
+
+Download the latest build from [GitHub Releases](https://github.com/huraira-younas/fluship/releases). Pushing a `v*` tag (for example `v1.0.0`) on the commit that contains the release workflow builds and attaches both installers.
+
+| Platform | Installer |
+| --- | --- |
+| macOS (Apple Silicon) | `Fluship-<version>-macos-arm64.dmg` |
+| Windows (x64) | `Fluship-<version>-windows-x64-setup.exe` |
+
+These installers are unsigned. macOS Gatekeeper and Windows SmartScreen warn the first time you open them.
+
+---
+
 ## Quick start (get shipping in 4 steps)
 
 ```bash

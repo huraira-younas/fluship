@@ -1,0 +1,166 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-macos:
+    name: macOS DMG
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.5"
+          channel: stable
+          cache: true
+
+      - name: Resolve version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "name=$TAG" >> "$GITHUB_OUTPUT"
+          echo "build=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Use ad-hoc code signing
+        run: |
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' macos/Runner.xcodeproj/project.pbxproj
+          cat >> macos/Runner/Configs/Release.xcconfig <<'EOF'
+          CODE_SIGN_IDENTITY = -
+          EOF
+
+      - name: Build macOS release
+        run: >
+          flutter build macos --release
+          --build-name="${{ steps.version.outputs.name }}"
+          --build-number="${{ steps.version.outputs.build }}"
+
+      - name: Package DMG
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.name }}"
+          APP="build/macos/Build/Products/Release/Fluship.app"
+          codesign --force --sign - --entitlements macos/Runner/Release.entitlements "$APP"
+          STAGE="$(mktemp -d)"
+          cp -R "$APP" "$STAGE/Fluship.app"
+          ln -s /Applications "$STAGE/Applications"
+          mkdir -p dist
+          hdiutil create \
+            -volname "Fluship" \
+            -srcfolder "$STAGE" \
+            -ov \
+            -format UDZO \
+            "dist/Fluship-${VERSION}-macos-arm64.dmg"
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: dist/*.dmg
+          if-no-files-found: error
+
+  build-windows:
+    name: Windows installer
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.5"
+          channel: stable
+          cache: true
+
+      - name: Resolve version from tag
+        id: version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "name=$TAG" >> "$GITHUB_OUTPUT"
+          echo "build=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Windows release
+        run: >
+          flutter build windows --release
+          --build-name="${{ steps.version.outputs.name }}"
+          --build-number="${{ steps.version.outputs.build }}"
+
+      - name: Bundle VC++ runtime
+        shell: pwsh
+        run: |
+          $releaseDir = "build\windows\x64\runner\Release"
+          foreach ($dll in @("msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll")) {
+            $source = Join-Path $env:SystemRoot "System32\$dll"
+            if (-not (Test-Path $source)) {
+              throw "Missing VC++ runtime DLL: $dll"
+            }
+            Copy-Item $source -Destination $releaseDir -Force
+          }
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            throw "ISCC.exe not found at $iscc"
+          }
+          & $iscc "/DAppVersion=${{ steps.version.outputs.name }}" "packaging\windows\fluship.iss"
+          if ($LASTEXITCODE -ne 0) {
+            throw "ISCC failed ($LASTEXITCODE)"
+          }
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-setup
+          path: dist/*.exe
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release
+    needs:
+      - build-macos
+      - build-windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download installers
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**/*
+          generate_release_notes: true
+          draft: false
+          fail_on_unmatched_files: true
