@@ -16,8 +16,7 @@ class GmailSmtpClient implements EmailClient {
       ..from = mailer.Address(message.sender)
       ..recipients.addAll(message.recipients)
       ..subject = message.subject
-      ..html = message.html
-      ..text = message.html;
+      ..html = message.html;
 
     final attachmentPath = message.attachmentPath;
     if (attachmentPath != null && attachmentPath.isNotEmpty) {
