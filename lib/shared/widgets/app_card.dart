@@ -5,49 +5,29 @@ import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:equatable/equatable.dart';
 import 'package:material_ui/material_ui.dart';
 
-class AppCardState extends Equatable {
-  final ValueChanged<bool> onEnable;
-  final bool forceDisabled;
-  final bool enable;
-
-  const AppCardState({
-    required this.forceDisabled,
-    required this.onEnable,
-    required this.enable,
-  });
-
+class const AppCardState({
+  required final bool forceDisabled,
+  required final ValueChanged<bool> onEnable,
+  required final bool enable,
+}) extends Equatable {
   @override
   List<Object?> get props => [enable];
 }
 
-class AppCard extends StatelessWidget {
-  const AppCard({
-    this.expandedBody = false,
-    required this.description,
-    required this.children,
-    required this.title,
-    this.spacing = 0,
-    this.padding,
-    this.radius,
-    this.border,
-    this.height,
-    this.width,
-    this.state,
-    super.key,
-  });
-
-  final List<Widget> children;
-  final BorderRadius? radius;
-  final EdgeInsets? padding;
-  final AppCardState? state;
-  final String description;
-  final bool expandedBody;
-  final Border? border;
-  final double? height;
-  final double spacing;
-  final double? width;
-  final String title;
-
+class const AppCard({
+  final bool expandedBody = false,
+  required final String description,
+  required final List<Widget> children,
+  required final String title,
+  final double spacing = 0,
+  final EdgeInsets? padding,
+  final BorderRadius? radius,
+  final Border? border,
+  final double? height,
+  final double? width,
+  final AppCardState? state,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;

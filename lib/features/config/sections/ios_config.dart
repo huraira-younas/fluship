@@ -10,9 +10,7 @@ import 'package:material_ui/material_ui.dart';
 import '../widgets/switch_label.dart';
 import '../bloc/config_bloc.dart';
 
-class IosConfig extends StatelessWidget {
-  const IosConfig({super.key});
-
+class const IosConfig({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!Platform.isMacOS) return const SizedBox.shrink();

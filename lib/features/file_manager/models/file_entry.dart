@@ -1,20 +1,12 @@
 import 'package:equatable/equatable.dart';
 
-class FileEntry extends Equatable {
-  const FileEntry({
-    required this.isDirectory,
-    required this.sizeBytes,
-    required this.modified,
-    required this.name,
-    required this.path,
-  });
-
-  final DateTime? modified;
-  final bool isDirectory;
-  final int? sizeBytes;
-  final String name;
-  final String path;
-
+class const FileEntry({
+  required final bool isDirectory,
+  required final int? sizeBytes,
+  required final DateTime? modified,
+  required final String name,
+  required final String path,
+}) extends Equatable {
   @override
   List<Object?> get props => [modified, isDirectory, sizeBytes, name, path];
 }

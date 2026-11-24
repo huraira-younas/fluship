@@ -1,4 +1,4 @@
-enum AppThemes {
+enum AppThemes(final String key, final String displayName) {
   catppuccinMocha('catppuccin_mocha', 'Catppuccin Mocha'),
   solarizedDark('solarized_dark', 'Solarized Dark'),
   tokyoNight('tokyo_night', 'Tokyo Night'),
@@ -10,11 +10,6 @@ enum AppThemes {
   crimson('crimson', 'Crimson'),
   github('github', 'GitHub'),
   nord('nord', 'Nord');
-
-  const AppThemes(this.key, this.displayName);
-
-  final String displayName;
-  final String key;
 
   static const defaultTheme = nord;
 

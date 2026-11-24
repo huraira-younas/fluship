@@ -46,7 +46,7 @@ void main() {
       final shellPid = runner.processId!;
       var sleeping = <int>[];
       for (var i = 0; i < 50 && sleeping.isEmpty; i++) {
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await Future.pause(const Duration(milliseconds: 100));
         sleeping = await _sleepPidsUnder(shellPid);
       }
       expect(sleeping, isNotEmpty, reason: 'sleep never started');
@@ -65,7 +65,7 @@ void main() {
 
     test('runs the next command at once in a new shell', () async {
       final pending = _run(runner, 'sleep 30');
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      await Future.pause(const Duration(milliseconds: 300));
       await runner.cancel();
       await pending;
 

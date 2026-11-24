@@ -3,28 +3,17 @@ import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:material_ui/material_ui.dart';
 
-class AppCtaButton extends StatelessWidget {
-  const AppCtaButton({
-    this.iconSize = 100.0,
-    required this.title,
-    required this.icon,
-    required this.text,
-    this.btnWidth,
-    this.btnText,
-    this.color,
-    this.onTap,
-    super.key,
-  });
-
-  final VoidCallback? onTap;
-  final double? btnWidth;
-  final String? btnText;
-  final double iconSize;
-  final IconData icon;
-  final String title;
-  final Color? color;
-  final String text;
-
+class const AppCtaButton({
+  final double iconSize = 100.0,
+  required final String title,
+  required final IconData icon,
+  required final String text,
+  final double? btnWidth,
+  final String? btnText,
+  final Color? color,
+  final VoidCallback? onTap,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

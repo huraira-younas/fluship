@@ -17,9 +17,7 @@ import '../extensions/widget_extensions.dart';
 import '../widgets/app_text.dart';
 import 'layout_top_builder.dart';
 
-class LayoutScreen extends StatefulWidget {
-  const LayoutScreen({super.key});
-
+class const LayoutScreen({super.key}) extends StatefulWidget {
   @override
   State<LayoutScreen> createState() => _LayoutScreenState();
 }

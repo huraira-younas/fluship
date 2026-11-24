@@ -3,22 +3,14 @@ import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:material_ui/material_ui.dart';
 
-class SwitchLabel extends StatelessWidget {
-  const SwitchLabel({
-    required this.onChange,
-    this.disabled = false,
-    required this.label,
-    required this.value,
-    this.error,
-    super.key,
-  });
-
-  final ValueChanged<bool> onChange;
-  final String? error;
-  final bool disabled;
-  final String label;
-  final bool value;
-
+class const SwitchLabel({
+  required final ValueChanged<bool> onChange,
+  final bool disabled = false,
+  required final String label,
+  required final bool value,
+  final String? error,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;

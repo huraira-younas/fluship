@@ -3,9 +3,7 @@ import '../utils/color_from_hex.dart';
 import '../models/app_themes.dart';
 import '../models/theme.dart';
 
-final class CrimsonPreset implements ThemePresetModule {
-  const CrimsonPreset();
-
+final class const CrimsonPreset() implements ThemePresetModule {
   @override
   AppThemes get id => .crimson;
 

@@ -10,17 +10,14 @@ import '../models/shell_parse_result.dart';
 import '../models/shell_run_result.dart';
 import '../contracts/shell_runner.dart';
 
-abstract base class BaseShellRunner implements IShellRunner {
-  BaseShellRunner({
-    ShellEnvironmentResolver? envResolver,
-    ProcessTreeKiller? treeKiller,
-    required this._parser,
-  }) : _envResolver = envResolver ?? const ShellEnvironmentResolver(),
-       _treeKiller = treeKiller ?? const ProcessTreeKiller();
-  final ShellEnvironmentResolver _envResolver;
-  final ProcessTreeKiller _treeKiller;
-  final IShellOutputParser _parser;
-
+abstract base class BaseShellRunner({
+  ShellEnvironmentResolver? envResolver,
+  ProcessTreeKiller? treeKiller,
+  required final IShellOutputParser _parser,
+}) implements IShellRunner {
+  final ShellEnvironmentResolver _envResolver =
+      envResolver ?? const ShellEnvironmentResolver();
+  final ProcessTreeKiller _treeKiller = treeKiller ?? const ProcessTreeKiller();
   Completer<ShellRunResult>? _runCompleter;
   StreamSubscription<String>? _stdoutSub;
   StreamSubscription<String>? _stderrSub;

@@ -7,10 +7,8 @@ import 'package:fluship/shared/widgets/app_text.dart';
 
 import '../repository/file_manager_repository.dart';
 
-class TextFileViewer extends StatefulWidget {
-  const TextFileViewer({required this.filePath, super.key});
-  final String filePath;
-
+class const TextFileViewer({required final String filePath, super.key})
+    extends StatefulWidget {
   @override
   State<TextFileViewer> createState() => _TextFileViewerState();
 }

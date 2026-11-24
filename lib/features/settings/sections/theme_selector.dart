@@ -7,10 +7,8 @@ import 'package:material_ui/material_ui.dart';
 import '../widgets/theme_mode_toggle.dart';
 import '../widgets/theme_card.dart';
 
-class ThemeSelector extends StatelessWidget {
-  const ThemeSelector({super.key, required this.spacing});
-  final double spacing;
-
+class const ThemeSelector({super.key, required final double spacing})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeCubit = context.read<ThemeCubit>();

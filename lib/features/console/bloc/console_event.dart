@@ -1,104 +1,105 @@
 part of 'console_bloc.dart';
 
-sealed class ConsoleEvent extends BaseBlocEvent {
-  const ConsoleEvent({required super.name, super.onError, super.onSuccess});
-}
+sealed class const ConsoleEvent({
+  required super.name,
+  super.onError,
+  super.onSuccess,
+}) extends BaseBlocEvent;
 
-class SyncProjectRoot extends ConsoleEvent {
-  const SyncProjectRoot({required this.path, super.onError, super.onSuccess})
-    : super(name: 'Sync_Project_Root');
-
-  final String? path;
+class const SyncProjectRoot({
+  required final String? path,
+  super.onError,
+  super.onSuccess,
+}) extends ConsoleEvent {
+  this : super(name: 'Sync_Project_Root');
 
   @override
   Map<String, dynamic> toJson() => {'path': path};
 }
 
-class CreateSession extends ConsoleEvent {
-  const CreateSession({super.onError, super.onSuccess})
-    : super(name: 'Create_Session');
+class const CreateSession({super.onError, super.onSuccess})
+    extends ConsoleEvent {
+  this : super(name: 'Create_Session');
 
   @override
   Map<String, dynamic> toJson() => {};
 }
 
-class CloseSession extends ConsoleEvent {
-  const CloseSession({required this.sessionId, super.onError, super.onSuccess})
-    : super(name: 'Close_Session');
-
-  final String sessionId;
-
-  @override
-  Map<String, dynamic> toJson() => {'session_id': sessionId};
-}
-
-class SelectSession extends ConsoleEvent {
-  const SelectSession({required this.sessionId, super.onError, super.onSuccess})
-    : super(name: 'Select_Session');
-
-  final String sessionId;
+class const CloseSession({
+  required final String sessionId,
+  super.onError,
+  super.onSuccess,
+}) extends ConsoleEvent {
+  this : super(name: 'Close_Session');
 
   @override
   Map<String, dynamic> toJson() => {'session_id': sessionId};
 }
 
-class SubmitCommand extends ConsoleEvent {
-  const SubmitCommand({required this.command, super.onError, super.onSuccess})
-    : super(name: 'Submit_Command');
+class const SelectSession({
+  required final String sessionId,
+  super.onError,
+  super.onSuccess,
+}) extends ConsoleEvent {
+  this : super(name: 'Select_Session');
 
-  final String command;
+  @override
+  Map<String, dynamic> toJson() => {'session_id': sessionId};
+}
+
+class const SubmitCommand({
+  required final String command,
+  super.onError,
+  super.onSuccess,
+}) extends ConsoleEvent {
+  this : super(name: 'Submit_Command');
 
   @override
   Map<String, dynamic> toJson() => {'command': command};
 }
 
-class CancelCommand extends ConsoleEvent {
-  const CancelCommand({super.onError, super.onSuccess})
-    : super(name: 'Cancel_Command');
+class const CancelCommand({super.onError, super.onSuccess})
+    extends ConsoleEvent {
+  this : super(name: 'Cancel_Command');
 
   @override
   Map<String, dynamic> toJson() => {};
 }
 
-class ClearConsole extends ConsoleEvent {
-  const ClearConsole({super.onError, super.onSuccess})
-    : super(name: 'Clear_Console');
+class const ClearConsole({super.onError, super.onSuccess})
+    extends ConsoleEvent {
+  this : super(name: 'Clear_Console');
 
   @override
   Map<String, dynamic> toJson() => {};
 }
 
-class DisposeAllSessions extends ConsoleEvent {
-  const DisposeAllSessions({super.onError, super.onSuccess})
-    : super(name: 'Dispose_All_Sessions');
+class const DisposeAllSessions({super.onError, super.onSuccess})
+    extends ConsoleEvent {
+  this : super(name: 'Dispose_All_Sessions');
 
   @override
   Map<String, dynamic> toJson() => {};
 }
 
-class CreatePipelineSession extends ConsoleEvent {
-  const CreatePipelineSession({
-    required this.projectRoot,
-    super.onSuccess,
-    super.onError,
-  }) : super(name: 'Create_Pipeline_Session');
-
-  final String projectRoot;
+class const CreatePipelineSession({
+  required final String projectRoot,
+  super.onSuccess,
+  super.onError,
+}) extends ConsoleEvent {
+  this : super(name: 'Create_Pipeline_Session');
 
   @override
   Map<String, dynamic> toJson() => {'project_root': projectRoot};
 }
 
-class RunPipelineCommand extends ConsoleEvent {
-  const RunPipelineCommand({
-    required this.sessionId,
-    required this.command,
-    super.onSuccess,
-    super.onError,
-  }) : super(name: 'Run_Pipeline_Command');
-
-  final String sessionId;
-  final String command;
+class const RunPipelineCommand({
+  required final String sessionId,
+  required final String command,
+  super.onSuccess,
+  super.onError,
+}) extends ConsoleEvent {
+  this : super(name: 'Run_Pipeline_Command');
 
   @override
   Map<String, dynamic> toJson() => {
@@ -107,46 +108,37 @@ class RunPipelineCommand extends ConsoleEvent {
   };
 }
 
-class CancelPipelineCommand extends ConsoleEvent {
-  const CancelPipelineCommand({
-    required this.sessionId,
-    super.onSuccess,
-    super.onError,
-  }) : super(name: 'Cancel_Pipeline_Command');
-
-  final String sessionId;
+class const CancelPipelineCommand({
+  required final String sessionId,
+  super.onSuccess,
+  super.onError,
+}) extends ConsoleEvent {
+  this : super(name: 'Cancel_Pipeline_Command');
 
   @override
   Map<String, dynamic> toJson() => {'session_id': sessionId};
 }
 
-class ClosePipelineSession extends ConsoleEvent {
-  const ClosePipelineSession({
-    required this.sessionId,
-    super.onSuccess,
-    super.onError,
-  }) : super(name: 'Close_Pipeline_Session');
-
-  final String sessionId;
+class const ClosePipelineSession({
+  required final String sessionId,
+  super.onSuccess,
+  super.onError,
+}) extends ConsoleEvent {
+  this : super(name: 'Close_Pipeline_Session');
 
   @override
   Map<String, dynamic> toJson() => {'session_id': sessionId};
 }
 
-class LogPipelineLine extends ConsoleEvent {
-  const LogPipelineLine({
-    required this.sessionId,
-    required this.stream,
-    required this.text,
-    super.onSuccess,
-    super.onError,
-    this.kind,
-  }) : super(name: 'Log_Pipeline_Line');
-
-  final ConsoleLineKind? kind;
-  final ConsoleStream stream;
-  final String sessionId;
-  final String text;
+class const LogPipelineLine({
+  required final String sessionId,
+  required final ConsoleStream stream,
+  required final String text,
+  super.onSuccess,
+  super.onError,
+  final ConsoleLineKind? kind,
+}) extends ConsoleEvent {
+  this : super(name: 'Log_Pipeline_Line');
 
   @override
   Map<String, dynamic> toJson() => {

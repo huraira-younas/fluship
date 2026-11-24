@@ -10,9 +10,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../widgets/field_button.dart';
 
-class GoogleDrive extends StatelessWidget {
-  const GoogleDrive({super.key});
-
+class const GoogleDrive({super.key}) extends StatelessWidget {
   GoogleDriveConfig _drive(GoogleDriveConfig? config) =>
       config ?? const GoogleDriveConfig();
 

@@ -16,27 +16,23 @@ import '../models/pipeline_step_view.dart';
 part 'pipeline_event.dart';
 part 'pipeline_state.dart';
 
-class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
-  PipelineBloc(
-    this._logWriter, {
-    Map<DistributionStepKind, DistributionHandler>? distributions,
-    required this._configSource,
-    required this._consolePort,
-    PipelineExecutor? executor,
-  }) : _distributions = distributions ?? DistributionModule.createHandlerMap(),
-       _executor = executor ?? const PipelineExecutor(),
-       super(PipelineState.idle()) {
+class PipelineBloc(
+  final PipelineLogWriter _logWriter, {
+  Map<DistributionStepKind, DistributionHandler>? distributions,
+  required final PipelineConfigSource _configSource,
+  required final PipelineConsolePort _consolePort,
+  PipelineExecutor? executor,
+}) extends BaseBloc<PipelineEvent, PipelineState> {
+  this : super(PipelineState.idle()) {
     on<DismissPipelinePanel>(handler(_onDismissPipelinePanel));
     on<RemovePipelineStep>(handler(_onRemovePipelineStep));
     on<CancelPipeline>(handler(_onCancelPipeline));
     on<RunPipeline>(handler(_onRunPipeline));
   }
 
-  final Map<DistributionStepKind, DistributionHandler> _distributions;
-  final PipelineConfigSource _configSource;
-  final PipelineConsolePort _consolePort;
-  final PipelineLogWriter _logWriter;
-  final PipelineExecutor _executor;
+  final Map<DistributionStepKind, DistributionHandler> _distributions =
+      distributions ?? DistributionModule.createHandlerMap();
+  final PipelineExecutor _executor = executor ?? const PipelineExecutor();
 
   /// Owned by the bloc rather than the run loop so that removing a step while
   /// the pipeline is running is not overwritten by the next step transition.

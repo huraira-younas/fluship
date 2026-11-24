@@ -3,9 +3,7 @@ import 'package:fluship/services/console/console_limits.dart';
 import 'console_line_classifier.dart';
 import '../models/console_line.dart';
 
-class ConsoleLineBuffer {
-  const ConsoleLineBuffer._();
-
+class const ConsoleLineBuffer._() {
   static List<ConsoleLine> mergeChunk({
     required List<ConsoleLine> lines,
     required ConsoleStream stream,

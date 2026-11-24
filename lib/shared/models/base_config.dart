@@ -1,10 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-abstract class BaseConfig extends Equatable {
-  const BaseConfig({required this.enabled});
-
-  final bool enabled;
-
+abstract class const BaseConfig({required final bool enabled})
+    extends Equatable {
   BaseConfig copyWith({bool? enabled});
   Map<String, dynamic> toJson();
 
@@ -12,13 +9,8 @@ abstract class BaseConfig extends Equatable {
   List<Object?> get props => [enabled];
 }
 
-abstract class GitBaseConfig extends BaseConfig {
-  const GitBaseConfig({
-    required super.enabled,
-    this.commitMessage,
-    this.targetBranch,
-  });
-
-  final String? commitMessage;
-  final String? targetBranch;
-}
+abstract class const GitBaseConfig({
+  required super.enabled,
+  final String? commitMessage,
+  final String? targetBranch,
+}) extends BaseConfig;

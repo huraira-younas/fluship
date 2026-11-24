@@ -9,9 +9,7 @@ import '../widgets/switch_labels_row.dart';
 import '../widgets/switch_label.dart';
 import '../bloc/config_bloc.dart';
 
-class CommonCmd extends StatelessWidget {
-  const CommonCmd({super.key});
-
+class const CommonCmd({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = getIt<ConfigBloc>();

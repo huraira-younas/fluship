@@ -2,9 +2,7 @@ import 'package:file_picker/file_picker.dart';
 
 import 'dart:typed_data' show Uint8List;
 
-class FilePickerService {
-  const FilePickerService();
-
+class const FilePickerService() {
   Future<String?> pickDirectory({String? dialogTitle}) {
     return FilePicker.getDirectoryPath(
       dialogTitle: dialogTitle ?? 'Select folder',
@@ -16,7 +14,7 @@ class FilePickerService {
     String? dialogTitle,
   }) async {
     final result = await FilePicker.pickFiles(
-      type: allowedExtensions != null ? FileType.custom : FileType.any,
+      type: allowedExtensions != null ? .custom : .any,
       allowedExtensions: allowedExtensions,
       dialogTitle: dialogTitle,
     );

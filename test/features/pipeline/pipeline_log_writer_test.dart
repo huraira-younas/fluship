@@ -40,9 +40,9 @@ void main() {
   group('formatPipelineLogLines', () {
     test('writes each console line on its own row', () {
       final text = PipelineUtils.formatPipelineLogLines(const [
-        ConsoleLine(stream: ConsoleStream.system, text: '[pipeline started]'),
-        ConsoleLine(stream: ConsoleStream.input, text: '> flutter clean'),
-        ConsoleLine(stream: ConsoleStream.system, text: '[exit 0]'),
+        ConsoleLine(stream: .system, text: '[pipeline started]'),
+        ConsoleLine(stream: .input, text: '> flutter clean'),
+        ConsoleLine(stream: .system, text: '[exit 0]'),
       ]);
 
       expect(text, '[pipeline started]\n> flutter clean\n[exit 0]\n');
@@ -74,8 +74,8 @@ void main() {
         buildNumber: '5700',
         version: '1.5.4',
         lines: const [
-          ConsoleLine(stream: ConsoleStream.system, text: '[pipeline started]'),
-          ConsoleLine(stream: ConsoleStream.system, text: '[exit 0]'),
+          ConsoleLine(stream: .system, text: '[pipeline started]'),
+          ConsoleLine(stream: .system, text: '[exit 0]'),
         ],
       );
 

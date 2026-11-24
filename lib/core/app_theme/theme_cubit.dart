@@ -9,12 +9,10 @@ import 'registry/app_theme_registry.dart';
 import 'models/app_themes.dart';
 import 'models/theme.dart';
 
-class ThemeState extends Equatable {
-  const ThemeState({this.mode = .dark, required this.preset});
-
-  final AppThemes preset;
-  final ThemeMode mode;
-
+class const ThemeState({
+  final ThemeMode mode = .dark,
+  required final AppThemes preset,
+}) extends Equatable {
   ThemePresetBundle get bundle => AppThemeRegistry.getBundle(preset);
 
   AppThemes get activeTheme => preset;
@@ -44,8 +42,8 @@ class ThemeState extends Equatable {
   List<Object?> get props => [preset, mode];
 }
 
-class ThemeCubit extends Cubit<ThemeState> {
-  ThemeCubit({AppThemes? initial}) : super(_resolveInitial(initial));
+class ThemeCubit({AppThemes? initial}) extends Cubit<ThemeState> {
+  this : super(_resolveInitial(initial));
 
   static ThemeState _resolveInitial(AppThemes? initial) {
     ThemePresetRegistry.registerAll();
@@ -73,7 +71,7 @@ class ThemeCubit extends Cubit<ThemeState> {
   }
 
   void setThemeMode(ThemeMode mode) {
-    if (mode == ThemeMode.system || state.mode == mode) return;
+    if (mode == .system || state.mode == mode) return;
     SharedPrefs.i.setThemeBrightness(_modeKey(mode));
     emit(ThemeState(preset: state.preset, mode: mode));
   }

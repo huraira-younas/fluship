@@ -66,16 +66,11 @@ const _railWidth = 240.0;
 const _unsavedImportHint =
     'Imported settings are kept when you save this profile.';
 
-class ProfileFormScreen extends StatefulWidget {
-  const ProfileFormScreen({
-    required this.isAdding,
-    this.previousProject,
-    super.key,
-  });
-
-  final String? previousProject;
-  final bool isAdding;
-
+class const ProfileFormScreen({
+  required final bool isAdding,
+  final String? previousProject,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<ProfileFormScreen> createState() => _ProfileFormScreenState();
 }
@@ -280,12 +275,10 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
   }
 }
 
-class _ProfileSectionRail extends StatelessWidget {
-  const _ProfileSectionRail({required this.onSelect, required this.active});
-
-  final ValueChanged<int> onSelect;
-  final int active;
-
+class const _ProfileSectionRail({
+  required final ValueChanged<int> onSelect,
+  required final int active,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final groups = _groupsIn(_allIndexes);
@@ -319,17 +312,11 @@ class _ProfileSectionRail extends StatelessWidget {
   }
 }
 
-class _ProfileSectionTile extends StatelessWidget {
-  const _ProfileSectionTile({
-    required this.selected,
-    required this.section,
-    required this.onTap,
-  });
-
-  final _ProfileSection section;
-  final VoidCallback onTap;
-  final bool selected;
-
+class const _ProfileSectionTile({
+  required final bool selected,
+  required final _ProfileSection section,
+  required final VoidCallback onTap,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
@@ -388,16 +375,9 @@ List<({String group, List<int> indexes})> _groupsIn(List<int> indexes) {
   return groups;
 }
 
-class _ProfileSection {
-  const _ProfileSection({
-    required this.group,
-    required this.label,
-    required this.child,
-    required this.icon,
-  });
-
-  final IconData icon;
-  final String group;
-  final String label;
-  final Widget child;
-}
+class const _ProfileSection({
+  required final String group,
+  required final String label,
+  required final Widget child,
+  required final IconData icon,
+});

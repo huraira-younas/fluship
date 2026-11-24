@@ -12,9 +12,7 @@ import 'package:material_ui/material_ui.dart';
 import '../bloc/process_manager_bloc.dart';
 import '../widgets/process_row.dart';
 
-class ProcessManagerScreen extends StatefulWidget {
-  const ProcessManagerScreen({super.key});
-
+class const ProcessManagerScreen({super.key}) extends StatefulWidget {
   @override
   State<ProcessManagerScreen> createState() => _ProcessManagerScreenState();
 }
@@ -55,9 +53,7 @@ class _ProcessManagerScreenState extends State<ProcessManagerScreen> {
   }
 }
 
-class _ProcessManagerView extends StatelessWidget {
-  const _ProcessManagerView();
-
+class const _ProcessManagerView() extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
@@ -240,10 +236,10 @@ class _ProcessManagerView extends StatelessWidget {
     required Color color,
   }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: .start,
       spacing: 4,
       children: [
-        AppText.custom(color: color, title, weight: FontWeight.w700),
+        AppText.custom(color: color, title, weight: .w700),
         AppText.custom(color: ft.colors.textDim, subtitle),
       ],
     ).padOnly(t: ft.spacing.md, b: ft.spacing.sm);

@@ -8,16 +8,11 @@ import 'package:fluship/shared/widgets/app_text.dart';
 
 import '../bloc/file_manager_bloc.dart';
 
-class FileManagerBreadcrumb extends StatefulWidget {
-  const FileManagerBreadcrumb({
-    required this.currentPath,
-    required this.segments,
-    super.key,
-  });
-
-  final List<FileManagerSegment> segments;
-  final String currentPath;
-
+class const FileManagerBreadcrumb({
+  required final String currentPath,
+  required final List<FileManagerSegment> segments,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<FileManagerBreadcrumb> createState() => _FileManagerBreadcrumbState();
 }
@@ -85,17 +80,11 @@ class _FileManagerBreadcrumbState extends State<FileManagerBreadcrumb> {
   }
 }
 
-class _BreadcrumbChip extends StatelessWidget {
-  const _BreadcrumbChip({
-    required this.isActive,
-    required this.segment,
-    required this.index,
-  });
-
-  final FileManagerSegment segment;
-  final bool isActive;
-  final int index;
-
+class const _BreadcrumbChip({
+  required final bool isActive,
+  required final FileManagerSegment segment,
+  required final int index,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;

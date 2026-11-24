@@ -2,9 +2,7 @@ import 'dart:io' show File, Platform, Process;
 
 import 'package:path/path.dart' as p;
 
-class ShellEnvironmentResolver {
-  const ShellEnvironmentResolver();
-
+class const ShellEnvironmentResolver() {
   static String? _cachedLoginPath;
 
   Future<Map<String, String>> resolve({

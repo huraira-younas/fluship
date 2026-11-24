@@ -10,9 +10,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../widgets/field_button.dart';
 
-class GooglePlayConsole extends StatelessWidget {
-  const GooglePlayConsole({super.key});
-
+class const GooglePlayConsole({super.key}) extends StatelessWidget {
   void _updateGp(GooglePlayConsoleConfig config) {
     final bloc = getIt<ConfigBloc>();
     final distribution = bloc.state.distribution;

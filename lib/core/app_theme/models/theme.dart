@@ -5,17 +5,11 @@ part 'theme_palette.dart';
 part 'theme_spacing.dart';
 part 'theme_radius.dart';
 
-class AppTheme {
-  const AppTheme({
-    this.spacing = const ThemeSpacing(),
-    this.radius = const ThemeRadius(),
-    required this.palette,
-  });
-
-  final ThemeSpacing spacing;
-  final ThemePalette palette;
-  final ThemeRadius radius;
-
+class const AppTheme({
+  final ThemeSpacing spacing = const ThemeSpacing(),
+  final ThemeRadius radius = const ThemeRadius(),
+  required final ThemePalette palette,
+}) {
   Color get codeBg => palette.codeBg;
 
   Color get codeBorder => palette.codeBorder;

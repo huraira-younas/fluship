@@ -48,7 +48,7 @@ Map<String, Object?> _updates({
 };
 
 WhatsAppAgentClient _client(MockClient mock) =>
-    WhatsAppAgentClient(httpClient: mock, retryDelay: Duration.zero);
+    WhatsAppAgentClient(httpClient: mock, retryDelay: .zero);
 
 void main() {
   group('sendText', () {

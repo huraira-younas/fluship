@@ -17,10 +17,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'dart:io' show Platform;
 
-class FakePipelineConfigSource implements PipelineConfigSource {
-  FakePipelineConfigSource(this._state);
-
-  ConfigState _state;
+class FakePipelineConfigSource(var ConfigState _state)
+    implements PipelineConfigSource {
   var persistCalls = 0;
 
   @override
@@ -34,20 +32,13 @@ class FakePipelineConfigSource implements PipelineConfigSource {
   }
 }
 
-class FakePipelineConsolePort implements PipelineConsolePort {
-  FakePipelineConsolePort({
-    this.exitCode = 1,
-    this.failCommand,
-    this.delayStep = false,
-    this.failAll = false,
-  });
-
+class FakePipelineConsolePort({
   /// Exit code reported for [failCommand]. Every other command exits 0.
-  final int exitCode;
-  final String? failCommand;
-  final bool delayStep;
-  final bool failAll;
-
+  final int exitCode = 1,
+  final String? failCommand,
+  final bool delayStep = false,
+  final bool failAll = false,
+}) implements PipelineConsolePort {
   final commands = <String>[];
   final logLines = <String>[];
   final capturedLines = <ConsoleLine>[];
@@ -71,12 +62,10 @@ class FakePipelineConsolePort implements PipelineConsolePort {
     required String command,
   }) async {
     commands.add(command);
-    capturedLines.add(
-      ConsoleLine(stream: ConsoleStream.input, text: '> $command'),
-    );
+    capturedLines.add(ConsoleLine(stream: .input, text: '> $command'));
 
     if (delayStep) {
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await Future.pause(const Duration(milliseconds: 50));
     }
 
     if (_cancelNextRun) {
@@ -87,9 +76,7 @@ class FakePipelineConsolePort implements PipelineConsolePort {
     final failed = failAll || (failCommand != null && command == failCommand);
     final resultCode = failed ? exitCode : 0;
 
-    capturedLines.add(
-      ConsoleLine(stream: ConsoleStream.system, text: '[exit $resultCode]'),
-    );
+    capturedLines.add(ConsoleLine(stream: .system, text: '[exit $resultCode]'));
     return ShellRunResult(exitCode: resultCode);
   }
 
@@ -160,7 +147,7 @@ ConfigState _configWithSteps() {
 ConfigState _configWithBothAndroidBuilds() {
   return _configWithSteps().copyWith(
     android: const AndroidConfigModel(
-      buildType: AndroidBuildType.apk,
+      buildType: .apk,
       buildAab: true,
       enabled: true,
     ),
@@ -202,13 +189,13 @@ ConfigState _configWithStepsAndAppInfo() {
 }
 
 Future<void> _pumpBloc(PipelineBloc bloc) async {
-  await Future<void>.delayed(Duration.zero);
+  await Future.pause();
 }
 
 Future<void> _runToCompletion(PipelineBloc bloc) async {
   await _pumpBloc(bloc);
   while (bloc.state.isRunning) {
-    await Future<void>.delayed(const Duration(milliseconds: 10));
+    await Future.pause(const Duration(milliseconds: 10));
   }
 }
 
@@ -232,7 +219,7 @@ void main() {
       await _pumpBloc(bloc);
 
       while (bloc.state.isRunning) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await Future.pause(const Duration(milliseconds: 10));
       }
 
       expect(config.persistCalls, 1);
@@ -592,11 +579,11 @@ void main() {
       bloc.add(const RunPipeline());
       await _pumpBloc(bloc);
 
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await Future.pause(const Duration(milliseconds: 10));
       bloc.add(const CancelPipeline());
 
       while (bloc.state.isRunning) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await Future.pause(const Duration(milliseconds: 10));
       }
 
       expect(bloc.state.runStatus, PipelineRunStatus.cancelled);
@@ -624,7 +611,7 @@ void main() {
 
       bloc.add(const RunPipeline());
       await _pumpBloc(bloc);
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await Future.pause(const Duration(milliseconds: 10));
       bloc.add(const CancelPipeline());
       await _runToCompletion(bloc);
 
@@ -707,7 +694,7 @@ void main() {
       await _pumpBloc(bloc);
 
       while (bloc.state.isRunning) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await Future.pause(const Duration(milliseconds: 10));
       }
 
       expect(console.createCalls, 1);
@@ -743,7 +730,7 @@ void main() {
       await _pumpBloc(bloc);
 
       while (bloc.state.isRunning) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await Future.pause(const Duration(milliseconds: 10));
       }
 
       expect(logWriter.lastProjectName, 'ReelStay');
@@ -775,7 +762,7 @@ void main() {
           distribution: const DistributionConfigModel(
             enabled: true,
             playstore: GooglePlayConsoleConfig(
-              distribution: PlayStoreDistribution.internal,
+              distribution: .internal,
               packageName: 'com.example.demo',
               saJsonPath: '/secrets/play-sa.json',
             ),
@@ -800,7 +787,7 @@ void main() {
         for (final step in bloc.state.steps) {
           seen ??= step.upload;
         }
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await Future.pause(const Duration(milliseconds: 10));
       }
 
       expect(seen?.channel, UploadChannel.play);
@@ -813,9 +800,7 @@ void main() {
   });
 }
 
-class _StubPipelineExecutor extends PipelineExecutor {
-  const _StubPipelineExecutor();
-
+class const _StubPipelineExecutor() extends PipelineExecutor {
   @override
   Future<PipelineStepResult> executeInternal(CommandStep step) async {
     return const PipelineStepResult(success: true);
@@ -835,9 +820,7 @@ class _RecordingDistributionHandler implements DistributionHandler {
   }
 }
 
-class _LinkDistributionHandler implements DistributionHandler {
-  const _LinkDistributionHandler();
-
+class const _LinkDistributionHandler() implements DistributionHandler {
   @override
   String get name => 'Link';
 
@@ -848,9 +831,7 @@ class _LinkDistributionHandler implements DistributionHandler {
   }
 }
 
-class _FakeDistributionHandler implements DistributionHandler {
-  const _FakeDistributionHandler();
-
+class const _FakeDistributionHandler() implements DistributionHandler {
   @override
   String get name => 'Fake';
 
@@ -859,9 +840,7 @@ class _FakeDistributionHandler implements DistributionHandler {
       DistributionResult.success('ok');
 }
 
-class _ProgressDistributionHandler implements DistributionHandler {
-  const _ProgressDistributionHandler();
-
+class const _ProgressDistributionHandler() implements DistributionHandler {
   @override
   String get name => 'Play Store Upload';
 
@@ -874,7 +853,7 @@ class _ProgressDistributionHandler implements DistributionHandler {
       total: 100,
       percent: 50,
     );
-    await Future<void>.delayed(const Duration(milliseconds: 80));
+    await Future.pause(const Duration(milliseconds: 80));
     return DistributionResult.success('ok');
   }
 }

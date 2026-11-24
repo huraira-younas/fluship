@@ -6,18 +6,12 @@ import 'package:material_ui/material_ui.dart';
 import '../models/pipeline_step_view.dart';
 import 'pipeline_live_timer_mixin.dart';
 
-class PipelineTotalElapsed extends StatefulWidget {
-  const PipelineTotalElapsed({
-    required this.startedAt,
-    required this.isRunning,
-    this.finishedAt,
-    super.key,
-  });
-
-  final DateTime? finishedAt;
-  final DateTime startedAt;
-  final bool isRunning;
-
+class const PipelineTotalElapsed({
+  required final DateTime startedAt,
+  required final bool isRunning,
+  final DateTime? finishedAt,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<PipelineTotalElapsed> createState() => _PipelineTotalElapsedState();
 }
@@ -53,10 +47,10 @@ class _PipelineTotalElapsedState extends State<PipelineTotalElapsed>
   }
 }
 
-class PipelineStepElapsedBadge extends StatefulWidget {
-  const PipelineStepElapsedBadge({required this.step, super.key});
-  final PipelineStepView step;
-
+class const PipelineStepElapsedBadge({
+  required final PipelineStepView step,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<PipelineStepElapsedBadge> createState() =>
       _PipelineStepElapsedBadgeState();

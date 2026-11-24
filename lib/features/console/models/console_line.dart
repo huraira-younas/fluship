@@ -4,21 +4,13 @@ enum ConsoleStream { input, stdout, stderr, system }
 
 enum ConsoleLineKind { info, progress, success, warn, error }
 
-class ConsoleLine extends Equatable {
-  const ConsoleLine({
-    this.complete = false,
-    required this.stream,
-    required this.text,
-    this.kind,
-  });
-
-  final ConsoleLineKind? kind;
-  final ConsoleStream stream;
-  final String text;
-
+class const ConsoleLine({
   /// Finished log lines do not merge with later process chunks.
-  final bool complete;
-
+  final bool complete = false,
+  required final ConsoleStream stream,
+  required final String text,
+  final ConsoleLineKind? kind,
+}) extends Equatable {
   ConsoleLine copyWith({
     ConsoleStream? stream,
     ConsoleLineKind? kind,

@@ -16,9 +16,7 @@ import '../widgets/file_manager_entry_tile.dart';
 import '../bloc/file_manager_bloc.dart';
 import '../routes.dart';
 
-class FileManagerScreen extends StatelessWidget {
-  const FileManagerScreen({super.key});
-
+class const FileManagerScreen({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
@@ -28,9 +26,7 @@ class FileManagerScreen extends StatelessWidget {
   }
 }
 
-class _FileManagerView extends StatelessWidget {
-  const _FileManagerView();
-
+class const _FileManagerView() extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final repository = getIt<FileManagerRepository>();

@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('ConsoleLineBuffer', () {
     test('mergeChunk merges consecutive same stream', () {
-      const lines = [ConsoleLine(stream: ConsoleStream.stdout, text: 'a')];
+      const lines = [ConsoleLine(stream: .stdout, text: 'a')];
       final merged = ConsoleLineBuffer.mergeChunk(
         stream: .stdout,
         lines: lines,
@@ -19,11 +19,7 @@ void main() {
 
     test('mergeChunk upgrades kind when a later chunk is an error', () {
       const lines = [
-        ConsoleLine(
-          stream: ConsoleStream.stderr,
-          text: 'Running Gradle task',
-          kind: ConsoleLineKind.info,
-        ),
+        ConsoleLine(stream: .stderr, text: 'Running Gradle task', kind: .info),
       ];
       final merged = ConsoleLineBuffer.mergeChunk(
         stream: .stderr,
@@ -55,7 +51,7 @@ void main() {
     test('trimLines caps output', () {
       final lines = List.generate(
         2100,
-        (i) => ConsoleLine(stream: ConsoleStream.stdout, text: '$i'),
+        (i) => ConsoleLine(stream: .stdout, text: '$i'),
       );
       final trimmed = ConsoleLineBuffer.trimLines(lines);
 

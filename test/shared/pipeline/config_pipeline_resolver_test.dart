@@ -33,11 +33,8 @@ ConfigState _state({
   );
 }
 
-class _FakeDistributionHandler implements DistributionHandler {
-  const _FakeDistributionHandler(this.stepKind);
-
-  final DistributionStepKind stepKind;
-
+class const _FakeDistributionHandler(final DistributionStepKind stepKind)
+    implements DistributionHandler {
   @override
   String get name => stepKind.name;
 
@@ -114,11 +111,8 @@ void main() {
 
     test('resolves common and android steps', () {
       final state = _state(
-        commonCmd: const CommonCmdModel(clean: true, type: FlutterGetType.get),
-        android: const AndroidConfigModel(
-          buildAab: true,
-          buildType: AndroidBuildType.apk,
-        ),
+        commonCmd: const CommonCmdModel(clean: true, type: .get),
+        android: const AndroidConfigModel(buildAab: true, buildType: .apk),
       );
 
       final names = _resolve(state).map((step) => step.name).toList();

@@ -5,10 +5,8 @@ abstract interface class PipelineConfigSource {
   ConfigState get state;
 }
 
-final class ConfigBlocPipelineSource implements PipelineConfigSource {
-  const ConfigBlocPipelineSource(this._bloc);
-  final ConfigBloc _bloc;
-
+final class const ConfigBlocPipelineSource(final ConfigBloc _bloc)
+    implements PipelineConfigSource {
   @override
   ConfigState get state => _bloc.state;
 

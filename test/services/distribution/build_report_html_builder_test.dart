@@ -104,13 +104,13 @@ void main() {
       final steps = builder.stepsFromPipelineViews(const [
         PipelineStepView(
           description: 'Remove build cache and temporary Flutter files',
-          status: PipelineStepStatus.completed,
+          status: .completed,
           name: 'Clean',
           elapsed: Duration(seconds: 2),
         ),
         PipelineStepView(
           description: 'Download and resolve package dependencies',
-          status: PipelineStepStatus.pending,
+          status: .pending,
           name: 'Get',
         ),
       ]);
@@ -125,11 +125,11 @@ void main() {
         PipelineStepView(
           description: DistributionStepKind.report.description,
           name: DistributionStepKind.report.command,
-          status: PipelineStepStatus.running,
+          status: .running,
         ),
         PipelineStepView(
           description: DistributionStepKind.drive.description,
-          status: PipelineStepStatus.completed,
+          status: .completed,
           name: DistributionStepKind.drive.command,
           elapsed: const Duration(seconds: 57),
         ),

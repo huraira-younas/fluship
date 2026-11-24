@@ -1,6 +1,10 @@
 import 'pipeline_step_id.dart';
 
-enum DistributionStepKind {
+enum DistributionStepKind(
+  final String description,
+  final String command,
+  final PipelineStepId id,
+) {
   playStore(
     'Publish the App Bundle to Google Play',
     'Upload to Play Store',
@@ -26,12 +30,6 @@ enum DistributionStepKind {
     'Send to WhatsApp',
     .whatsapp,
   );
-
-  const DistributionStepKind(this.description, this.command, this.id);
-
-  final PipelineStepId id;
-  final String description;
-  final String command;
 
   /// Notifications go out even when the run aborted, so a failed build is
   /// still reported.

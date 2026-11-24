@@ -17,19 +17,12 @@ enum AppTextVariant {
 enum AppTextSize { caption, body, subtitle, title, headline, display }
 
 @immutable
-class _AppTextMetrics {
-  const _AppTextMetrics({
-    required this.letterSpacing,
-    required this.lineHeight,
-    required this.fontSize,
-    required this.weight,
-  });
-
-  final double letterSpacing;
-  final FontWeight weight;
-  final double lineHeight;
-  final double fontSize;
-
+class const _AppTextMetrics({
+  required final double letterSpacing,
+  required final double lineHeight,
+  required final double fontSize,
+  required final FontWeight weight,
+}) {
   static _AppTextMetrics forSize(AppTextSize size) {
     return switch (size) {
       .caption => const _AppTextMetrics(
@@ -73,7 +66,7 @@ class _AppTextMetrics {
 }
 
 class AppText extends StatelessWidget {
-  const AppText(
+  const new(
     this.data, {
     this.variant = .primary,
     this.selectable = false,
@@ -96,7 +89,7 @@ class AppText extends StatelessWidget {
          'AppText with custom variant requires a color.',
        );
 
-  const AppText.body(
+  const new body(
     this.data, {
     this.selectable = false,
     this.semanticsLabel,
@@ -111,7 +104,7 @@ class AppText extends StatelessWidget {
        size = .body,
        color = null;
 
-  const AppText.subtitle(
+  const new subtitle(
     this.data, {
     this.selectable = false,
     this.semanticsLabel,
@@ -126,7 +119,7 @@ class AppText extends StatelessWidget {
        size = .subtitle,
        color = null;
 
-  const AppText.title(
+  const new title(
     this.data, {
     this.selectable = false,
     this.semanticsLabel,
@@ -141,7 +134,7 @@ class AppText extends StatelessWidget {
        size = .title,
        color = null;
 
-  const AppText.headline(
+  const new headline(
     this.data, {
     this.selectable = false,
     this.headingLevel = 1,
@@ -156,7 +149,7 @@ class AppText extends StatelessWidget {
        size = .headline,
        color = null;
 
-  const AppText.display(
+  const new display(
     this.data, {
     this.selectable = false,
     this.headingLevel = 1,
@@ -171,7 +164,7 @@ class AppText extends StatelessWidget {
        size = .display,
        color = null;
 
-  const AppText.caption(
+  const new caption(
     this.data, {
     this.selectable = false,
     this.semanticsLabel,
@@ -186,7 +179,7 @@ class AppText extends StatelessWidget {
        size = .caption,
        color = null;
 
-  const AppText.label(
+  const new label(
     this.data, {
     this.selectable = false,
     this.variant = .muted,
@@ -201,7 +194,7 @@ class AppText extends StatelessWidget {
        size = .caption,
        color = null;
 
-  const AppText.accent(
+  const new accent(
     this.data, {
     this.selectable = false,
     this.semanticsLabel,
@@ -216,7 +209,7 @@ class AppText extends StatelessWidget {
        variant = .accent,
        color = null;
 
-  const AppText.danger(
+  const new danger(
     this.data, {
     this.selectable = false,
     this.semanticsLabel,
@@ -231,7 +224,7 @@ class AppText extends StatelessWidget {
        variant = .danger,
        color = null;
 
-  const AppText.success(
+  const new success(
     this.data, {
     this.selectable = false,
     this.semanticsLabel,
@@ -246,7 +239,7 @@ class AppText extends StatelessWidget {
        variant = .success,
        color = null;
 
-  const AppText.code(
+  const new code(
     this.data, {
     this.selectable = false,
     this.semanticsLabel,
@@ -261,7 +254,7 @@ class AppText extends StatelessWidget {
        variant = .code,
        color = null;
 
-  const AppText.custom(
+  const new custom(
     this.data, {
     required this.color,
     this.selectable = false,

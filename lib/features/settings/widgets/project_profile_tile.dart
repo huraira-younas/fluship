@@ -5,24 +5,15 @@ import 'package:material_ui/material_ui.dart';
 
 import 'dart:io' show File;
 
-class ProjectProfileTile extends StatelessWidget {
-  const ProjectProfileTile({
-    required this.projectName,
-    this.selected = false,
-    this.appIconPath,
-    this.projectPath,
-    this.trailing,
-    this.onTap,
-    super.key,
-  });
-
-  final String? appIconPath;
-  final String? projectPath;
-  final VoidCallback? onTap;
-  final String projectName;
-  final Widget? trailing;
-  final bool selected;
-
+class const ProjectProfileTile({
+  required final String projectName,
+  final bool selected = false,
+  final String? appIconPath,
+  final String? projectPath,
+  final Widget? trailing,
+  final VoidCallback? onTap,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
@@ -62,12 +53,10 @@ class ProjectProfileTile extends StatelessWidget {
   }
 }
 
-class _ProjectLogo extends StatelessWidget {
-  const _ProjectLogo({required this.appIconPath, required this.projectName});
-
-  final String? appIconPath;
-  final String projectName;
-
+class const _ProjectLogo({
+  required final String? appIconPath,
+  required final String projectName,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;

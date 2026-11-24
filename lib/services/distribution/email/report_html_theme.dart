@@ -4,21 +4,19 @@ import 'package:fluship/core/app_theme/models/app_themes.dart';
 import 'package:material_ui/material_ui.dart' show Brightness, Color;
 import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 
-class ReportHtmlTheme {
-  const ReportHtmlTheme({
-    required this.cardBorder,
-    required this.borderLr,
-    required this.bodyOpen,
-    required this.success,
-    required this.section,
-    required this.textDim,
-    required this.accent,
-    required this.cardBg,
-    required this.error,
-    required this.text,
-    required this.bg,
-  });
-
+class const ReportHtmlTheme({
+  required final String cardBorder,
+  required final String borderLr,
+  required final String bodyOpen,
+  required final String success,
+  required final String section,
+  required final String textDim,
+  required final String accent,
+  required final String cardBg,
+  required final String error,
+  required final String text,
+  required final String bg,
+}) {
   static const bodyClose = '</div></body></html>';
   static const flushipVersion = '1.0.0';
   static const flushipName = 'Fluship';
@@ -37,18 +35,6 @@ class ReportHtmlTheme {
     text: '#eceff4',
     bg: '#2e3440',
   );
-
-  final String cardBorder;
-  final String borderLr;
-  final String bodyOpen;
-  final String success;
-  final String section;
-  final String textDim;
-  final String accent;
-  final String cardBg;
-  final String error;
-  final String text;
-  final String bg;
 
   String get cardOpen =>
       'class="report-card" style="border-radius:12px;overflow:hidden;'

@@ -7,11 +7,9 @@ import '../contracts/distribution_handler.dart';
 import '../app_store/app_store_uploader.dart';
 import '../models/distribution_result.dart';
 
-class AppStoreHandler implements DistributionHandler {
-  const AppStoreHandler({this.uploader = const ITmsTransporterUploader()});
-
-  final AppStoreUploader uploader;
-
+class const AppStoreHandler({
+  final AppStoreUploader uploader = const ITmsTransporterUploader(),
+}) implements DistributionHandler {
   @override
   String get name => 'App Store Upload';
 

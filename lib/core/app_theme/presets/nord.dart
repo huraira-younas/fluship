@@ -3,9 +3,7 @@ import '../models/app_themes.dart';
 import '../utils/color_from_hex.dart';
 import '../models/theme.dart';
 
-final class NordPreset implements ThemePresetModule {
-  const NordPreset();
-
+final class const NordPreset() implements ThemePresetModule {
   @override
   AppThemes get id => .nord;
 

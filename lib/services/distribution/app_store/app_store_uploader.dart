@@ -23,11 +23,8 @@ abstract interface class AppStoreUploader {
   });
 }
 
-class ITmsTransporterUploader implements AppStoreUploader {
-  const ITmsTransporterUploader({this.startProcess});
-
-  final TransporterStarter? startProcess;
-
+class const ITmsTransporterUploader({final TransporterStarter? startProcess})
+    implements AppStoreUploader {
   @override
   Future<String> upload({
     required IosConfig appstore,

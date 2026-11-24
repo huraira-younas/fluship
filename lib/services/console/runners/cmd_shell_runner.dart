@@ -3,9 +3,9 @@ import '../contracts/shell_output_parser.dart';
 
 import 'base_shell_runner.dart';
 
-final class CmdShellRunner extends BaseShellRunner {
-  CmdShellRunner({IShellOutputParser? parser, super.treeKiller})
-    : super(parser: parser ?? MarkerShellOutputParser());
+final class CmdShellRunner({IShellOutputParser? parser, super.treeKiller})
+    extends BaseShellRunner {
+  this : super(parser: parser ?? MarkerShellOutputParser());
 
   @override
   String get executable => 'cmd.exe';

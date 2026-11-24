@@ -10,9 +10,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../bloc/config_bloc.dart';
 
-class BuildConfig extends StatefulWidget {
-  const BuildConfig({super.key});
-
+class const BuildConfig({super.key}) extends StatefulWidget {
   @override
   State<BuildConfig> createState() => _BuildConfigState();
 }

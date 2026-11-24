@@ -13,15 +13,10 @@ import '../whatsapp/whatsapp_client.dart';
 ///
 /// Build files are not attached: the Agent Platform caps a file at 16 MB,
 /// so they are listed by name and reached through the published links.
-class WhatsAppHandler implements DistributionHandler {
-  const WhatsAppHandler({
-    this.messageBuilder = const WhatsAppMessageBuilder(),
-    required this.client,
-  });
-
-  final WhatsAppMessageBuilder messageBuilder;
-  final WhatsAppClient client;
-
+class const WhatsAppHandler({
+  final WhatsAppMessageBuilder messageBuilder = const WhatsAppMessageBuilder(),
+  required final WhatsAppClient client,
+}) implements DistributionHandler {
   static final _unsafeFileChars = RegExp(r'[^A-Za-z0-9._+-]+');
 
   @override

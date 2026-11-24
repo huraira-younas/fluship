@@ -13,12 +13,11 @@ enum FlutterGetType {
   };
 }
 
-final class CommonCmdModel extends BaseConfig {
-  const CommonCmdModel({super.enabled = true, this.clean = false, this.type});
-
-  final FlutterGetType? type;
-  final bool clean;
-
+final class const CommonCmdModel({
+  super.enabled = true,
+  final bool clean = false,
+  final FlutterGetType? type,
+}) extends BaseConfig {
   @override
   CommonCmdModel copyWith({
     bool clearType = false,
@@ -31,7 +30,7 @@ final class CommonCmdModel extends BaseConfig {
     clean: clean ?? this.clean,
   );
 
-  factory CommonCmdModel.fromJson(Map<String, dynamic>? json) {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const CommonCmdModel();
 
     final data = json.at<CommonCmdModel>();

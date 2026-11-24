@@ -1,25 +1,16 @@
 part of 'pipeline_bloc.dart';
 
-class PipelineState extends BaseBlocState {
-  const PipelineState({
-    required this.activeStepIndex,
-    required this.summaryMessage,
-    required this.runStatus,
-    super.loading = false,
-    required this.steps,
-    this.finishedAt,
-    this.startedAt,
-    super.error,
-  });
-
-  final List<PipelineStepView> steps;
-  final PipelineRunStatus runStatus;
-  final String summaryMessage;
-  final int? activeStepIndex;
-  final DateTime? finishedAt;
-  final DateTime? startedAt;
-
-  factory PipelineState.idle() => const PipelineState(
+class const PipelineState({
+  required final int? activeStepIndex,
+  required final String summaryMessage,
+  required final PipelineRunStatus runStatus,
+  super.loading = false,
+  required final List<PipelineStepView> steps,
+  final DateTime? finishedAt,
+  final DateTime? startedAt,
+  super.error,
+}) extends BaseBlocState {
+  factory idle() => const PipelineState(
     summaryMessage: 'Pipeline is ready to run.',
     activeStepIndex: null,
     runStatus: .idle,

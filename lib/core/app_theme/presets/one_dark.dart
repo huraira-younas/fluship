@@ -3,9 +3,7 @@ import '../models/app_themes.dart';
 import '../utils/color_from_hex.dart';
 import '../models/theme.dart';
 
-final class OneDarkPreset implements ThemePresetModule {
-  const OneDarkPreset();
-
+final class const OneDarkPreset() implements ThemePresetModule {
   @override
   AppThemes get id => .oneDark;
 

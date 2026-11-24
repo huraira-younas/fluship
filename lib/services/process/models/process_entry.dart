@@ -2,25 +2,15 @@ import 'package:equatable/equatable.dart';
 
 enum ProcessKind { active, orphan }
 
-class ProcessRow extends Equatable {
-  const ProcessRow({
-    required this.displayName,
-    required this.command,
-    required this.depth,
-    required this.kind,
-    required this.ppid,
-    required this.pid,
-    this.sessionLabel,
-  });
-
-  final String? sessionLabel;
-  final String displayName;
-  final ProcessKind kind;
-  final String command;
-  final int depth;
-  final int ppid;
-  final int pid;
-
+class const ProcessRow({
+  required final String displayName,
+  required final String command,
+  required final int depth,
+  required final ProcessKind kind,
+  required final int ppid,
+  required final int pid,
+  final String? sessionLabel,
+}) extends Equatable {
   String get kindLabel => switch (kind) {
     .active => 'Active',
     .orphan => 'Orphan',
@@ -43,17 +33,11 @@ class ProcessRow extends Equatable {
   ];
 }
 
-class RawProcessRow extends Equatable {
-  const RawProcessRow({
-    required this.command,
-    required this.ppid,
-    required this.pid,
-  });
-
-  final String command;
-  final int ppid;
-  final int pid;
-
+class const RawProcessRow({
+  required final String command,
+  required final int ppid,
+  required final int pid,
+}) extends Equatable {
   @override
   List<Object?> get props => [pid, ppid, command];
 }

@@ -4,21 +4,13 @@ import 'package:intl/intl.dart';
 
 import 'report_html_theme.dart';
 
-class ReportStepResult {
-  const ReportStepResult({
-    required this.elapsed,
-    required this.success,
-    required this.name,
-  });
+class const ReportStepResult({
+  required final Duration? elapsed,
+  required final bool success,
+  required final String name,
+});
 
-  final Duration? elapsed;
-  final bool success;
-  final String name;
-}
-
-class ReportHtmlBuilder {
-  const ReportHtmlBuilder();
-
+class const ReportHtmlBuilder() {
   String build({
     required List<ReportStepResult> steps,
     required ReportHtmlTheme theme,

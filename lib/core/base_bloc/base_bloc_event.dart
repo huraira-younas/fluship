@@ -1,16 +1,10 @@
 part of 'base_bloc.dart';
 
-abstract class BaseBlocEvent extends Equatable {
-  final void Function(CustomState errorState)? onError;
-  final void Function(dynamic data)? onSuccess;
-  final String name;
-
-  const BaseBlocEvent({
-    required this.onSuccess,
-    required this.onError,
-    required this.name,
-  });
-
+abstract class const BaseBlocEvent({
+  required final void Function(dynamic data)? onSuccess,
+  required final void Function(CustomState errorState)? onError,
+  required final String name,
+}) extends Equatable {
   Map<String, dynamic> toJson();
 
   @override

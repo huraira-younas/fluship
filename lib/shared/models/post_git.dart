@@ -2,18 +2,13 @@ import 'package:fluship/core/json_parser/exports.dart';
 
 import 'base_config.dart';
 
-final class PostGitModel extends GitBaseConfig {
-  const PostGitModel({
-    this.postCommit = false,
-    this.postPush = false,
-    super.enabled = true,
-    super.commitMessage,
-    super.targetBranch,
-  });
-
-  final bool postCommit;
-  final bool postPush;
-
+final class const PostGitModel({
+  final bool postCommit = false,
+  final bool postPush = false,
+  super.enabled = true,
+  super.commitMessage,
+  super.targetBranch,
+}) extends GitBaseConfig {
   @override
   PostGitModel copyWith({
     String? commitMessage,
@@ -29,7 +24,7 @@ final class PostGitModel extends GitBaseConfig {
     enabled: enabled ?? this.enabled,
   );
 
-  factory PostGitModel.fromJson(Map<String, dynamic>? json) {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const PostGitModel();
 
     final data = json.at<PostGitModel>();

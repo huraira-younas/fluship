@@ -63,7 +63,7 @@ void main() {
       );
       expect(classifyConsoleLine('[exit 0]'), ConsoleLineKind.info);
       expect(
-        classifyConsoleLine('> flutter clean', ConsoleStream.input),
+        classifyConsoleLine('> flutter clean', .input),
         ConsoleLineKind.info,
       );
       expect(
@@ -73,14 +73,8 @@ void main() {
     });
 
     test('upgradeConsoleLineKind keeps the stronger kind', () {
-      expect(
-        upgradeConsoleLineKind(ConsoleLineKind.info, ConsoleLineKind.error),
-        ConsoleLineKind.error,
-      );
-      expect(
-        upgradeConsoleLineKind(ConsoleLineKind.error, ConsoleLineKind.warn),
-        ConsoleLineKind.error,
-      );
+      expect(upgradeConsoleLineKind(.info, .error), ConsoleLineKind.error);
+      expect(upgradeConsoleLineKind(.error, .warn), ConsoleLineKind.error);
     });
   });
 }

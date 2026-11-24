@@ -3,9 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../fluship_theme_extension.dart';
 import '../models/theme.dart';
 
-class AppThemeDataMapper {
-  AppThemeDataMapper._();
-
+class AppThemeDataMapper._() {
   static ThemeData toThemeData(
     AppTheme theme, {
     required Brightness brightness,

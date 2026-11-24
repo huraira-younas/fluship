@@ -23,10 +23,8 @@ abstract interface class PipelineConsolePort {
   Future<void> cancelCommand(String sessionId);
 }
 
-final class ConsoleBlocPipelinePort implements PipelineConsolePort {
-  ConsoleBlocPipelinePort(this._bloc);
-  final ConsoleBloc _bloc;
-
+final class ConsoleBlocPipelinePort(final ConsoleBloc _bloc)
+    implements PipelineConsolePort {
   @override
   Future<String> createSession({required String projectRoot}) {
     return _dispatch<String>(CreatePipelineSession(projectRoot: projectRoot));
@@ -79,73 +77,79 @@ final class ConsoleBlocPipelinePort implements PipelineConsolePort {
   Future<T> _dispatch<T>(ConsoleEvent event) {
     final completer = Completer<T>();
 
-    ConsoleEvent enriched;
-    if (event is CreatePipelineSession) {
-      enriched = CreatePipelineSession(
-        projectRoot: event.projectRoot,
-        onSuccess: (data) {
-          if (!completer.isCompleted) completer.complete(data as T);
-        },
-        onError: (error) {
-          if (!completer.isCompleted) {
-            completer.completeError(StateError(error.message));
-          }
-        },
-      );
-    } else if (event is RunPipelineCommand) {
-      enriched = RunPipelineCommand(
-        sessionId: event.sessionId,
-        command: event.command,
-        onSuccess: (data) {
-          if (!completer.isCompleted) completer.complete(data as T);
-        },
-        onError: (error) {
-          if (!completer.isCompleted) {
-            completer.completeError(StateError(error.message));
-          }
-        },
-      );
-    } else if (event is LogPipelineLine) {
-      enriched = LogPipelineLine(
-        sessionId: event.sessionId,
-        stream: event.stream,
-        text: event.text,
-        kind: event.kind,
-        onSuccess: (_) {
-          if (!completer.isCompleted) completer.complete(null as T);
-        },
-        onError: (error) {
-          if (!completer.isCompleted) {
-            completer.completeError(StateError(error.message));
-          }
-        },
-      );
-    } else if (event is CancelPipelineCommand) {
-      enriched = CancelPipelineCommand(
-        sessionId: event.sessionId,
-        onSuccess: (_) {
-          if (!completer.isCompleted) completer.complete(null as T);
-        },
-        onError: (error) {
-          if (!completer.isCompleted) {
-            completer.completeError(StateError(error.message));
-          }
-        },
-      );
-    } else if (event is ClosePipelineSession) {
-      enriched = ClosePipelineSession(
-        sessionId: event.sessionId,
-        onSuccess: (_) {
-          if (!completer.isCompleted) completer.complete(null as T);
-        },
-        onError: (error) {
-          if (!completer.isCompleted) {
-            completer.completeError(StateError(error.message));
-          }
-        },
-      );
-    } else {
-      return Future.error(StateError('Unsupported pipeline console event.'));
+    final ConsoleEvent enriched;
+    switch (event) {
+      case CreatePipelineSession(:final projectRoot):
+        enriched = CreatePipelineSession(
+          projectRoot: projectRoot,
+          onSuccess: (data) {
+            if (!completer.isCompleted) completer.complete(data as T);
+          },
+          onError: (error) {
+            if (!completer.isCompleted) {
+              completer.completeError(StateError(error.message));
+            }
+          },
+        );
+      case RunPipelineCommand(:final sessionId, :final command):
+        enriched = RunPipelineCommand(
+          sessionId: sessionId,
+          command: command,
+          onSuccess: (data) {
+            if (!completer.isCompleted) completer.complete(data as T);
+          },
+          onError: (error) {
+            if (!completer.isCompleted) {
+              completer.completeError(StateError(error.message));
+            }
+          },
+        );
+      case LogPipelineLine(
+        :final sessionId,
+        :final stream,
+        :final text,
+        :final kind,
+      ):
+        enriched = LogPipelineLine(
+          sessionId: sessionId,
+          stream: stream,
+          text: text,
+          kind: kind,
+          onSuccess: (_) {
+            if (!completer.isCompleted) completer.complete(null as T);
+          },
+          onError: (error) {
+            if (!completer.isCompleted) {
+              completer.completeError(StateError(error.message));
+            }
+          },
+        );
+      case CancelPipelineCommand(:final sessionId):
+        enriched = CancelPipelineCommand(
+          sessionId: sessionId,
+          onSuccess: (_) {
+            if (!completer.isCompleted) completer.complete(null as T);
+          },
+          onError: (error) {
+            if (!completer.isCompleted) {
+              completer.completeError(StateError(error.message));
+            }
+          },
+        );
+      case ClosePipelineSession(:final sessionId):
+        enriched = ClosePipelineSession(
+          sessionId: sessionId,
+          onSuccess: (_) {
+            if (!completer.isCompleted) completer.complete(null as T);
+          },
+          onError: (error) {
+            if (!completer.isCompleted) {
+              completer.completeError(StateError(error.message));
+            }
+          },
+        );
+      case _:
+        return Future.error(StateError('Unsupported pipeline console event.'));
     }
 
     _bloc.add(enriched);

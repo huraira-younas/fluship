@@ -9,11 +9,9 @@ import '../models/file_entry.dart';
 part 'file_manager_event.dart';
 part 'file_manager_state.dart';
 
-class FileManagerBloc extends BaseBloc<FileManagerEvent, FileManagerState> {
-  final FileManagerRepository _repository;
-
-  FileManagerBloc({required this._repository})
-    : super(FileManagerState.empty()) {
+class FileManagerBloc({required final FileManagerRepository _repository})
+    extends BaseBloc<FileManagerEvent, FileManagerState> {
+  this : super(FileManagerState.empty()) {
     on<FileManagerNavigateToSegment>(handler(_onNavigateToSegment));
     on<FileManagerToggleSelection>(handler(_onToggleSelection));
     on<FileManagerClearSelection>(handler(_onClearSelection));

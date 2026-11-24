@@ -11,9 +11,7 @@ import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
-class ProfileCard extends StatelessWidget {
-  const ProfileCard({super.key});
-
+class const ProfileCard({super.key}) extends StatelessWidget {
   void _openForm(
     BuildContext context, {
     String? previousProject,
@@ -179,19 +177,12 @@ class ProfileCard extends StatelessWidget {
   }
 }
 
-class _ProjectSwitcher extends StatelessWidget {
-  const _ProjectSwitcher({
-    required this.activeProject,
-    required this.projectNames,
-    required this.onSelected,
-    required this.loading,
-  });
-
-  final ValueChanged<String>? onSelected;
-  final List<String> projectNames;
-  final String activeProject;
-  final bool loading;
-
+class const _ProjectSwitcher({
+  required final String activeProject,
+  required final List<String> projectNames,
+  required final ValueChanged<String>? onSelected,
+  required final bool loading,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;

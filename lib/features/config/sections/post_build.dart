@@ -11,9 +11,7 @@ import '../widgets/switch_labels_row.dart';
 import '../widgets/switch_label.dart';
 import '../bloc/config_bloc.dart';
 
-class PostBuild extends StatelessWidget {
-  const PostBuild({super.key});
-
+class const PostBuild({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = getIt<ConfigBloc>();

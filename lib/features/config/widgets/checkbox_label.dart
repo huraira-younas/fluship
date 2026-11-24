@@ -3,22 +3,14 @@ import 'package:fluship/shared/widgets/app_checkbox.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:material_ui/material_ui.dart';
 
-class CheckboxLabel extends StatelessWidget {
-  const CheckboxLabel({
-    required this.onChange,
-    this.disabled = false,
-    required this.value,
-    required this.label,
-    this.subtitle,
-    super.key,
-  });
-
-  final ValueChanged<bool> onChange;
-  final String? subtitle;
-  final bool disabled;
-  final String label;
-  final bool value;
-
+class const CheckboxLabel({
+  required final ValueChanged<bool> onChange,
+  final bool disabled = false,
+  required final bool value,
+  required final String label,
+  final String? subtitle,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;

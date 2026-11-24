@@ -1,20 +1,12 @@
 import 'dart:io' show Platform, Process, ProcessSignal;
 
-class ProcessKillResult {
-  const ProcessKillResult({
-    required this.success,
-    this.message = '',
-    required this.pid,
-  });
+class const ProcessKillResult({
+  required final bool success,
+  final String message = '',
+  required final int pid,
+});
 
-  final String message;
-  final bool success;
-  final int pid;
-}
-
-class ProcessKiller {
-  const ProcessKiller();
-
+class const ProcessKiller() {
   Future<ProcessKillResult> kill(int pid) async {
     if (pid <= 0) {
       return ProcessKillResult(
@@ -34,7 +26,7 @@ class ProcessKiller {
         );
       }
 
-      await Future<void>.delayed(const Duration(milliseconds: 400));
+      await Future.pause(const Duration(milliseconds: 400));
       Process.killPid(pid, ProcessSignal.sigkill);
 
       return ProcessKillResult(success: true, pid: pid);

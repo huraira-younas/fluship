@@ -1,21 +1,14 @@
 part of 'console_bloc.dart';
 
-class ConsoleState extends BaseBlocState {
-  const ConsoleState({
-    required this.nextTerminalIndex,
-    required this.activeSessionId,
-    required this.projectRoot,
-    required this.sessions,
-    super.loading = false,
-    super.error,
-  });
-
-  final List<ConsoleSession> sessions;
-  final String? activeSessionId;
-  final int nextTerminalIndex;
-  final String? projectRoot;
-
-  factory ConsoleState.empty() => const ConsoleState(
+class const ConsoleState({
+  required final int nextTerminalIndex,
+  required final String? activeSessionId,
+  required final String? projectRoot,
+  required final List<ConsoleSession> sessions,
+  super.loading = false,
+  super.error,
+}) extends BaseBlocState {
+  factory empty() => const ConsoleState(
     activeSessionId: null,
     nextTerminalIndex: 1,
     projectRoot: null,

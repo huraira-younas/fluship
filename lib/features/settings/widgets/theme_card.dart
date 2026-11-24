@@ -5,22 +5,14 @@ import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:material_ui/material_ui.dart';
 
-class ThemeCard extends StatelessWidget {
-  const ThemeCard({
-    required this.showDivider,
-    required this.displayName,
-    required this.isActive,
-    required this.onApply,
-    required this.theme,
-    super.key,
-  });
-
-  final VoidCallback onApply;
-  final String displayName;
-  final bool showDivider;
-  final AppTheme theme;
-  final bool isActive;
-
+class const ThemeCard({
+  required final bool showDivider,
+  required final String displayName,
+  required final bool isActive,
+  required final VoidCallback onApply,
+  required final AppTheme theme,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bodyStyle = context.textTheme.bodyLarge;
@@ -28,7 +20,7 @@ class ThemeCard extends StatelessWidget {
     final palette = theme.palette;
 
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: .min,
       children: [
         Material(
           color: isActive
@@ -53,7 +45,7 @@ class ThemeCard extends StatelessWidget {
                 ).padOnly(r: 10),
                 _ThemeThumbnail(palette: palette),
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: .start,
                   spacing: 2,
                   children: [
                     AnimatedDefaultTextStyle(
@@ -92,10 +84,8 @@ class ThemeCard extends StatelessWidget {
   }
 }
 
-class _ThemeThumbnail extends StatelessWidget {
-  const _ThemeThumbnail({required this.palette});
-  final ThemePalette palette;
-
+class const _ThemeThumbnail({required final ThemePalette palette})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -146,12 +136,10 @@ class _ThemeThumbnail extends StatelessWidget {
   }
 }
 
-class _SelectionRing extends StatelessWidget {
-  const _SelectionRing({required this.accent, required this.selected});
-
-  final Color accent;
-  final bool selected;
-
+class const _SelectionRing({
+  required final Color accent,
+  required final bool selected,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final border = context.flushipTheme.colors.cardBorder;

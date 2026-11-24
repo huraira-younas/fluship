@@ -2,9 +2,7 @@ import 'dart:io' show Directory, File;
 
 import 'package:path/path.dart' as p;
 
-class FileArtifactCollector {
-  const FileArtifactCollector();
-
+class const FileArtifactCollector() {
   /// Filesystem timestamps can lag slightly behind the clock, and a build can
   /// start writing just before the run is registered.
   static const _staleTolerance = Duration(seconds: 5);

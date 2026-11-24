@@ -13,9 +13,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'dart:io' show File;
 
-class ConfigBackup extends StatelessWidget {
-  const ConfigBackup({super.key});
-
+class const ConfigBackup({super.key}) extends StatelessWidget {
   Future<void> _export() async {
     final bloc = getIt<ConfigBloc>();
     final json = bloc.exportConfig();

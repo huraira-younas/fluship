@@ -2,26 +2,16 @@ import 'package:fluship/core/json_parser/exports.dart';
 
 import 'base_config.dart';
 
-final class AppInfoModel extends BaseConfig {
-  const AppInfoModel({
-    this.flushipWorkspacePath,
-    this.flutterProjectPath,
-    super.enabled = true,
-    this.appIconPath,
-    this.buildNumber,
-    this.projectName,
-    this.version,
-    this.appName,
-  });
-
-  final String? flushipWorkspacePath;
-  final String? flutterProjectPath;
-  final String? appIconPath;
-  final String? projectName;
-  final String? buildNumber;
-  final String? version;
-  final String? appName;
-
+final class const AppInfoModel({
+  final String? flushipWorkspacePath,
+  final String? flutterProjectPath,
+  super.enabled = true,
+  final String? appIconPath,
+  final String? buildNumber,
+  final String? projectName,
+  final String? version,
+  final String? appName,
+}) extends BaseConfig {
   @override
   AppInfoModel copyWith({
     String? flushipWorkspacePath,
@@ -43,7 +33,7 @@ final class AppInfoModel extends BaseConfig {
     appName: appName ?? this.appName,
   );
 
-  factory AppInfoModel.fromJson(Map<String, dynamic>? json) {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const AppInfoModel();
 
     final data = json.at<AppInfoModel>();

@@ -11,9 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluship/di/locator.dart';
 import 'package:material_ui/material_ui.dart';
 
-class WhatsAppAgent extends StatefulWidget {
-  const WhatsAppAgent({super.key});
-
+class const WhatsAppAgent({super.key}) extends StatefulWidget {
   @override
   State<WhatsAppAgent> createState() => _WhatsAppAgentState();
 }

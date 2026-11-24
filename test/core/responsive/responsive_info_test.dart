@@ -1,7 +1,5 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fluship/core/responsive/models/app_breakpoint.dart';
 import 'package:fluship/core/responsive/models/responsive_info.dart';
 
 void main() {
@@ -31,15 +29,15 @@ void main() {
   group('ResponsiveInfo orientation helpers', () {
     test('isPortrait and isLandscape reflect orientation', () {
       const portrait = ResponsiveInfo(
-        orientation: Orientation.portrait,
-        breakpoint: AppBreakpoint.compact,
+        orientation: .portrait,
+        breakpoint: .compact,
         height: 800,
         width: 360,
       );
 
       const landscape = ResponsiveInfo(
-        orientation: Orientation.landscape,
-        breakpoint: AppBreakpoint.compact,
+        orientation: .landscape,
+        breakpoint: .compact,
         height: 360,
         width: 800,
       );

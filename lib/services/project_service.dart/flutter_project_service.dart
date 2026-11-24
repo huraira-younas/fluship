@@ -7,10 +7,7 @@ import 'package:xml/xml.dart';
 import 'pubspec_parser.dart';
 import 'pubspec_info.dart';
 
-class FlutterProjectException implements Exception {
-  const FlutterProjectException(this.message);
-  final String message;
-
+class const FlutterProjectException(final String message) implements Exception {
   @override
   String toString() => message;
 }
@@ -20,11 +17,8 @@ final _launcherImagePath = RegExp(
   multiLine: true,
 );
 
-class FlutterProjectService {
-  const FlutterProjectService({PubspecParser? parser})
-    : _parser = parser ?? const PubspecParser();
-
-  final PubspecParser _parser;
+class const FlutterProjectService({PubspecParser? parser}) {
+  final PubspecParser _parser = parser ?? const PubspecParser();
 
   Future<void> ensureProjectDirectoryExists(String flutterProjectPath) async {
     final path = flutterProjectPath.trim();

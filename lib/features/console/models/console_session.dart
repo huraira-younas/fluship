@@ -2,23 +2,14 @@ import 'package:equatable/equatable.dart';
 
 import 'console_line.dart';
 
-class ConsoleSession extends Equatable {
-  const ConsoleSession({
-    required this.workingDirectory,
-    required this.commandHistory,
-    required this.isRunning,
-    required this.title,
-    required this.lines,
-    required this.id,
-  });
-
-  final List<String> commandHistory;
-  final List<ConsoleLine> lines;
-  final String workingDirectory;
-  final bool isRunning;
-  final String title;
-  final String id;
-
+class const ConsoleSession({
+  required final String workingDirectory,
+  required final List<String> commandHistory,
+  required final bool isRunning,
+  required final String title,
+  required final List<ConsoleLine> lines,
+  required final String id,
+}) extends Equatable {
   ConsoleSession copyWith({
     List<String>? commandHistory,
     String? workingDirectory,

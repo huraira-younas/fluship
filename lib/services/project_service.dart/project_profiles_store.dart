@@ -1,10 +1,7 @@
 import 'package:fluship/core/shared_prefs/shared_prefs.dart';
 
-class ProjectProfilesStore {
-  ProjectProfilesStore({SharedPrefs? sharedPrefs})
-    : _sharedPrefs = sharedPrefs ?? SharedPrefs.i;
-
-  final SharedPrefs _sharedPrefs;
+class ProjectProfilesStore({SharedPrefs? sharedPrefs}) {
+  final SharedPrefs _sharedPrefs = sharedPrefs ?? SharedPrefs.i;
 
   String? get activeProject => _sharedPrefs.getString(.activeProject);
 

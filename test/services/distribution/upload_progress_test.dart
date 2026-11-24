@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('formats play, drive, and app store labels from one model', () {
     const play = PipelineUploadProgress(
-      channel: UploadChannel.play,
+      channel: .play,
       fileName: 'app.aab',
       bytes: 12 * 1024 * 1024,
       total: 45 * 1024 * 1024,
@@ -19,7 +19,7 @@ void main() {
     expect(play.fraction, closeTo(0.27, 0.001));
 
     const store = PipelineUploadProgress(
-      channel: UploadChannel.appStore,
+      channel: .appStore,
       fileName: 'app.ipa',
       percent: 42,
     );
@@ -27,7 +27,7 @@ void main() {
     expect(store.consoleLine, contains('42%'));
 
     const drive = PipelineUploadProgress(
-      channel: UploadChannel.drive,
+      channel: .drive,
       fileName: 'app.apk',
       bytes: 10,
       total: 20,
@@ -41,28 +41,28 @@ void main() {
   test('skips the same percent for the same file', () {
     final gate = UploadProgressGate();
     const first = PipelineUploadProgress(
-      channel: UploadChannel.play,
+      channel: .play,
       fileName: 'app.aab',
       percent: 10,
       bytes: 10,
       total: 100,
     );
     const samePercent = PipelineUploadProgress(
-      channel: UploadChannel.play,
+      channel: .play,
       fileName: 'app.aab',
       percent: 10,
       bytes: 11,
       total: 100,
     );
     const nextPercent = PipelineUploadProgress(
-      channel: UploadChannel.play,
+      channel: .play,
       fileName: 'app.aab',
       percent: 11,
       bytes: 11,
       total: 100,
     );
     const nextFile = PipelineUploadProgress(
-      channel: UploadChannel.drive,
+      channel: .drive,
       fileName: 'app-arm64.apk',
       percent: 11,
       fileIndex: 2,

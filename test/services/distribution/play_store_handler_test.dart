@@ -1,5 +1,4 @@
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
-import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
 import 'package:fluship/services/distribution/distribution.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -28,10 +27,8 @@ class FakeDistributionLogger implements DistributionLogger {
   }
 }
 
-class FakePlayStoreUploader implements PlayStoreUploader {
-  FakePlayStoreUploader({this.uploadedName = 'Demo.aab'});
-
-  final String uploadedName;
+class FakePlayStoreUploader({final String uploadedName = 'Demo.aab'})
+    implements PlayStoreUploader {
   String? lastReleaseNotes;
   var uploadCalls = 0;
   String? lastAabPath;
@@ -63,8 +60,8 @@ PipelineRunSnapshot _snapshot({
   return PipelineRunSnapshot(
     collectedArtifacts: collected,
     steps: const [],
-    runStatus: PipelineRunStatus.completed,
-    totalElapsed: Duration.zero,
+    runStatus: .completed,
+    totalElapsed: .zero,
     finishedAt: DateTime(2026, 6, 21, 14, 30),
     startedAt: DateTime(2026, 6, 21, 14, 29),
     logFilePath: '',
@@ -89,7 +86,7 @@ DistributionContext _context({
         const DistributionConfigModel(
           enabled: true,
           playstore: GooglePlayConsoleConfig(
-            distribution: PlayStoreDistribution.internal,
+            distribution: .internal,
             packageName: 'com.example.demo',
             saJsonPath: '/secrets/play-sa.json',
           ),
@@ -145,7 +142,7 @@ void main() {
         config: const DistributionConfigModel(
           enabled: true,
           playstore: GooglePlayConsoleConfig(
-            distribution: PlayStoreDistribution.internal,
+            distribution: .internal,
             packageName: 'com.example.demo',
           ),
         ),
@@ -169,7 +166,7 @@ void main() {
         config: const DistributionConfigModel(
           enabled: true,
           playstore: GooglePlayConsoleConfig(
-            distribution: PlayStoreDistribution.production,
+            distribution: .production,
             saJsonPath: '/secrets/play-sa.json',
           ),
         ),
@@ -233,7 +230,7 @@ void main() {
           enabled: true,
           releaseNotes: 'Bug fixes and performance improvements.',
           playstore: GooglePlayConsoleConfig(
-            distribution: PlayStoreDistribution.internal,
+            distribution: .internal,
             packageName: 'com.example.demo',
             saJsonPath: '/secrets/play-sa.json',
           ),
@@ -261,7 +258,7 @@ void main() {
           enabled: true,
           releaseNotes: '   ',
           playstore: GooglePlayConsoleConfig(
-            distribution: PlayStoreDistribution.internal,
+            distribution: .internal,
             packageName: 'com.example.demo',
             saJsonPath: '/secrets/play-sa.json',
           ),

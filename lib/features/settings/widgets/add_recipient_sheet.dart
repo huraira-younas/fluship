@@ -7,9 +7,7 @@ import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:fluship/core/validator_builder.dart';
 import 'package:material_ui/material_ui.dart';
 
-class AddRecipientSheet extends StatefulWidget {
-  const AddRecipientSheet({super.key});
-
+class const AddRecipientSheet({super.key}) extends StatefulWidget {
   static Future<DistributionEmail?> show(BuildContext context) {
     return showModalBottomSheet<DistributionEmail>(
       backgroundColor: Colors.transparent,
@@ -119,12 +117,12 @@ class _AddRecipientSheetState extends State<AddRecipientSheet> {
               ),
               SizedBox(height: ft.spacing.lg),
               Row(
+                spacing: ft.spacing.sm,
                 children: [
                   AppButton.ghost(
                     onPressed: () => Navigator.of(context).pop(),
                     label: 'Cancel',
                   ).expanded(),
-                  SizedBox(width: ft.spacing.sm),
                   AppButton.primary(
                     label: 'Add recipient',
                     onPressed: _submit,

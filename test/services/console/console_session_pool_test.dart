@@ -49,11 +49,8 @@ class FakeShellRunner implements IShellRunner {
   }
 }
 
-class FakeShellRunnerFactory implements IShellRunnerFactory {
-  FakeShellRunnerFactory(this.runner);
-
-  final FakeShellRunner runner;
-
+class FakeShellRunnerFactory(final FakeShellRunner runner)
+    implements IShellRunnerFactory {
   @override
   IShellRunner build() => runner;
 }

@@ -7,19 +7,12 @@ import '../contracts/email_client.dart';
 import '../slack/slack_notifier.dart';
 import '../drive/drive_uploader.dart';
 
-class GoogleDriveHandler implements DistributionHandler {
-  const GoogleDriveHandler({
-    required this.emailClient,
-    required this.htmlBuilder,
-    required this.uploader,
-    this.slackNotifier = const SlackNotifier(),
-  });
-
-  final ReportHtmlBuilder htmlBuilder;
-  final SlackNotifier slackNotifier;
-  final EmailClient emailClient;
-  final DriveUploader uploader;
-
+class const GoogleDriveHandler({
+  required final EmailClient emailClient,
+  required final ReportHtmlBuilder htmlBuilder,
+  required final DriveUploader uploader,
+  final SlackNotifier slackNotifier = const SlackNotifier(),
+}) implements DistributionHandler {
   @override
   String get name => 'Google Drive';
 

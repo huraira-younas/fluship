@@ -3,11 +3,9 @@ import '../models/app_themes.dart';
 import '../utils/color_from_hex.dart';
 import '../models/theme.dart';
 
-final class InstagramPreset implements ThemePresetModule {
-  const InstagramPreset();
-
+final class const InstagramPreset() implements ThemePresetModule {
   @override
-  AppThemes get id => AppThemes.instagram;
+  AppThemes get id => .instagram;
 
   @override
   AppTheme get lightTheme => AppTheme(

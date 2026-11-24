@@ -3,26 +3,16 @@ import 'package:material_ui/material_ui.dart';
 import 'models/theme.dart';
 
 @immutable
-class FlushipThemeExtension extends ThemeExtension<FlushipThemeExtension> {
-  const FlushipThemeExtension({
-    required this.headingColors,
-    required this.codeBorder,
-    required this.spacing,
-    required this.codeBg,
-    required this.colors,
-    required this.radius,
-    required this.theme,
-  });
-
-  final Map<int, Color> headingColors;
-  final ThemeSpacing spacing;
-  final ThemePalette colors;
-  final ThemeRadius radius;
-  final Color codeBorder;
-  final AppTheme theme;
-  final Color codeBg;
-
-  factory FlushipThemeExtension.fromAppTheme(AppTheme theme) {
+class const FlushipThemeExtension({
+  required final Map<int, Color> headingColors,
+  required final Color codeBorder,
+  required final ThemeSpacing spacing,
+  required final Color codeBg,
+  required final ThemePalette colors,
+  required final ThemeRadius radius,
+  required final AppTheme theme,
+}) extends ThemeExtension<FlushipThemeExtension> {
+  factory fromAppTheme(AppTheme theme) {
     return FlushipThemeExtension(
       headingColors: theme.headingColors,
       codeBorder: theme.codeBorder,

@@ -46,12 +46,12 @@ PipelineRunSnapshot _snapshot({String logFilePath = 'logs.txt'}) {
     steps: const [
       PipelineStepView(
         description: 'Compile a signed release APK',
-        status: PipelineStepStatus.completed,
+        status: .completed,
         name: 'Build APK',
         elapsed: Duration(seconds: 3),
       ),
     ],
-    runStatus: PipelineRunStatus.completed,
+    runStatus: .completed,
     totalElapsed: const Duration(seconds: 3),
     finishedAt: DateTime(2026, 6, 20, 14, 30),
     startedAt: DateTime(2026, 6, 20, 14, 29, 57),

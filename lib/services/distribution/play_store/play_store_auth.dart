@@ -9,9 +9,8 @@ abstract interface class PlayStoreAuthClientFactory {
   Future<http.Client> createClient({required String saJsonPath});
 }
 
-class GooglePlayAuthClientFactory implements PlayStoreAuthClientFactory {
-  const GooglePlayAuthClientFactory();
-
+class const GooglePlayAuthClientFactory()
+    implements PlayStoreAuthClientFactory {
   @override
   Future<http.Client> createClient({required String saJsonPath}) async {
     final path = saJsonPath.trim();

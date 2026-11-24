@@ -9,17 +9,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 part 'process_manager_event.dart';
 part 'process_manager_state.dart';
 
-class ProcessManagerBloc
-    extends BaseBloc<ProcessManagerEvent, ProcessManagerState> {
-  ProcessManagerBloc({
-    ProcessClassifier? classifier,
-    ProcessEnumerator? enumerator,
-    required this._sessionPool,
-    ProcessKiller? killer,
-  }) : _classifier = classifier ?? const ProcessClassifier(),
-       _enumerator = enumerator ?? const ProcessEnumerator(),
-       _killer = killer ?? const ProcessKiller(),
-       super(ProcessManagerState.initial()) {
+class ProcessManagerBloc({
+  ProcessClassifier? classifier,
+  ProcessEnumerator? enumerator,
+  required final IConsoleSessionPool _sessionPool,
+  ProcessKiller? killer,
+}) extends BaseBloc<ProcessManagerEvent, ProcessManagerState> {
+  this : super(ProcessManagerState.initial()) {
     on<ProcessManagerShowAllChildrenToggled>(handler(_onShowAllToggled));
     on<ProcessManagerVisibilityChanged>(handler(_onVisibilityChanged));
     on<ProcessManagerKillAllOrphans>(handler(_onKillAllOrphans));
@@ -28,10 +24,9 @@ class ProcessManagerBloc
     on<ProcessManagerRefreshed>(handler(_onRefreshed));
   }
 
-  final IConsoleSessionPool _sessionPool;
-  final ProcessClassifier _classifier;
-  final ProcessEnumerator _enumerator;
-  final ProcessKiller _killer;
+  final ProcessClassifier _classifier = classifier ?? const ProcessClassifier();
+  final ProcessEnumerator _enumerator = enumerator ?? const ProcessEnumerator();
+  final ProcessKiller _killer = killer ?? const ProcessKiller();
 
   Timer? _refreshTimer;
   String _projectRoot = '';

@@ -1,6 +1,4 @@
-class ConsoleLimits {
-  const ConsoleLimits._();
-
+class const ConsoleLimits._() {
   static const maxLineLength = 256 * 1024;
   static const maxLinesPerSession = 2000;
   static const maxCommandHistory = 50;

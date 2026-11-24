@@ -5,18 +5,12 @@ import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:fluship/shared/models/app_info.dart';
 import 'package:material_ui/material_ui.dart';
 
-class ProjectSwitcherSheet extends StatelessWidget {
-  const ProjectSwitcherSheet({
-    required this.profileAppInfo,
-    required this.activeProject,
-    required this.projectNames,
-    super.key,
-  });
-
-  final Map<String, AppInfoModel> profileAppInfo;
-  final List<String> projectNames;
-  final String activeProject;
-
+class const ProjectSwitcherSheet({
+  required final Map<String, AppInfoModel> profileAppInfo,
+  required final String activeProject,
+  required final List<String> projectNames,
+  super.key,
+}) extends StatelessWidget {
   static Future<String?> show(
     BuildContext context, {
     required Map<String, AppInfoModel> profileAppInfo,

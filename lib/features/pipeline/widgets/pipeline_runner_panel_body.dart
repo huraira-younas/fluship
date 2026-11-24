@@ -12,11 +12,10 @@ import 'pipeline_status_style.dart';
 import 'pipeline_step_row.dart';
 import 'pipeline_elapsed.dart';
 
-class PipelineRunnerPanelBody extends StatelessWidget {
-  const PipelineRunnerPanelBody({required this.state, super.key});
-
-  final PipelineState state;
-
+class const PipelineRunnerPanelBody({
+  required final PipelineState state,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isRunning = state.isRunning;
@@ -62,7 +61,7 @@ class PipelineRunnerPanelBody extends StatelessWidget {
                 step: step,
               );
             },
-            separatorBuilder: (context, index) {
+            separatorBuilder: (_, _) {
               return SizedBox(height: ft.spacing.sm);
             },
           ).expanded(),
@@ -73,10 +72,8 @@ class PipelineRunnerPanelBody extends StatelessWidget {
   }
 }
 
-class _PipelineRunStatus extends StatelessWidget {
-  const _PipelineRunStatus({required this.state});
-  final PipelineState state;
-
+class const _PipelineRunStatus({required final PipelineState state})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
@@ -145,10 +142,8 @@ class _PipelineRunStatus extends StatelessWidget {
   }
 }
 
-class _PipelineRunActions extends StatelessWidget {
-  const _PipelineRunActions({required this.state});
-  final PipelineState state;
-
+class const _PipelineRunActions({required final PipelineState state})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppButton.primary(
@@ -162,9 +157,7 @@ class _PipelineRunActions extends StatelessWidget {
   }
 }
 
-class _PipelineIdlePlaceholder extends StatelessWidget {
-  const _PipelineIdlePlaceholder();
-
+class const _PipelineIdlePlaceholder() extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;

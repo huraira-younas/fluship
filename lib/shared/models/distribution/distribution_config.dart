@@ -12,26 +12,16 @@ part 'whatsapp_config.dart';
 part 'slack_config.dart';
 part 'ios_config.dart';
 
-final class DistributionConfigModel extends BaseConfig {
-  const DistributionConfigModel({
-    super.enabled = true,
-    this.reportRecipient,
-    this.whatsappConfig,
-    this.releaseNotes,
-    this.driveConfig,
-    this.slackConfig,
-    this.playstore,
-    this.appstore,
-  });
-
-  final ReportRecipientConfig? reportRecipient;
-  final GooglePlayConsoleConfig? playstore;
-  final WhatsAppConfig? whatsappConfig;
-  final GoogleDriveConfig? driveConfig;
-  final SlackConfig? slackConfig;
-  final String? releaseNotes;
-  final IosConfig? appstore;
-
+final class const DistributionConfigModel({
+  super.enabled = true,
+  final ReportRecipientConfig? reportRecipient,
+  final WhatsAppConfig? whatsappConfig,
+  final String? releaseNotes,
+  final GoogleDriveConfig? driveConfig,
+  final SlackConfig? slackConfig,
+  final GooglePlayConsoleConfig? playstore,
+  final IosConfig? appstore,
+}) extends BaseConfig {
   bool get canSendBuildReport => reportRecipient?.canSend ?? false;
   bool get canSendToPlayStore => playstore?.canSend ?? false;
   bool get canSendToWhatsApp => whatsappConfig?.canSend ?? false;
@@ -39,7 +29,7 @@ final class DistributionConfigModel extends BaseConfig {
   bool get canSendToSlack => slackConfig?.canSend ?? false;
   bool get canSendToDrive => driveConfig?.canSend ?? false;
 
-  factory DistributionConfigModel.fromJson(Map<String, dynamic>? json) {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const DistributionConfigModel();
 
     final data = json.at<DistributionConfigModel>();

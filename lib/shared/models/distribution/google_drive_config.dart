@@ -1,18 +1,11 @@
 part of 'distribution_config.dart';
 
-class GoogleDriveConfig extends Equatable {
-  final String? oauthJson;
-  final String? tokenJson;
-  final String? folderId;
-  final bool enabled;
-
-  const GoogleDriveConfig({
-    this.enabled = false,
-    this.tokenJson,
-    this.oauthJson,
-    this.folderId,
-  });
-
+class const GoogleDriveConfig({
+  final bool enabled = false,
+  final String? tokenJson,
+  final String? oauthJson,
+  final String? folderId,
+}) extends Equatable {
   bool get canSend => hasCreds(oauthJson) && hasCreds(tokenJson);
 
   GoogleDriveConfig copyWith({
@@ -27,7 +20,7 @@ class GoogleDriveConfig extends Equatable {
     enabled: enabled ?? this.enabled,
   );
 
-  factory GoogleDriveConfig.fromJson(Map<String, dynamic>? json) {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const GoogleDriveConfig();
 
     final data = json.at<GoogleDriveConfig>();

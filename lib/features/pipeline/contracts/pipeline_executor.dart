@@ -1,22 +1,13 @@
 import 'package:fluship/services/pipeline/pipeline.dart' show CommandStep;
 
-class PipelineStepResult {
-  const PipelineStepResult({
-    this.wasCancelled = false,
-    this.errorMessage = '',
-    required this.success,
-    this.exitCode,
-  });
+class const PipelineStepResult({
+  final bool wasCancelled = false,
+  final String errorMessage = '',
+  required final bool success,
+  final int? exitCode,
+});
 
-  final String errorMessage;
-  final bool wasCancelled;
-  final int? exitCode;
-  final bool success;
-}
-
-class PipelineExecutor {
-  const PipelineExecutor();
-
+class const PipelineExecutor() {
   Future<PipelineStepResult> executeInternal(CommandStep step) async {
     final execute = step.onExecute;
     if (execute == null) {

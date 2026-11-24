@@ -12,25 +12,15 @@ enum PipelineStepStatus {
   failed,
 }
 
-class PipelineStepView extends Equatable {
-  const PipelineStepView({
-    required this.description,
-    required this.status,
-    required this.name,
-    this.errorMessage,
-    this.startedAt,
-    this.elapsed,
-    this.upload,
-  });
-
-  final PipelineUploadProgress? upload;
-  final PipelineStepStatus status;
-  final String? errorMessage;
-  final DateTime? startedAt;
-  final String description;
-  final Duration? elapsed;
-  final String name;
-
+class const PipelineStepView({
+  required final String description,
+  required final PipelineStepStatus status,
+  required final String name,
+  final String? errorMessage,
+  final DateTime? startedAt,
+  final Duration? elapsed,
+  final PipelineUploadProgress? upload,
+}) extends Equatable {
   bool get isTimingActive => status == .running && startedAt != null;
 
   PipelineStepView copyWith({

@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Flutter-3.47.5-02569B?logo=flutter&logoColor=white" alt="Flutter">
+  <img src="https://img.shields.io/badge/Flutter-3.50.0-02569B?logo=flutter&logoColor=white" alt="Flutter">
   <img src="https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-lightgrey" alt="Platforms">
   <img src="https://img.shields.io/badge/state-management-flutter__bloc-8B5CF6" alt="flutter_bloc">
   <img src="https://img.shields.io/badge/license-MIT-22C55E" alt="MIT License">
@@ -195,7 +195,7 @@ That's the whole onboarding. Low effort, high reward.
 
 **Core (non-negotiable):**
 
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.47.5 (Dart `^3.13.4`)
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.50.0 (Dart `^3.14.0`)
 - macOS, Windows, Linux, or Web to run Fluship. Not Android or iOS.
 - A Flutter project with a valid `pubspec.yaml`
 

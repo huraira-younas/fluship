@@ -4,25 +4,15 @@ import 'counted_upload.dart';
 
 enum UploadChannel { play, appStore, drive }
 
-class PipelineUploadProgress extends Equatable {
-  const PipelineUploadProgress({
-    required this.fileName,
-    required this.channel,
-    this.bytes = 0,
-    this.total = 0,
-    this.fileIndex,
-    this.fileCount,
-    this.percent,
-  });
-
-  final UploadChannel channel;
-  final String fileName;
-  final int? fileIndex;
-  final int? fileCount;
-  final int? percent;
-  final int bytes;
-  final int total;
-
+class const PipelineUploadProgress({
+  required final String fileName,
+  required final UploadChannel channel,
+  final int bytes = 0,
+  final int total = 0,
+  final int? fileIndex,
+  final int? fileCount,
+  final int? percent,
+}) extends Equatable {
   String get channelLabel => switch (channel) {
     .appStore => 'App Store',
     .play => 'Play Store',

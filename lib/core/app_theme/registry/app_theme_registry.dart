@@ -3,16 +3,12 @@ import 'package:material_ui/material_ui.dart' show Brightness;
 import '../models/app_themes.dart';
 import '../models/theme.dart';
 
-class ThemePresetBundle {
-  const ThemePresetBundle({required this.light, required this.dark});
+class const ThemePresetBundle({
+  required final AppTheme light,
+  required final AppTheme dark,
+});
 
-  final AppTheme light;
-  final AppTheme dark;
-}
-
-class AppThemeRegistry {
-  AppThemeRegistry._();
-
+class AppThemeRegistry._() {
   static final Map<AppThemes, ThemePresetBundle> _presets = {};
 
   static bool get isEmpty => _presets.isEmpty;

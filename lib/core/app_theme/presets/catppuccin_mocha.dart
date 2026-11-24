@@ -3,9 +3,7 @@ import '../utils/color_from_hex.dart';
 import '../models/app_themes.dart';
 import '../models/theme.dart';
 
-final class CatppuccinMochaPreset implements ThemePresetModule {
-  const CatppuccinMochaPreset();
-
+final class const CatppuccinMochaPreset() implements ThemePresetModule {
   @override
   AppThemes get id => .catppuccinMocha;
 

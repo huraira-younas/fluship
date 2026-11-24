@@ -34,5 +34,19 @@ linter:
     prefer_const_literals_to_create_immutables: true
     prefer_single_quotes: false
 
+    # Dart 3.13 constructor syntax and newer idioms. See "Dart style" in AGENTS.md.
+    # `use_primary_constructors` is left off on purpose: it also demands `()` on
+    # classes and enums that have no constructor.
+    unnecessary_type_name_in_constructor: true
+    unnecessary_const_in_enum_constructor: true
+    unnecessary_primary_constructor_body: true
+    initialize_in_field_declaration: true
+    simplify_variable_pattern: true
+    use_declaring_parameters: true
+    use_null_aware_elements: true
+    empty_container_bodies: true
+    unnecessary_underscores: true
+    switch_on_type: true
+
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

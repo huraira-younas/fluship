@@ -4,12 +4,11 @@ import 'dart:convert' show jsonEncode, jsonDecode;
 
 part 'shared_prefs_keys.dart';
 
-class SharedPrefs {
+class SharedPrefs._internal() {
   static SharedPrefs get i => _instance;
   late SharedPreferences _prefs;
 
   static final SharedPrefs _instance = SharedPrefs._internal();
-  SharedPrefs._internal();
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();

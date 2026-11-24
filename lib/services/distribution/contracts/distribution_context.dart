@@ -6,23 +6,14 @@ import '../email/report_html_theme.dart';
 import '../upload/counted_upload.dart';
 import 'distribution_logger.dart';
 
-class DistributionContext {
-  const DistributionContext({
-    required this.emailTheme,
-    required this.snapshot,
-    this.onUploadProgress,
-    this.onLinkPublished,
-    required this.config,
-    required this.logger,
-  });
-
-  final void Function(PipelineUploadProgress progress)? onUploadProgress;
-  final void Function(String label, String url)? onLinkPublished;
-  final DistributionConfigModel config;
-  final PipelineRunSnapshot snapshot;
-  final ReportHtmlTheme emailTheme;
-  final DistributionLogger logger;
-
+class const DistributionContext({
+  required final ReportHtmlTheme emailTheme,
+  required final PipelineRunSnapshot snapshot,
+  final void Function(PipelineUploadProgress progress)? onUploadProgress,
+  final void Function(String label, String url)? onLinkPublished,
+  required final DistributionConfigModel config,
+  required final DistributionLogger logger,
+}) {
   /// Records a download link for steps that run later in the same pipeline.
   void publishLink(String label, String url) =>
       onLinkPublished?.call(label, url);

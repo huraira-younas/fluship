@@ -1,15 +1,12 @@
 import 'package:material_ui/material_ui.dart' show IconData, Icons;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-enum LayoutTabs {
+enum LayoutTabs(final int value) {
   config(0),
   console(1),
   settings(2),
   files(3),
   processes(4);
-
-  const LayoutTabs(this.value);
-  final int value;
 
   static const mobileNav = [config, console, settings];
   static const desktopNav = LayoutTabs.values;
@@ -34,8 +31,8 @@ enum LayoutTabs {
   };
 }
 
-class NavigatorCubit extends Cubit<LayoutTabs> {
-  NavigatorCubit() : super(.config);
+class NavigatorCubit() extends Cubit<LayoutTabs> {
+  this : super(.config);
 
   void navigate(LayoutTabs value) => emit(value);
 }

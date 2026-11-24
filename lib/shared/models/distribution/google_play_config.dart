@@ -11,17 +11,11 @@ enum PlayStoreDistribution {
   };
 }
 
-class GooglePlayConsoleConfig extends Equatable {
-  final PlayStoreDistribution? distribution;
-  final String? packageName;
-  final String? saJsonPath;
-
-  const GooglePlayConsoleConfig({
-    this.distribution,
-    this.packageName,
-    this.saJsonPath,
-  });
-
+class const GooglePlayConsoleConfig({
+  final PlayStoreDistribution? distribution,
+  final String? packageName,
+  final String? saJsonPath,
+}) extends Equatable {
   bool get canSend => hasCreds(saJsonPath) && hasCreds(packageName);
 
   GooglePlayConsoleConfig copyWith({
@@ -35,7 +29,7 @@ class GooglePlayConsoleConfig extends Equatable {
     saJsonPath: saJsonPath ?? this.saJsonPath,
   );
 
-  factory GooglePlayConsoleConfig.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     final data = json.at<GooglePlayConsoleConfig>();
     return GooglePlayConsoleConfig(
       distribution: .fromString(data.parse<String?>('distribution')),

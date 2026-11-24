@@ -6,9 +6,7 @@ import 'dart:io' show File;
 
 import '../contracts/email_client.dart';
 
-class GmailSmtpClient implements EmailClient {
-  const GmailSmtpClient();
-
+class const GmailSmtpClient() implements EmailClient {
   @override
   Future<void> send(EmailMessage message) async {
     final server = gmail(message.sender, message.password);

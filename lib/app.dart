@@ -8,9 +8,7 @@ import 'shared/app_layout/app_layout.dart';
 import 'core/app_theme/theme_cubit.dart';
 import 'di/bloc_providers.dart';
 
-class App extends StatelessWidget {
-  const App({super.key});
-
+class const App({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MultiBlocProvider(
     providers: AppBlocProviders.providers,

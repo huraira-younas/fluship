@@ -5,16 +5,15 @@ import 'package:fluship/core/json_parser/exports.dart';
 import 'base_config.dart';
 
 final class IosConfigModel extends BaseConfig {
-  IosConfigModel({
-    this.podClean = false,
-    this.buildIpa = false,
-    bool enabled = true,
-  }) : super(enabled: Platform.isMacOS ? enabled : false);
+  // In-body form: `Platform.isMacOS` keeps this constructor from being const,
+  // and `prefer_const_constructors_in_immutables` misfires on a primary one.
+  new({this.podClean = false, this.buildIpa = false, bool enabled = true})
+    : super(enabled: Platform.isMacOS ? enabled : false);
 
   final bool podClean;
   final bool buildIpa;
 
-  factory IosConfigModel.fromJson(Map<String, dynamic>? json) {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return IosConfigModel();
 
     final data = json.at<IosConfigModel>();

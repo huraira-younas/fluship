@@ -29,23 +29,14 @@ bool canCloseConsoleTab(int userSessionCount, ConsoleSession session) {
   return userSessionCount > 1;
 }
 
-class ConsoleSessionTabsData {
-  const ConsoleSessionTabsData({
-    required this.userSessionCount,
-    required this.activeSessionId,
-    required this.canAddSession,
-    required this.sessions,
-  });
+class const ConsoleSessionTabsData({
+  required final int userSessionCount,
+  required final String? activeSessionId,
+  required final bool canAddSession,
+  required final List<ConsoleSession> sessions,
+});
 
-  final List<ConsoleSession> sessions;
-  final String? activeSessionId;
-  final int userSessionCount;
-  final bool canAddSession;
-}
-
-class ConsoleSessionTabs extends StatelessWidget {
-  const ConsoleSessionTabs({super.key});
-
+class const ConsoleSessionTabs({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ConsoleBloc, ConsoleState, ConsoleSessionTabsData>(
@@ -96,32 +87,23 @@ Future<void> _closeSession(
   }
 }
 
-class _TabEntry {
-  _TabEntry({required this.session, required this.controller})
-    : key = GlobalKey();
+class _TabEntry({
+  required var ConsoleSession session,
+  required final AnimationController controller,
+}) {
+  this : key = GlobalKey();
 
-  final AnimationController controller;
-  ConsoleSession session;
   final GlobalKey key;
 }
 
-class _ConsoleSessionTabsBar extends StatefulWidget {
-  const _ConsoleSessionTabsBar({
-    required this.userSessionCount,
-    required this.onSelectSession,
-    required this.activeSessionId,
-    required this.onCloseSession,
-    required this.onAddSession,
-    required this.sessions,
-  });
-
-  final Future<void> Function(ConsoleSession session) onCloseSession;
-  final void Function(String sessionId) onSelectSession;
-  final List<ConsoleSession> sessions;
-  final VoidCallback? onAddSession;
-  final String? activeSessionId;
-  final int userSessionCount;
-
+class const _ConsoleSessionTabsBar({
+  required final int userSessionCount,
+  required final void Function(String sessionId) onSelectSession,
+  required final String? activeSessionId,
+  required final Future<void> Function(ConsoleSession session) onCloseSession,
+  required final VoidCallback? onAddSession,
+  required final List<ConsoleSession> sessions,
+}) extends StatefulWidget {
   @override
   State<_ConsoleSessionTabsBar> createState() => _ConsoleSessionTabsBarState();
 }
@@ -224,7 +206,7 @@ class _ConsoleSessionTabsBarState extends State<_ConsoleSessionTabsBar>
     if (renderObject == null) return;
 
     scrollable.position.ensureVisible(
-      duration: animate ? _animDuration : Duration.zero,
+      duration: animate ? _animDuration : .zero,
       curve: Curves.easeInOut,
       alignment: 0.5,
       renderObject,
@@ -299,12 +281,10 @@ class _ConsoleSessionTabsBarState extends State<_ConsoleSessionTabsBar>
 // Enter / exit transition — slide-expand + fade (Chrome-like)
 // ---------------------------------------------------------------------------
 
-class _TabEnterExitTransition extends StatelessWidget {
-  const _TabEnterExitTransition({required this.animation, required this.child});
-
-  final Animation<double> animation;
-  final Widget child;
-
+class const _TabEnterExitTransition({
+  required final Animation<double> animation,
+  required final Widget child,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final curved = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
@@ -324,22 +304,14 @@ class _TabEnterExitTransition extends StatelessWidget {
 // Individual session tab
 // ---------------------------------------------------------------------------
 
-class _SessionTab extends StatelessWidget {
-  const _SessionTab({
-    required this.isSelected,
-    required this.isRunning,
-    required this.onClose,
-    required this.onTap,
-    required this.title,
-    super.key,
-  });
-
-  final VoidCallback? onClose;
-  final VoidCallback onTap;
-  final bool isSelected;
-  final bool isRunning;
-  final String title;
-
+class const _SessionTab({
+  required final bool isSelected,
+  required final bool isRunning,
+  required final VoidCallback? onClose,
+  required final VoidCallback onTap,
+  required final String title,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.flushipTheme.colors;
@@ -422,10 +394,8 @@ class _SessionTab extends StatelessWidget {
   }
 }
 
-class _AddTabButton extends StatelessWidget {
-  const _AddTabButton({required this.onTap});
-  final VoidCallback? onTap;
-
+class const _AddTabButton({required final VoidCallback? onTap})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.flushipTheme.colors;

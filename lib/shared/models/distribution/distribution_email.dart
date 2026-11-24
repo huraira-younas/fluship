@@ -1,17 +1,11 @@
 part of 'distribution_config.dart';
 
-class DistributionEmail extends Equatable {
-  const DistributionEmail({
-    this.enabled = true,
-    required this.email,
-    required this.name,
-  });
-
-  final bool enabled;
-  final String email;
-  final String name;
-
-  factory DistributionEmail.fromJson(Map<String, dynamic> json) {
+class const DistributionEmail({
+  final bool enabled = true,
+  required final String email,
+  required final String name,
+}) extends Equatable {
+  factory fromJson(Map<String, dynamic> json) {
     final data = json.at<DistributionEmail>();
     return DistributionEmail(
       enabled: data.parse<bool>('enabled', defaultValue: true),

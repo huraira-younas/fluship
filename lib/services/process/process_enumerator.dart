@@ -2,9 +2,7 @@ import 'dart:io' show Platform, Process, ProcessException, ProcessResult;
 
 import 'models/process_entry.dart';
 
-class ProcessEnumerator {
-  const ProcessEnumerator();
-
+class const ProcessEnumerator() {
   bool get isSupported =>
       Platform.isMacOS || Platform.isLinux || Platform.isWindows;
 

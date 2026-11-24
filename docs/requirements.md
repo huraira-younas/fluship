@@ -2,7 +2,7 @@
 
 ## Host app
 
-- Flutter SDK 3.47.5. Dart constraint `^3.13.4`.
+- Flutter SDK 3.50.0. Dart constraint `^3.14.0`.
 - Fluship runs on macOS, Windows, Linux, and Web.
 - Fluship does not ship an Android or iOS app. Do not add `android/` or `ios/` back as app targets.
 

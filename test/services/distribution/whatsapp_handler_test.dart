@@ -99,17 +99,17 @@ PipelineRunSnapshot _snapshot({
     steps: const [
       PipelineStepView(
         description: 'Compile a signed release APK',
-        status: PipelineStepStatus.completed,
+        status: .completed,
         elapsed: Duration(seconds: 3),
         name: 'Build APK',
       ),
       PipelineStepView(
         description: 'Send the build summary and log to WhatsApp',
-        status: PipelineStepStatus.running,
+        status: .running,
         name: 'Send to WhatsApp',
       ),
     ],
-    runStatus: PipelineRunStatus.completed,
+    runStatus: .completed,
     totalElapsed: const Duration(seconds: 3),
     finishedAt: DateTime(2026, 6, 20, 14, 30),
     startedAt: DateTime(2026, 6, 20, 14, 29, 57),

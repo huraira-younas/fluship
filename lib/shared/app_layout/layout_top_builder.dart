@@ -17,18 +17,12 @@ import 'package:fluship/shared/models/app_info.dart';
 
 import 'navigator_cubit.dart';
 
-class LayoutTopBuilder extends StatelessWidget {
-  const LayoutTopBuilder({
-    required this.selectedTab,
-    this.sidePanel = false,
-    required this.spacing,
-    super.key,
-  });
-
-  final LayoutTabs selectedTab;
-  final ThemeSpacing spacing;
-  final bool sidePanel;
-
+class const LayoutTopBuilder({
+  required final LayoutTabs selectedTab,
+  final bool sidePanel = false,
+  required final ThemeSpacing spacing,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pipeline = BlocSelector<PipelineBloc, PipelineState, (bool, String)>(

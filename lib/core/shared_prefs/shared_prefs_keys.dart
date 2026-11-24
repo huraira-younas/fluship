@@ -1,11 +1,8 @@
 part of 'shared_prefs.dart';
 
-enum SharedPrefsKeys {
+enum SharedPrefsKeys(final String key) {
   themeBrightness('theme_brightness'),
   projectProfiles('project_profiles'),
   activeProject('active_project'),
-  themeMode('theme_mode');
-
-  const SharedPrefsKeys(this.key);
-  final String key;
+  themeMode('theme_mode'),
 }

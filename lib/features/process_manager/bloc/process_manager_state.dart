@@ -1,22 +1,15 @@
 part of 'process_manager_bloc.dart';
 
-class ProcessManagerState extends BaseBlocState {
-  const ProcessManagerState({
-    required this.showAllChildren,
-    required this.isSupported,
-    required this.processes,
-    this.lastRefreshedAt,
+class const ProcessManagerState({
+  required final bool showAllChildren,
+  required final bool isSupported,
+  required final List<ProcessRow> processes,
+  final DateTime? lastRefreshedAt,
 
-    super.loading = false,
-    super.error,
-  });
-
-  final List<ProcessRow> processes;
-  final DateTime? lastRefreshedAt;
-  final bool showAllChildren;
-  final bool isSupported;
-
-  factory ProcessManagerState.initial() => const ProcessManagerState(
+  super.loading = false,
+  super.error,
+}) extends BaseBlocState {
+  factory initial() => const ProcessManagerState(
     showAllChildren: false,
     isSupported: true,
     processes: [],

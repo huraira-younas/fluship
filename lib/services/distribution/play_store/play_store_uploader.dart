@@ -21,11 +21,11 @@ abstract interface class PlayStoreUploader {
   });
 }
 
-class GooglePlayPublisherUploader implements PlayStoreUploader {
-  const GooglePlayPublisherUploader({PlayStoreAuthClientFactory? authFactory})
-    : _authFactory = authFactory ?? const GooglePlayAuthClientFactory();
-
-  final PlayStoreAuthClientFactory _authFactory;
+class const GooglePlayPublisherUploader({
+  PlayStoreAuthClientFactory? authFactory,
+}) implements PlayStoreUploader {
+  final PlayStoreAuthClientFactory _authFactory =
+      authFactory ?? const GooglePlayAuthClientFactory();
 
   @override
   Future<String> upload({

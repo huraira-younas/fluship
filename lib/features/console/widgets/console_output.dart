@@ -10,22 +10,14 @@ import 'package:material_ui/material_ui.dart';
 import '../bloc/console_bloc.dart';
 
 @immutable
-class ConsoleOutputSnapshot extends Equatable {
-  const ConsoleOutputSnapshot({
-    required this.headSignature,
-    required this.tailSignature,
-    required this.lineCount,
-    required this.lines,
-    this.sessionId,
-  });
-
-  final List<ConsoleLine> lines;
-  final int headSignature;
-  final int tailSignature;
-  final String? sessionId;
-  final int lineCount;
-
-  factory ConsoleOutputSnapshot.fromState(ConsoleState state) {
+class const ConsoleOutputSnapshot({
+  required final int headSignature,
+  required final int tailSignature,
+  required final int lineCount,
+  required final List<ConsoleLine> lines,
+  final String? sessionId,
+}) extends Equatable {
+  factory fromState(ConsoleState state) {
     final lines = state.activeSession?.lines ?? const [];
     return ConsoleOutputSnapshot(
       headSignature: lines.isEmpty
@@ -49,9 +41,7 @@ class ConsoleOutputSnapshot extends Equatable {
   ];
 }
 
-class ConsoleOutput extends StatelessWidget {
-  const ConsoleOutput({super.key});
-
+class const ConsoleOutput({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ConsoleBloc, ConsoleState, ConsoleOutputSnapshot>(
@@ -67,17 +57,11 @@ class ConsoleOutput extends StatelessWidget {
   }
 }
 
-class _ConsoleOutputView extends StatefulWidget {
-  const _ConsoleOutputView({
-    required this.sessionId,
-    required this.onClear,
-    required this.lines,
-  });
-
-  final List<ConsoleLine> lines;
-  final VoidCallback onClear;
-  final String? sessionId;
-
+class const _ConsoleOutputView({
+  required final String? sessionId,
+  required final VoidCallback onClear,
+  required final List<ConsoleLine> lines,
+}) extends StatefulWidget {
   @override
   State<_ConsoleOutputView> createState() => _ConsoleOutputViewState();
 }
@@ -163,9 +147,9 @@ class _ConsoleOutputViewState extends State<_ConsoleOutputView> {
       width: .infinity,
       decoration: BoxDecoration(
         border: .all(color: colors.consoleBorder),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(ft.radius.btn),
-          bottomRight: Radius.circular(ft.radius.btn),
+        borderRadius: .only(
+          bottomLeft: .circular(ft.radius.btn),
+          bottomRight: .circular(ft.radius.btn),
         ),
         color: colors.consoleInner,
       ),
@@ -233,12 +217,11 @@ Color _lineColor(ConsoleLineKind kind, FlushipThemeExtension ft) {
   };
 }
 
-class _ConsoleLineRow extends StatelessWidget {
-  const _ConsoleLineRow({required this.color, required this.line, super.key});
-
-  final ConsoleLine line;
-  final Color color;
-
+class const _ConsoleLineRow({
+  required final Color color,
+  required final ConsoleLine line,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppText.custom(color: color, softWrap: true, size: .body, line.text);

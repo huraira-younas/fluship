@@ -5,24 +5,18 @@ import 'models/shell_run_result.dart';
 import 'contracts/shell_runner.dart';
 import 'console_limits.dart';
 
-class ConsoleSessionPool implements IConsoleSessionPool {
-  ConsoleSessionPool({required this._factory});
-
+class ConsoleSessionPool({required final IShellRunnerFactory _factory})
+    implements IConsoleSessionPool {
   final Map<String, IShellRunner> _runners = {};
-  final IShellRunnerFactory _factory;
 
   @override
   int get sessionCount => _runners.length;
 
   @override
-  Map<String, int> get trackedShellPids {
-    final pids = <String, int>{};
-    for (final entry in _runners.entries) {
-      final pid = entry.value.processId;
-      if (pid != null) pids[entry.key] = pid;
-    }
-    return pids;
-  }
+  Map<String, int> get trackedShellPids => {
+    for (final MapEntry(:key, value: runner) in _runners.entries)
+      key: ?runner.processId,
+  };
 
   @override
   Set<int> get trackedShellPidSet => trackedShellPids.values.toSet();

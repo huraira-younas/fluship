@@ -10,9 +10,7 @@ import '../widgets/console_output.dart';
 import '../widgets/console_input.dart';
 import '../bloc/console_bloc.dart';
 
-class ConsoleScreen extends StatefulWidget {
-  const ConsoleScreen({super.key});
-
+class const ConsoleScreen({super.key}) extends StatefulWidget {
   @override
   State<ConsoleScreen> createState() => _ConsoleScreenState();
 }

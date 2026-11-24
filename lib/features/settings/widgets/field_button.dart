@@ -3,20 +3,13 @@ import 'package:fluship/shared/widgets/app_text_field.dart';
 import 'package:fluship/shared/widgets/app_button.dart';
 import 'package:material_ui/material_ui.dart';
 
-class FieldButton extends StatelessWidget {
-  const FieldButton({
-    required this.onBrowse,
-    required this.label,
-    required this.hint,
-    this.value,
-    super.key,
-  });
-
-  final VoidCallback onBrowse;
-  final String? value;
-  final String label;
-  final String hint;
-
+class const FieldButton({
+  required final VoidCallback onBrowse,
+  required final String label,
+  required final String hint,
+  final String? value,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(

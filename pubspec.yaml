@@ -19,7 +19,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.1+2
 
 environment:
-  sdk: ^3.13.4
+  sdk: ^3.14.0
+  flutter: ">=3.50.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -33,22 +34,22 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  shared_preferences: ^2.5.5
+  shared_preferences: ^2.5.6
   cupertino_icons: ^2.0.0
-  googleapis_auth: ^2.3.2
-  toastification: ^3.2.0
-  file_picker: ^13.1.0
+  googleapis_auth: ^2.3.7
+  toastification: ^3.2.2
+  file_picker: ^13.4.1
   flutter_bloc: ^9.1.1
-  url_launcher: ^6.3.2
+  url_launcher: ^6.3.3
   googleapis: ^19.0.0
   equatable: ^3.0.0
-  mailer: ^7.1.0
-  get_it: ^9.0.5
-  intl: ^0.20.2
+  mailer: ^7.3.0
+  get_it: ^9.3.0
+  intl: ^0.20.3
   http: ^1.6.0
   path: ^1.9.1
-  xml: ^7.0.1
-  material_ui: ^1.5.0
+  xml: ^7.1.0
+  material_ui: ^1.11.1
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +84,11 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # macOS plugins are linked through Swift Package Manager. The project has no
+  # Podfile, so keep this on.
+  config:
+    enable-swift-package-manager: true
 
   assets:
     - assets/app_logo.png

@@ -1,8 +1,6 @@
 import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
 
-class PipelineLogCopy {
-  const PipelineLogCopy._();
-
+class const PipelineLogCopy._() {
   static String started({
     required String version,
     required String build,

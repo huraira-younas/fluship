@@ -2,29 +2,28 @@ import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 import 'package:flutter/widgets.dart';
 
 extension WidgetX on Widget {
-  Widget padAll(double value) =>
-      Padding(padding: EdgeInsets.all(value), child: this);
+  Widget padAll(double value) => Padding(padding: .all(value), child: this);
 
   Widget padSym({double h = 0, double v = 0}) => Padding(
-    padding: EdgeInsets.symmetric(horizontal: h, vertical: v),
+    padding: .symmetric(horizontal: h, vertical: v),
     child: this,
   );
 
   Widget padOnly({double l = 0, double t = 0, double r = 0, double b = 0}) =>
       Padding(
-        padding: EdgeInsets.only(left: l, top: t, right: r, bottom: b),
+        padding: .only(left: l, top: t, right: r, bottom: b),
         child: this,
       );
 
   Widget onTap(
     GestureTapCallback? onTap, {
-    HitTestBehavior behavior = HitTestBehavior.opaque,
+    HitTestBehavior behavior = .opaque,
   }) {
     return GestureDetector(onTap: onTap, behavior: behavior, child: this);
   }
 
   Widget onGesture({
-    HitTestBehavior behavior = HitTestBehavior.opaque,
+    HitTestBehavior behavior = .opaque,
     GestureTapCallback? onDoubleTap,
     GestureTapCallback? onTap,
   }) {
@@ -39,7 +38,7 @@ extension WidgetX on Widget {
   Widget expanded({int flex = 1, Key? key}) =>
       Expanded(flex: flex, key: key, child: this);
 
-  Widget flexible({int flex = 1, Key? key, FlexFit fit = FlexFit.loose}) =>
+  Widget flexible({int flex = 1, Key? key, FlexFit fit = .loose}) =>
       Flexible(flex: flex, key: key, fit: fit, child: this);
 
   Widget center({Key? key, double? widthFactor, double? heightFactor}) =>

@@ -29,26 +29,18 @@ abstract interface class WhatsAppClient {
   });
 }
 
-class WhatsAppLimits {
-  const WhatsAppLimits._();
-
+class const WhatsAppLimits._() {
   static const maxDocumentBytes = 16 * 1024 * 1024;
   static const maxCaptionLength = 1024;
   static const maxTextLength = 4096;
 }
 
 /// [message] is safe to show and log: it never contains the API key.
-class WhatsAppApiException implements Exception {
-  const WhatsAppApiException({
-    required this.statusCode,
-    required this.message,
-    this.code,
-  });
-
-  final int statusCode;
-  final String message;
-  final int? code;
-
+class const WhatsAppApiException({
+  required final int statusCode,
+  required final String message,
+  final int? code,
+}) implements Exception {
   bool get isRetryable => statusCode == 429 || statusCode == 503;
 
   @override

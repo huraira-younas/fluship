@@ -18,8 +18,9 @@ const pipelineConsoleSessionId = '_pipeline_console';
 bool isPipelineConsoleSession(String sessionId) =>
     sessionId.startsWith('_pipeline_');
 
-class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
-  ConsoleBloc({required this._pool}) : super(ConsoleState.empty()) {
+class ConsoleBloc({required final IConsoleSessionPool _pool})
+    extends BaseBloc<ConsoleEvent, ConsoleState> {
+  this : super(ConsoleState.empty()) {
     on<DisposeAllSessions>(handler(_onDisposeAllSessions));
     on<SyncProjectRoot>(handler(_onSyncProjectRoot));
     on<CreateSession>(handler(_onCreateSession));
@@ -39,7 +40,6 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
 
   final Map<String, List<ConsoleLine>> _pendingLines = {};
   final Map<String, Timer?> _flushTimers = {};
-  final IConsoleSessionPool _pool;
 
   String? _activeSessionBeforePipeline;
 

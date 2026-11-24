@@ -9,18 +9,13 @@ import 'package:material_ui/material_ui.dart';
 
 import 'add_recipient_sheet.dart';
 
-class DistributionRecipientsPanel extends StatelessWidget {
-  const DistributionRecipientsPanel({
-    required this.onChanged,
-    required this.emails,
-    super.key,
-  });
-
-  final ValueChanged<List<DistributionEmail>> onChanged;
-  final List<DistributionEmail> emails;
-
+class const DistributionRecipientsPanel({
+  required final ValueChanged<List<DistributionEmail>> onChanged,
+  required final List<DistributionEmail> emails,
+  super.key,
+}) extends StatelessWidget {
   Future<void> _openAddSheet(BuildContext context) async {
-    await Future<void>.delayed(Duration.zero);
+    await Future.pause();
     if (!context.mounted) return;
 
     final recipient = await AddRecipientSheet.show(context);
@@ -99,17 +94,11 @@ class DistributionRecipientsPanel extends StatelessWidget {
   }
 }
 
-class _RecipientTile extends StatelessWidget {
-  const _RecipientTile({
-    required this.onRemove,
-    required this.email,
-    required this.name,
-  });
-
-  final VoidCallback onRemove;
-  final String email;
-  final String name;
-
+class const _RecipientTile({
+  required final VoidCallback onRemove,
+  required final String email,
+  required final String name,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
@@ -142,9 +131,9 @@ class _RecipientTile extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: .start,
+              spacing: 2,
               children: [
                 AppText.custom(color: ft.colors.section, weight: .w600, name),
-                const SizedBox(height: 2),
                 AppText.custom(color: ft.colors.textDim, size: .caption, email),
               ],
             ),

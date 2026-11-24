@@ -9,9 +9,7 @@ typedef WhatsAppFileEntry = ({String name, int bytes});
 
 /// Builds the plain-text run summary. WhatsApp renders `*bold*`, and caps a
 /// message at [WhatsAppLimits.maxTextLength] characters.
-class WhatsAppMessageBuilder {
-  const WhatsAppMessageBuilder();
-
+class const WhatsAppMessageBuilder() {
   static const _maxErrorLength = 160;
 
   String build(

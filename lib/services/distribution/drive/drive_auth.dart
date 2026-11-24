@@ -15,9 +15,8 @@ abstract interface class DriveAuthClientFactory {
 }
 
 /// Refresh-token auth only. Safe for `dart run` CLIs (no Flutter).
-class GoogleDriveTokenAuthClientFactory implements DriveAuthClientFactory {
-  const GoogleDriveTokenAuthClientFactory();
-
+class const GoogleDriveTokenAuthClientFactory()
+    implements DriveAuthClientFactory {
   @override
   Future<http.Client> createClient({
     required String oauthJsonPath,

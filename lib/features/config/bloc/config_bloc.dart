@@ -16,11 +16,11 @@ import 'package:fluship/shared/models/pre_git.dart';
 part 'config_event.dart';
 part 'config_state.dart';
 
-class ConfigBloc extends BaseBloc<ConfigEvent, ConfigState> {
+class ConfigBloc(final ProjectProfilesStore _profilesStore)
+    extends BaseBloc<ConfigEvent, ConfigState> {
   final _projectService = const FlutterProjectService();
-  final ProjectProfilesStore _profilesStore;
 
-  ConfigBloc(this._profilesStore) : super(ConfigState.empty()) {
+  this : super(ConfigState.empty()) {
     on<SyncProjectAppInfo>(handler(_syncProjectAppInfo));
 
     on<DeleteProjectProfile>(handler(_deleteProjectProfile));

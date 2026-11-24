@@ -8,9 +8,7 @@ import '../bloc/console_bloc.dart';
 
 typedef ConsoleInputState = ({bool isPipeline, bool isRunning});
 
-class ConsoleInput extends StatelessWidget {
-  const ConsoleInput({super.key});
-
+class const ConsoleInput({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ConsoleBloc, ConsoleState, ConsoleInputState>(
@@ -34,17 +32,11 @@ class ConsoleInput extends StatelessWidget {
   }
 }
 
-class _ConsoleInputField extends StatefulWidget {
-  const _ConsoleInputField({
-    required this.onSubmit,
-    required this.onCancel,
-    required this.disabled,
-  });
-
-  final ValueChanged<String> onSubmit;
-  final VoidCallback onCancel;
-  final bool disabled;
-
+class const _ConsoleInputField({
+  required final ValueChanged<String> onSubmit,
+  required final VoidCallback onCancel,
+  required final bool disabled,
+}) extends StatefulWidget {
   @override
   State<_ConsoleInputField> createState() => _ConsoleInputFieldState();
 }

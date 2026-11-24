@@ -4,12 +4,11 @@ import 'package:fluship/services/process/process.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:material_ui/material_ui.dart';
 
-class ProcessRowTile extends StatelessWidget {
-  const ProcessRowTile({required this.onKill, required this.row, super.key});
-
-  final VoidCallback onKill;
-  final ProcessRow row;
-
+class const ProcessRowTile({
+  required final VoidCallback onKill,
+  required final ProcessRow row,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;

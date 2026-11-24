@@ -2,9 +2,7 @@ import '../interfaces/theme_preset_module.dart';
 import '../presets/exports.dart';
 import 'app_theme_registry.dart';
 
-class ThemePresetRegistry {
-  ThemePresetRegistry._();
-
+class ThemePresetRegistry._() {
   static const List<ThemePresetModule> modules = [
     CatppuccinMochaPreset(),
     InstagramPreset(),

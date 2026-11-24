@@ -2,23 +2,18 @@ import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:material_ui/material_ui.dart';
 
-class ThemeModeToggle extends StatelessWidget {
-  const ThemeModeToggle({
-    required this.onChanged,
-    required this.mode,
-    super.key,
-  });
-
-  final ValueChanged<ThemeMode> onChanged;
-  final ThemeMode mode;
-
+class const ThemeModeToggle({
+  required final ValueChanged<ThemeMode> onChanged,
+  required final ThemeMode mode,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
     final isDark = mode != .light;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const .symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
           AnimatedSwitcher(
@@ -77,11 +72,8 @@ class ThemeModeToggle extends StatelessWidget {
   }
 }
 
-class ThemeGroupBox extends StatelessWidget {
-  const ThemeGroupBox({required this.child, super.key});
-
-  final Widget child;
-
+class const ThemeGroupBox({required final Widget child, super.key})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
@@ -100,11 +92,8 @@ class ThemeGroupBox extends StatelessWidget {
   }
 }
 
-class ThemeSectionLabel extends StatelessWidget {
-  const ThemeSectionLabel(this.label, {super.key});
-
-  final String label;
-
+class const ThemeSectionLabel(final String label, {super.key})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;

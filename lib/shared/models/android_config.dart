@@ -13,17 +13,12 @@ enum AndroidBuildType {
   };
 }
 
-final class AndroidConfigModel extends BaseConfig {
-  const AndroidConfigModel({
-    this.buildAab = false,
-    super.enabled = true,
-    this.buildType,
-  });
-
-  final AndroidBuildType? buildType;
-  final bool buildAab;
-
-  factory AndroidConfigModel.fromJson(Map<String, dynamic>? json) {
+final class const AndroidConfigModel({
+  final bool buildAab = false,
+  super.enabled = true,
+  final AndroidBuildType? buildType,
+}) extends BaseConfig {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const AndroidConfigModel();
 
     final data = json.at<AndroidConfigModel>();

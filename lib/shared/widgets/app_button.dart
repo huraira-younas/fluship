@@ -7,21 +7,13 @@ enum AppButtonVariant { primary, secondary, outline, ghost, danger, success }
 enum AppButtonSize { sm, md, lg }
 
 @immutable
-class _AppButtonMetrics {
-  const _AppButtonMetrics({
-    required this.iconSize,
-    required this.fontSize,
-    required this.spacing,
-    required this.padding,
-    required this.height,
-  });
-
-  final EdgeInsets padding;
-  final double iconSize;
-  final double fontSize;
-  final double spacing;
-  final double height;
-
+class const _AppButtonMetrics({
+  required final double iconSize,
+  required final double fontSize,
+  required final double spacing,
+  required final EdgeInsets padding,
+  required final double height,
+}) {
   static _AppButtonMetrics forSize(AppButtonSize size, ThemeSpacing pad) {
     return switch (size) {
       .sm => _AppButtonMetrics(
@@ -50,27 +42,16 @@ class _AppButtonMetrics {
 }
 
 @immutable
-class _AppButtonColors {
-  const _AppButtonColors({
-    required this.disabledForeground,
-    required this.disabledBackground,
-    required this.foreground,
-    required this.background,
-    required this.overlay,
-    required this.pressed,
-    required this.hovered,
-    required this.border,
-  });
-
-  final Color disabledForeground;
-  final Color disabledBackground;
-  final Color foreground;
-  final Color background;
-  final Color overlay;
-  final Color pressed;
-  final Color hovered;
-  final Color border;
-
+class const _AppButtonColors({
+  required final Color disabledForeground,
+  required final Color disabledBackground,
+  required final Color foreground,
+  required final Color background,
+  required final Color overlay,
+  required final Color pressed,
+  required final Color hovered,
+  required final Color border,
+}) {
   static Color _onFilledBackground(Color background) =>
       background.computeLuminance() > 0.55
       ? const Color(0xFF1f2328)
@@ -146,7 +127,7 @@ class _AppButtonColors {
 }
 
 class AppButton extends StatelessWidget {
-  const AppButton({
+  const new({
     this.isExpanded = false,
     this.variant = .primary,
     this.isLoading = false,
@@ -166,7 +147,7 @@ class AppButton extends StatelessWidget {
          'Provide a label or an icon.',
        );
 
-  const AppButton.primary({
+  const new primary({
     this.isExpanded = false,
     this.autofocus = false,
     this.isLoading = false,
@@ -182,7 +163,7 @@ class AppButton extends StatelessWidget {
     super.key,
   }) : variant = .primary;
 
-  const AppButton.secondary({
+  const new secondary({
     this.isExpanded = false,
     this.autofocus = false,
     this.isLoading = false,
@@ -198,7 +179,7 @@ class AppButton extends StatelessWidget {
     super.key,
   }) : variant = .secondary;
 
-  const AppButton.outline({
+  const new outline({
     this.isExpanded = false,
     this.autofocus = false,
     this.isLoading = false,
@@ -214,7 +195,7 @@ class AppButton extends StatelessWidget {
     super.key,
   }) : variant = .outline;
 
-  const AppButton.ghost({
+  const new ghost({
     this.isExpanded = false,
     this.autofocus = false,
     this.isLoading = false,
@@ -230,7 +211,7 @@ class AppButton extends StatelessWidget {
     super.key,
   }) : variant = .ghost;
 
-  const AppButton.danger({
+  const new danger({
     this.isExpanded = false,
     this.autofocus = false,
     this.isLoading = false,
@@ -246,7 +227,7 @@ class AppButton extends StatelessWidget {
     super.key,
   }) : variant = .danger;
 
-  const AppButton.success({
+  const new success({
     this.isExpanded = false,
     this.autofocus = false,
     this.isLoading = false,
@@ -262,7 +243,7 @@ class AppButton extends StatelessWidget {
     super.key,
   }) : variant = .success;
 
-  const AppButton.icon({
+  const new icon({
     required Widget this.leading,
     this.isLoading = false,
     this.autofocus = false,
@@ -332,41 +313,23 @@ class AppButton extends StatelessWidget {
   }
 }
 
-class _AppButtonBody extends StatelessWidget {
-  const _AppButtonBody({
-    required this.semanticLabel,
-    required this.isIconOnly,
-    required this.autofocus,
-    required this.focusNode,
-    required this.longPress,
-    required this.isEnabled,
-    required this.isLoading,
-    required this.onPressed,
-    required this.trailing,
-    required this.leading,
-    required this.metrics,
-    required this.palette,
-    required this.variant,
-    required this.radius,
-    required this.label,
-  });
-
-  final _AppButtonMetrics metrics;
-  final AppButtonVariant variant;
-  final _AppButtonColors palette;
-  final VoidCallback? onPressed;
-  final VoidCallback? longPress;
-  final String? semanticLabel;
-  final FocusNode? focusNode;
-  final Widget? trailing;
-  final Widget? leading;
-  final bool isIconOnly;
-  final bool isLoading;
-  final bool isEnabled;
-  final bool autofocus;
-  final String? label;
-  final double radius;
-
+class const _AppButtonBody({
+  required final String? semanticLabel,
+  required final bool isIconOnly,
+  required final bool autofocus,
+  required final FocusNode? focusNode,
+  required final VoidCallback? longPress,
+  required final bool isEnabled,
+  required final bool isLoading,
+  required final VoidCallback? onPressed,
+  required final Widget? trailing,
+  required final Widget? leading,
+  required final _AppButtonMetrics metrics,
+  required final _AppButtonColors palette,
+  required final AppButtonVariant variant,
+  required final double radius,
+  required final String? label,
+}) extends StatelessWidget {
   ButtonStyle get _style {
     Color resolveForeground(Set<WidgetState> states) {
       if (states.contains(WidgetState.disabled)) {
@@ -395,7 +358,7 @@ class _AppButtonBody extends StatelessWidget {
           ? .all(Size(metrics.height, metrics.height))
           : null,
       minimumSize: .all(Size(isIconOnly ? metrics.height : 64, metrics.height)),
-      padding: .all(isIconOnly ? EdgeInsets.zero : metrics.padding),
+      padding: .all(isIconOnly ? .zero : metrics.padding),
       foregroundColor: .resolveWith(resolveForeground),
       backgroundColor: .resolveWith(resolveBackground),
       shadowColor: .all(Colors.transparent),

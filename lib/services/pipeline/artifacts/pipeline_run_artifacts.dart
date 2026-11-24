@@ -6,12 +6,10 @@ import 'dart:collection' show UnmodifiableListView, UnmodifiableMapView;
 /// re-runs. Distribution reads from this registry instead of listing that
 /// folder, which is what keeps a previous run's APK, AAB or IPA from being
 /// uploaded when this run failed to build one.
-class PipelineRunArtifacts {
-  PipelineRunArtifacts({required this.startedAt});
-
+class PipelineRunArtifacts({
   /// Start of the run, used to reject build outputs left by earlier runs.
-  final DateTime startedAt;
-
+  required final DateTime startedAt,
+}) {
   final _paths = <String>[];
 
   late final UnmodifiableListView<String> paths = UnmodifiableListView(_paths);

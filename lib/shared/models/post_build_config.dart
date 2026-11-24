@@ -16,22 +16,17 @@ enum PowerAction {
   };
 }
 
-class PowerConfig extends Equatable {
-  const PowerConfig({
-    this.delay = const Duration(seconds: 10),
-    this.action = .shutdown,
-  });
-
-  final PowerAction action;
-  final Duration delay;
-
+class const PowerConfig({
+  final Duration delay = const Duration(seconds: 10),
+  final PowerAction action = .shutdown,
+}) extends Equatable {
   @override
   List<Object?> get props => [action, delay];
 
   PowerConfig copyWith({PowerAction? action, Duration? delay}) =>
       PowerConfig(action: action ?? this.action, delay: delay ?? this.delay);
 
-  factory PowerConfig.fromJson(Map<String, dynamic>? json) {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const PowerConfig();
 
     final data = json.at<PowerConfig>();
@@ -53,17 +48,12 @@ class PowerConfig extends Equatable {
   bool? get stringify => true;
 }
 
-class PostBuildConfigModel extends BaseConfig {
-  const PostBuildConfigModel({
-    this.openOutputs = false,
-    super.enabled = true,
-    this.powerConfig,
-  });
-
-  final PowerConfig? powerConfig;
-  final bool openOutputs;
-
-  factory PostBuildConfigModel.fromJson(Map<String, dynamic>? json) {
+class const PostBuildConfigModel({
+  final bool openOutputs = false,
+  super.enabled = true,
+  final PowerConfig? powerConfig,
+}) extends BaseConfig {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const PostBuildConfigModel();
 
     final data = json.at<PostBuildConfigModel>();

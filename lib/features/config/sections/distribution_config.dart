@@ -16,9 +16,7 @@ import '../widgets/checkbox_label.dart';
 import '../widgets/switch_label.dart';
 import '../bloc/config_bloc.dart';
 
-class DistributionConfig extends StatelessWidget {
-  const DistributionConfig({super.key});
-
+class const DistributionConfig({super.key}) extends StatelessWidget {
   static const _playStoreCredError =
       'Configure package name and service account JSON in Settings.';
   static const _driveCredError =
@@ -195,17 +193,11 @@ class DistributionConfig extends StatelessWidget {
   }
 }
 
-class _DriveRecipientsPanel extends StatefulWidget {
-  const _DriveRecipientsPanel({
-    required this.onToggle,
-    required this.disabled,
-    required this.emails,
-  });
-
-  final void Function(DistributionEmail email, bool enabled) onToggle;
-  final List<DistributionEmail> emails;
-  final bool disabled;
-
+class const _DriveRecipientsPanel({
+  required final void Function(DistributionEmail email, bool enabled) onToggle,
+  required final bool disabled,
+  required final List<DistributionEmail> emails,
+}) extends StatefulWidget {
   @override
   State<_DriveRecipientsPanel> createState() => _DriveRecipientsPanelState();
 }
@@ -249,7 +241,7 @@ class _DriveRecipientsPanelState extends State<_DriveRecipientsPanel> {
             const SizedBox(height: 8),
             ListView.separated(
               physics: const NeverScrollableScrollPhysics(),
-              separatorBuilder: (context, index) =>
+              separatorBuilder: (_, _) =>
                   Divider(height: 1, color: ft.colors.cardBorder),
               itemCount: widget.emails.length,
               shrinkWrap: true,
@@ -271,18 +263,12 @@ class _DriveRecipientsPanelState extends State<_DriveRecipientsPanel> {
   }
 }
 
-class _RecipientsHeader extends StatelessWidget {
-  const _RecipientsHeader({
-    required this.actionLabel,
-    required this.onAction,
-    required this.total,
-    super.key,
-  });
-
-  final VoidCallback? onAction;
-  final String actionLabel;
-  final int total;
-
+class const _RecipientsHeader({
+  required final String actionLabel,
+  required final VoidCallback? onAction,
+  required final int total,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;

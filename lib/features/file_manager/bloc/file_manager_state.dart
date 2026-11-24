@@ -1,35 +1,25 @@
 part of 'file_manager_bloc.dart';
 
-class FileManagerSegment extends Equatable {
-  const FileManagerSegment({required this.name, required this.path});
-
-  final String name;
-  final String path;
-
+class const FileManagerSegment({
+  required final String name,
+  required final String path,
+}) extends Equatable {
   @override
   List<Object?> get props => [name, path];
 }
 
-class FileManagerState extends BaseBlocState {
-  const FileManagerState({
-    required this.selectedPaths,
-    required this.outputsRoot,
-    required this.currentPath,
-    required this.segments,
-    required this.entries,
-    super.loading = false,
-    super.error,
-  });
-
-  final List<FileManagerSegment> segments;
-  final Set<String> selectedPaths;
-  final List<FileEntry> entries;
-  final String outputsRoot;
-  final String currentPath;
-
+class const FileManagerState({
+  required final Set<String> selectedPaths,
+  required final String outputsRoot,
+  required final String currentPath,
+  required final List<FileManagerSegment> segments,
+  required final List<FileEntry> entries,
+  super.loading = false,
+  super.error,
+}) extends BaseBlocState {
   bool get hasSelection => selectedPaths.isNotEmpty;
 
-  factory FileManagerState.empty() => const FileManagerState(
+  factory empty() => const FileManagerState(
     selectedPaths: {},
     outputsRoot: '',
     currentPath: '',

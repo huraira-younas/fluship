@@ -60,41 +60,42 @@ class FakeConsoleSessionPool implements IConsoleSessionPool {
   }
 }
 
-Future<void> pumpBloc() => Future<void>.delayed(Duration.zero);
+Future<void> pumpBloc() => Future.pause();
 
 Future<T> dispatch<T>(ConsoleBloc bloc, ConsoleEvent event) {
   final completer = Completer<T>();
 
-  if (event is CreatePipelineSession) {
-    bloc.add(
-      CreatePipelineSession(
-        projectRoot: event.projectRoot,
-        onSuccess: (data) {
-          if (!completer.isCompleted) completer.complete(data as T);
-        },
-        onError: (error) {
-          if (!completer.isCompleted) {
-            completer.completeError(StateError(error.message));
-          }
-        },
-      ),
-    );
-  } else if (event is ClosePipelineSession) {
-    bloc.add(
-      ClosePipelineSession(
-        sessionId: event.sessionId,
-        onSuccess: (data) {
-          if (!completer.isCompleted) completer.complete(data as T);
-        },
-        onError: (error) {
-          if (!completer.isCompleted) {
-            completer.completeError(StateError(error.message));
-          }
-        },
-      ),
-    );
-  } else {
-    return Future.error(StateError('Unsupported test event.'));
+  switch (event) {
+    case CreatePipelineSession(:final projectRoot):
+      bloc.add(
+        CreatePipelineSession(
+          projectRoot: projectRoot,
+          onSuccess: (data) {
+            if (!completer.isCompleted) completer.complete(data as T);
+          },
+          onError: (error) {
+            if (!completer.isCompleted) {
+              completer.completeError(StateError(error.message));
+            }
+          },
+        ),
+      );
+    case ClosePipelineSession(:final sessionId):
+      bloc.add(
+        ClosePipelineSession(
+          sessionId: sessionId,
+          onSuccess: (data) {
+            if (!completer.isCompleted) completer.complete(data as T);
+          },
+          onError: (error) {
+            if (!completer.isCompleted) {
+              completer.completeError(StateError(error.message));
+            }
+          },
+        ),
+      );
+    case _:
+      return Future.error(StateError('Unsupported test event.'));
   }
 
   return completer.future;

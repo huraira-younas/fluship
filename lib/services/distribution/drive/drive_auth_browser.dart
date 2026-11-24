@@ -5,9 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'drive_auth.dart';
 
 /// GUI Drive auth. Opens a browser when no refresh token exists.
-class GoogleDriveAuthClientFactory implements DriveAuthClientFactory {
-  const GoogleDriveAuthClientFactory();
-
+class const GoogleDriveAuthClientFactory() implements DriveAuthClientFactory {
   @override
   Future<http.Client> createClient({
     required String oauthJsonPath,

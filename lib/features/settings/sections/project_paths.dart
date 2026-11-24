@@ -9,9 +9,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../widgets/field_button.dart';
 
-class ProjectPaths extends StatelessWidget {
-  const ProjectPaths({super.key});
-
+class const ProjectPaths({super.key}) extends StatelessWidget {
   Future<void> _pickFlutterProject(BuildContext context) async {
     final path = await getIt<FilePickerService>().pickDirectory(
       dialogTitle: 'Select Flutter project folder',

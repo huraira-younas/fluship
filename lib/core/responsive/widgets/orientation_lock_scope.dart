@@ -2,16 +2,11 @@ import 'package:material_ui/material_ui.dart';
 
 import '../models/responsive_info.dart';
 
-class OrientationLockScope extends StatefulWidget {
-  const OrientationLockScope({
-    required this.child,
-    required this.lock,
-    super.key,
-  });
-
-  final AppOrientationLock lock;
-  final Widget child;
-
+class const OrientationLockScope({
+  required final Widget child,
+  required final AppOrientationLock lock,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<OrientationLockScope> createState() => _OrientationLockScopeState();
 }

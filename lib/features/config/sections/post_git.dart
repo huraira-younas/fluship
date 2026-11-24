@@ -9,9 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import '../widgets/switch_label.dart';
 import '../bloc/config_bloc.dart';
 
-class PostGit extends StatelessWidget {
-  const PostGit({super.key});
-
+class const PostGit({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = getIt<ConfigBloc>();

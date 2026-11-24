@@ -6,11 +6,7 @@ import 'package:path/path.dart' as p;
 
 import '../models/file_entry.dart';
 
-class FileManagerRepository {
-  FileManagerRepository(this._workspacePaths);
-
-  final FlushipWorkspacePaths _workspacePaths;
-
+class FileManagerRepository(final FlushipWorkspacePaths _workspacePaths) {
   static const _textExtensions = {
     '.properties',
     '.gradle',

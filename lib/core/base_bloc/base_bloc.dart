@@ -7,10 +7,9 @@ import 'dart:async' show FutureOr;
 part 'base_bloc_event.dart';
 part 'base_bloc_state.dart';
 
-abstract class BaseBloc<E extends BaseBlocEvent, S extends BaseBlocState>
-    extends Bloc<E, S> {
-  BaseBloc(super.initialState);
-
+abstract class BaseBloc<E extends BaseBlocEvent, S extends BaseBlocState>(
+  super.initialState,
+) extends Bloc<E, S> {
   EventHandler<E, S> handler<T extends E>(
     FutureOr<dynamic> Function(Emitter<S> emit, T event) fn,
   ) {

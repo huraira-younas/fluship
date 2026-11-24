@@ -1,16 +1,15 @@
 part of 'distribution_config.dart';
 
-class WhatsAppConfig extends Equatable {
-  const WhatsAppConfig({this.enabled = false, this.recipientId, this.apiKey});
+class const WhatsAppConfig({
+  final bool enabled = false,
 
   /// Opaque `user:<id>` of the WhatsApp account that created the agent. It is
   /// read from a message that account sent to the agent, never typed in: the
   /// Agent Platform takes no phone numbers and lets an agent message only its
   /// creator.
-  final String? recipientId;
-  final String? apiKey;
-  final bool enabled;
-
+  final String? recipientId,
+  final String? apiKey,
+}) extends Equatable {
   bool get isConnected => hasCreds(recipientId);
   bool get canSend => hasCreds(apiKey) && isConnected;
 
@@ -26,7 +25,7 @@ class WhatsAppConfig extends Equatable {
     enabled: enabled ?? this.enabled,
   );
 
-  factory WhatsAppConfig.fromJson(Map<String, dynamic>? json) {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const WhatsAppConfig();
 
     final data = json.at<WhatsAppConfig>();

@@ -1,18 +1,11 @@
 part of 'distribution_config.dart';
 
-class IosConfig extends Equatable {
-  final String? apiKeyPath;
-  final String? issuerId;
-  final String? apiKeyId;
-  final bool enabled;
-
-  const IosConfig({
-    this.enabled = false,
-    this.apiKeyPath,
-    this.issuerId,
-    this.apiKeyId,
-  });
-
+class const IosConfig({
+  final bool enabled = false,
+  final String? apiKeyPath,
+  final String? issuerId,
+  final String? apiKeyId,
+}) extends Equatable {
   bool get canSend =>
       hasCreds(apiKeyPath) && hasCreds(issuerId) && hasCreds(apiKeyId);
 
@@ -28,7 +21,7 @@ class IosConfig extends Equatable {
     enabled: enabled ?? this.enabled,
   );
 
-  factory IosConfig.fromJson(Map<String, dynamic>? json) {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const IosConfig();
 
     final data = json.at<IosConfig>();

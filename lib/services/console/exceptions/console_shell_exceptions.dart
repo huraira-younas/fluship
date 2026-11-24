@@ -1,30 +1,20 @@
-class SessionLimitException implements Exception {
-  const SessionLimitException(this.maxSessions);
-  final int maxSessions;
-
+class const SessionLimitException(final int maxSessions) implements Exception {
   @override
   String toString() => 'Maximum session limit reached ($maxSessions).';
 }
 
-class ShellDisposedException implements Exception {
-  const ShellDisposedException();
-
+class const ShellDisposedException() implements Exception {
   @override
   String toString() => 'Shell session has been disposed.';
 }
 
-class ShellNotFoundException implements Exception {
-  const ShellNotFoundException(this.sessionId);
-
-  final String sessionId;
-
+class const ShellNotFoundException(final String sessionId)
+    implements Exception {
   @override
   String toString() => 'Shell session not found: $sessionId';
 }
 
-class ShellBusyException implements Exception {
-  const ShellBusyException();
-
+class const ShellBusyException() implements Exception {
   @override
   String toString() => 'Shell is already running a command.';
 }

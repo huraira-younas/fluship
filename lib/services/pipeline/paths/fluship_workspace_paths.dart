@@ -4,12 +4,10 @@ import 'package:path/path.dart' as p;
 
 import '../utils/pipeline_utils.dart';
 
-class FlushipWorkspacePaths {
-  FlushipWorkspacePaths(this._profilesStore, {this.overrideRoot});
-
-  final ProjectProfilesStore _profilesStore;
-  final String? overrideRoot;
-
+class FlushipWorkspacePaths(
+  final ProjectProfilesStore _profilesStore, {
+  final String? overrideRoot,
+}) {
   Future<String> resolveRoot() async {
     final override = overrideRoot;
     if (override != null && override.isNotEmpty) return override;

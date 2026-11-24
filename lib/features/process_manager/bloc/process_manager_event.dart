@@ -1,81 +1,69 @@
 part of 'process_manager_bloc.dart';
 
-sealed class ProcessManagerEvent extends BaseBlocEvent {
-  const ProcessManagerEvent({
-    required super.name,
-    super.onSuccess,
-    super.onError,
-  });
-}
+sealed class const ProcessManagerEvent({
+  required super.name,
+  super.onSuccess,
+  super.onError,
+}) extends BaseBlocEvent;
 
-class ProcessManagerInitialized extends ProcessManagerEvent {
-  const ProcessManagerInitialized({
-    required this.projectRoot,
-    super.onSuccess,
-    super.onError,
-  }) : super(name: 'Process_Manager_Initialized');
-
-  final String projectRoot;
+class const ProcessManagerInitialized({
+  required final String projectRoot,
+  super.onSuccess,
+  super.onError,
+}) extends ProcessManagerEvent {
+  this : super(name: 'Process_Manager_Initialized');
 
   @override
   Map<String, dynamic> toJson() => {'project_root': projectRoot};
 }
 
-class ProcessManagerRefreshed extends ProcessManagerEvent {
-  const ProcessManagerRefreshed({
-    this.projectRoot,
-    super.onSuccess,
-    super.onError,
-  }) : super(name: 'Process_Manager_Refreshed');
-
-  final String? projectRoot;
+class const ProcessManagerRefreshed({
+  final String? projectRoot,
+  super.onSuccess,
+  super.onError,
+}) extends ProcessManagerEvent {
+  this : super(name: 'Process_Manager_Refreshed');
 
   @override
   Map<String, dynamic> toJson() => {'project_root': projectRoot};
 }
 
-class ProcessManagerVisibilityChanged extends ProcessManagerEvent {
-  const ProcessManagerVisibilityChanged({
-    required this.isVisible,
-    super.onSuccess,
-    super.onError,
-  }) : super(name: 'Process_Manager_Visibility_Changed');
-
-  final bool isVisible;
+class const ProcessManagerVisibilityChanged({
+  required final bool isVisible,
+  super.onSuccess,
+  super.onError,
+}) extends ProcessManagerEvent {
+  this : super(name: 'Process_Manager_Visibility_Changed');
 
   @override
   Map<String, dynamic> toJson() => {'is_visible': isVisible};
 }
 
-class ProcessManagerShowAllChildrenToggled extends ProcessManagerEvent {
-  const ProcessManagerShowAllChildrenToggled({
-    required this.value,
-    super.onSuccess,
-    super.onError,
-  }) : super(name: 'Process_Manager_Show_All_Children_Toggled');
-
-  final bool value;
+class const ProcessManagerShowAllChildrenToggled({
+  required final bool value,
+  super.onSuccess,
+  super.onError,
+}) extends ProcessManagerEvent {
+  this : super(name: 'Process_Manager_Show_All_Children_Toggled');
 
   @override
   Map<String, dynamic> toJson() => {'value': value};
 }
 
-class ProcessManagerKillProcess extends ProcessManagerEvent {
-  const ProcessManagerKillProcess({
-    required this.pid,
-    super.onSuccess,
-    super.onError,
-  }) : super(name: 'Process_Manager_Kill_Process');
-
-  final int pid;
+class const ProcessManagerKillProcess({
+  required final int pid,
+  super.onSuccess,
+  super.onError,
+}) extends ProcessManagerEvent {
+  this : super(name: 'Process_Manager_Kill_Process');
 
   @override
   Map<String, dynamic> toJson() => {'pid': pid};
 }
 
-class ProcessManagerKillAllOrphans extends ProcessManagerEvent {
-  const ProcessManagerKillAllOrphans({super.onError, super.onSuccess})
-    : super(name: 'Process_Manager_Kill_All_Orphans');
+class const ProcessManagerKillAllOrphans({super.onError, super.onSuccess})
+    extends ProcessManagerEvent {
+  this : super(name: 'Process_Manager_Kill_All_Orphans');
 
   @override
   Map<String, dynamic> toJson() => const {};

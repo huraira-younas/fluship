@@ -11,11 +11,8 @@ library;
 
 const jsonEmptyStringList = <String>[];
 
-final class JsonParseException implements Exception {
-  const JsonParseException(this.message);
-
-  final String message;
-
+final class const JsonParseException(final String message)
+    implements Exception {
   @override
   String toString() => message;
 }

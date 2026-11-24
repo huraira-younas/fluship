@@ -18,7 +18,7 @@ PipelineStepView _step(
 );
 
 PipelineRunSnapshot _snapshot({
-  PipelineRunStatus status = PipelineRunStatus.completed,
+  PipelineRunStatus status = .completed,
   List<PipelineStepView> steps = const [],
   Map<String, String> links = const {},
 }) => PipelineRunSnapshot(

@@ -1,38 +1,41 @@
 part of 'pipeline_bloc.dart';
 
-sealed class PipelineEvent extends BaseBlocEvent {
-  const PipelineEvent({required super.name, super.onError, super.onSuccess});
-}
+sealed class const PipelineEvent({
+  required super.name,
+  super.onError,
+  super.onSuccess,
+}) extends BaseBlocEvent;
 
-class RunPipeline extends PipelineEvent {
-  const RunPipeline({super.onError, super.onSuccess})
-    : super(name: 'Run_Pipeline');
-
-  @override
-  Map<String, dynamic> toJson() => {};
-}
-
-class CancelPipeline extends PipelineEvent {
-  const CancelPipeline({super.onError, super.onSuccess})
-    : super(name: 'Cancel_Pipeline');
+class const RunPipeline({super.onError, super.onSuccess})
+    extends PipelineEvent {
+  this : super(name: 'Run_Pipeline');
 
   @override
   Map<String, dynamic> toJson() => {};
 }
 
-class RemovePipelineStep extends PipelineEvent {
-  const RemovePipelineStep(this.index, {super.onError, super.onSuccess})
-    : super(name: 'Remove_Pipeline_Step');
+class const CancelPipeline({super.onError, super.onSuccess})
+    extends PipelineEvent {
+  this : super(name: 'Cancel_Pipeline');
 
-  final int index;
+  @override
+  Map<String, dynamic> toJson() => {};
+}
+
+class const RemovePipelineStep(
+  final int index, {
+  super.onError,
+  super.onSuccess,
+}) extends PipelineEvent {
+  this : super(name: 'Remove_Pipeline_Step');
 
   @override
   Map<String, dynamic> toJson() => {'index': index};
 }
 
-class DismissPipelinePanel extends PipelineEvent {
-  const DismissPipelinePanel({super.onError, super.onSuccess})
-    : super(name: 'Dismiss_Pipeline_Panel');
+class const DismissPipelinePanel({super.onError, super.onSuccess})
+    extends PipelineEvent {
+  this : super(name: 'Dismiss_Pipeline_Panel');
 
   @override
   Map<String, dynamic> toJson() => {};

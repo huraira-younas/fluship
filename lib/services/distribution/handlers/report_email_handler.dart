@@ -8,15 +8,10 @@ import '../models/distribution_result.dart';
 import '../email/report_html_builder.dart';
 import '../contracts/email_client.dart';
 
-class ReportEmailHandler implements DistributionHandler {
-  const ReportEmailHandler({
-    required this._htmlBuilder,
-    required this._emailClient,
-  });
-
-  final ReportHtmlBuilder _htmlBuilder;
-  final EmailClient _emailClient;
-
+class const ReportEmailHandler({
+  required final ReportHtmlBuilder _htmlBuilder,
+  required final EmailClient _emailClient,
+}) implements DistributionHandler {
   @override
   String get name => 'Build Report Email';
 

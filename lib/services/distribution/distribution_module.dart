@@ -8,9 +8,7 @@ import 'whatsapp/whatsapp_agent_client.dart';
 import 'handlers/exports.dart';
 import 'email/exports.dart';
 
-class DistributionModule {
-  const DistributionModule._();
-
+class const DistributionModule._() {
   static Map<DistributionStepKind, DistributionHandler> createHandlerMap() {
     const playStoreUploader = GooglePlayPublisherUploader();
     const appStoreUploader = ITmsTransporterUploader();

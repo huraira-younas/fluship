@@ -1,20 +1,13 @@
 import 'package:fluship/core/app_theme/fluship_theme_extension.dart';
 import 'package:material_ui/material_ui.dart';
 
-class AppCheckbox extends StatelessWidget {
-  const AppCheckbox({
-    required this.onChanged,
-    this.disabled = false,
-    required this.value,
-    this.size = 22,
-    super.key,
-  });
-
-  final ValueChanged<bool>? onChanged;
-  final bool disabled;
-  final double size;
-  final bool value;
-
+class const AppCheckbox({
+  required final ValueChanged<bool>? onChanged,
+  final bool disabled = false,
+  required final bool value,
+  final double size = 22,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canTap = !disabled && onChanged != null;

@@ -5,30 +5,21 @@ import 'package:material_ui/material_ui.dart';
 
 import 'switch_label.dart';
 
-class SwitchLabelsRow<T> extends StatelessWidget {
-  const SwitchLabelsRow({
-    this.contentPadding = const .symmetric(horizontal: 20, vertical: 4),
-    required this.defaultValue,
-    required this.switchLabel,
-    required this.onChange,
-    this.disabled = false,
-    required this.labels,
-    required this.value,
-    this.spacing = 10,
-    this.error,
-    super.key,
-  });
-
-  final ValueChanged<T?> onChange;
-  final EdgeInsets contentPadding;
-  final String switchLabel;
-  final List<T> labels;
-  final double spacing;
-  final T defaultValue;
-  final bool disabled;
-  final String? error;
-  final T? value;
-
+class const SwitchLabelsRow<T>({
+  final EdgeInsets contentPadding = const .symmetric(
+    horizontal: 20,
+    vertical: 4,
+  ),
+  required final T defaultValue,
+  required final String switchLabel,
+  required final ValueChanged<T?> onChange,
+  final bool disabled = false,
+  required final List<T> labels,
+  required final T? value,
+  final double spacing = 10,
+  final String? error,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sw = SwitchLabel(

@@ -1,8 +1,6 @@
 import 'package:material_ui/material_ui.dart' show IconData, Icons;
 
-class ProcessCommandLabel {
-  const ProcessCommandLabel._();
-
+class const ProcessCommandLabel._() {
   static String displayName(String command) {
     final lower = command.toLowerCase();
 

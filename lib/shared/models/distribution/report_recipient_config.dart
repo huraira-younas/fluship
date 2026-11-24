@@ -1,20 +1,12 @@
 part of 'distribution_config.dart';
 
-class ReportRecipientConfig extends Equatable {
-  final List<DistributionEmail> emails;
-  final String? reportRecipient;
-  final String? gmailAddress;
-  final String? appPassword;
-  final bool buildReport;
-
-  const ReportRecipientConfig({
-    this.buildReport = false,
-    this.emails = const [],
-    this.reportRecipient,
-    this.gmailAddress,
-    this.appPassword,
-  });
-
+class const ReportRecipientConfig({
+  final bool buildReport = false,
+  final List<DistributionEmail> emails = const [],
+  final String? reportRecipient,
+  final String? gmailAddress,
+  final String? appPassword,
+}) extends Equatable {
   bool get canSend =>
       hasCreds(reportRecipient) &&
       hasCreds(gmailAddress) &&
@@ -34,7 +26,7 @@ class ReportRecipientConfig extends Equatable {
     emails: emails ?? this.emails,
   );
 
-  factory ReportRecipientConfig.fromJson(Map<String, dynamic>? json) {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const ReportRecipientConfig();
 
     final data = json.at<ReportRecipientConfig>();

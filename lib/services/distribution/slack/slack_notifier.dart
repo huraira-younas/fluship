@@ -4,11 +4,7 @@ import 'dart:convert' show jsonEncode;
 
 typedef SlackPoster = Future<void> Function(Uri url, String body);
 
-class SlackNotifier {
-  const SlackNotifier({this.post});
-
-  final SlackPoster? post;
-
+class const SlackNotifier({final SlackPoster? post}) {
   static String statusFromNames(Iterable<String> names) {
     final submittedTo = [
       for (final name in names)

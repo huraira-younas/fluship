@@ -3,11 +3,9 @@ import '../play_store/play_store_uploader.dart';
 import '../contracts/distribution_handler.dart';
 import '../models/distribution_result.dart';
 
-class PlayStoreHandler implements DistributionHandler {
-  const PlayStoreHandler({this.uploader = const GooglePlayPublisherUploader()});
-
-  final PlayStoreUploader uploader;
-
+class const PlayStoreHandler({
+  final PlayStoreUploader uploader = const GooglePlayPublisherUploader(),
+}) implements DistributionHandler {
   @override
   String get name => 'Play Store Upload';
 

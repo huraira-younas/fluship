@@ -1,9 +1,7 @@
 import 'models/process_entry.dart';
 import 'process_command_label.dart';
 
-class ProcessClassifier {
-  const ProcessClassifier();
-
+class const ProcessClassifier() {
   static const _buildPatterns = [
     'flutter',
     'dart',

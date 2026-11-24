@@ -3,11 +3,9 @@ import '../models/app_themes.dart';
 import '../utils/color_from_hex.dart';
 import '../models/theme.dart';
 
-final class GitHubPreset implements ThemePresetModule {
-  const GitHubPreset();
-
+final class const GitHubPreset() implements ThemePresetModule {
   @override
-  AppThemes get id => AppThemes.github;
+  AppThemes get id => .github;
 
   @override
   AppTheme get lightTheme => AppTheme(

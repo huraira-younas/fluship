@@ -9,9 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import '../bloc/config_bloc.dart';
 import '../sections/exports.dart';
 
-class ConfigScreen extends StatelessWidget {
-  const ConfigScreen({super.key});
-
+class const ConfigScreen({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spacing = context.flushipTheme.spacing;

@@ -9,17 +9,12 @@ import 'process_enumerator.dart';
 /// command means ending the shell and its children outright. Only descendants
 /// of the given pid are signalled: the shell shares Fluship's process group,
 /// so a group kill would take the app down with it.
-class ProcessTreeKiller {
-  const ProcessTreeKiller({
-    this.enumerator = const ProcessEnumerator(),
-    this.grace = const Duration(milliseconds: 400),
-  });
-
-  final ProcessEnumerator enumerator;
+class const ProcessTreeKiller({
+  final ProcessEnumerator enumerator = const ProcessEnumerator(),
 
   /// Time a process gets to exit on SIGTERM before it is killed.
-  final Duration grace;
-
+  final Duration grace = const Duration(milliseconds: 400),
+}) {
   /// Pids started, directly or indirectly, by [rootPid]. Children come before
   /// their parents so a parent is never signalled while it can still spawn.
   static List<int> descendantsOf(Iterable<RawProcessRow> rows, int rootPid) {
@@ -60,7 +55,7 @@ class ProcessTreeKiller {
       _signal(pid, ProcessSignal.sigterm);
     }
 
-    await Future<void>.delayed(grace);
+    await Future.pause(grace);
 
     for (final pid in targets) {
       _signal(pid, ProcessSignal.sigkill);

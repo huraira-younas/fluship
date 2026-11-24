@@ -1,8 +1,6 @@
 import 'pubspec_info.dart';
 
-class PubspecParser {
-  const PubspecParser();
-
+class const PubspecParser() {
   PubspecInfo parse(String content) {
     String? projectName;
     String? versionLine;

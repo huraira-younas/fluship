@@ -1,36 +1,22 @@
 part of 'config_bloc.dart';
 
-class ConfigState extends BaseBlocState {
-  final DistributionConfigModel distribution;
-  final PostBuildConfigModel postBuild;
-  final AndroidConfigModel android;
-  final List<String> projectNames;
-  final CommonCmdModel commonCmd;
-  final String? activeProject;
-  final PostGitModel postGit;
-  final AppInfoModel appInfo;
-  final bool pendingImport;
-  final IosConfigModel ios;
-  final PreGitModel preGit;
+class const ConfigState({
+  required final DistributionConfigModel distribution,
+  required final CommonCmdModel commonCmd,
+  required final PostBuildConfigModel postBuild,
+  required final AndroidConfigModel android,
+  required final PostGitModel postGit,
+  required final AppInfoModel appInfo,
+  required final PreGitModel preGit,
+  required final IosConfigModel ios,
 
-  const ConfigState({
-    required this.distribution,
-    required this.commonCmd,
-    required this.postBuild,
-    required this.android,
-    required this.postGit,
-    required this.appInfo,
-    required this.preGit,
-    required this.ios,
-
-    this.projectNames = const [],
-    this.pendingImport = false,
-    super.loading = false,
-    this.activeProject,
-    super.error,
-  });
-
-  factory ConfigState.empty() => ConfigState(
+  final List<String> projectNames = const [],
+  final bool pendingImport = false,
+  super.loading = false,
+  final String? activeProject,
+  super.error,
+}) extends BaseBlocState {
+  factory empty() => ConfigState(
     distribution: const DistributionConfigModel(),
     postBuild: const PostBuildConfigModel(),
     android: const AndroidConfigModel(),
@@ -105,7 +91,7 @@ class ConfigState extends BaseBlocState {
     'ios': ios.toJson(),
   };
 
-  factory ConfigState.fromJson(Map<String, dynamic> json) => ConfigState(
+  factory fromJson(Map<String, dynamic> json) => ConfigState(
     commonCmd: CommonCmdModel.fromJson(json['commonCmd'] ?? json['common_cmd']),
     projectNames: List<String>.from(json['projectNames'] as List? ?? const []),
     distribution: DistributionConfigModel.fromJson(json['distribution']),

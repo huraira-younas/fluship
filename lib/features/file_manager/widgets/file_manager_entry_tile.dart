@@ -6,29 +6,19 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 
-class FileManagerEntryTile extends StatelessWidget {
-  const FileManagerEntryTile({
-    required this.onToggleSelection,
-    required this.onOpenDirectory,
-    required this.hasSelection,
-    required this.canOpenFile,
-    required this.onOpenFile,
-    required this.isSelected,
-    required this.entry,
-    super.key,
-  });
-
+class const FileManagerEntryTile({
+  required final VoidCallback onToggleSelection,
+  required final VoidCallback onOpenDirectory,
+  required final bool hasSelection,
+  required final bool canOpenFile,
+  required final VoidCallback onOpenFile,
+  required final bool isSelected,
+  required final FileEntry entry,
+  super.key,
+}) extends StatelessWidget {
   static const _trailingSlotWidth = 18.0;
   static const _leadingSlotWidth = 24.0;
   static const _tileHeight = 52.0;
-
-  final VoidCallback onToggleSelection;
-  final VoidCallback onOpenDirectory;
-  final VoidCallback onOpenFile;
-  final bool hasSelection;
-  final bool canOpenFile;
-  final bool isSelected;
-  final FileEntry entry;
 
   void _handleTap() {
     if (hasSelection) return onToggleSelection();

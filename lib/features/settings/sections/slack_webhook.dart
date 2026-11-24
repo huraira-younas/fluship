@@ -7,9 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluship/di/locator.dart';
 import 'package:material_ui/material_ui.dart';
 
-class SlackWebhook extends StatelessWidget {
-  const SlackWebhook({super.key});
-
+class const SlackWebhook({super.key}) extends StatelessWidget {
   SlackConfig _slack(SlackConfig? config) => config ?? const SlackConfig();
 
   void _updateSlack(SlackConfig config) {

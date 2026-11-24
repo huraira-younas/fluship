@@ -3,9 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../sections/exports.dart';
 
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
-
+class const SettingsScreen({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spacing = context.flushipTheme.spacing;

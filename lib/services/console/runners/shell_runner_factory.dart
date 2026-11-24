@@ -8,11 +8,10 @@ import '../contracts/shell_runner.dart';
 import 'cmd_shell_runner.dart';
 import 'sh_shell_runner.dart';
 
-class ShellRunnerFactory implements IShellRunnerFactory {
-  ShellRunnerFactory({IShellOutputParser Function()? parserBuilder})
-    : _parserBuilder = parserBuilder ?? MarkerShellOutputParser.new;
-
-  final IShellOutputParser Function() _parserBuilder;
+class ShellRunnerFactory({IShellOutputParser Function()? parserBuilder})
+    implements IShellRunnerFactory {
+  final IShellOutputParser Function() _parserBuilder =
+      parserBuilder ?? MarkerShellOutputParser.new;
 
   @override
   IShellRunner build() {

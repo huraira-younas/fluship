@@ -6,26 +6,16 @@ import 'package:fluship/core/app_theme/models/theme.dart';
 import 'package:fluship/shared/widgets/app_text.dart';
 import 'package:material_ui/material_ui.dart';
 
-class AppTabs<T> extends StatefulWidget {
-  const AppTabs({
-    this.scrollPadding = .zero,
-    this.variant = .custom,
-    required this.onChange,
-    this.disabled = false,
-    required this.labels,
-    required this.label,
-    this.contentPadding,
-    super.key,
-  });
-
-  final void Function(T label) onChange;
-  final EdgeInsets? contentPadding;
-  final EdgeInsets? scrollPadding;
-  final AppTextVariant variant;
-  final List<T> labels;
-  final bool disabled;
-  final T label;
-
+class const AppTabs<T>({
+  final EdgeInsets? scrollPadding = .zero,
+  final AppTextVariant variant = .custom,
+  required final void Function(T label) onChange,
+  final bool disabled = false,
+  required final List<T> labels,
+  required final T label,
+  final EdgeInsets? contentPadding,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<AppTabs<T>> createState() => _AppTabsState<T>();
 }
@@ -109,8 +99,8 @@ class _AppTabsState<T> extends State<AppTabs<T>> {
     final stackBox = stackContext.findRenderObject() as RenderBox?;
     if (tabBox == null || stackBox == null || !tabBox.hasSize) return;
 
-    final stackOrigin = stackBox.localToGlobal(Offset.zero);
-    final tabOrigin = tabBox.localToGlobal(Offset.zero);
+    final stackOrigin = stackBox.localToGlobal(.zero);
+    final tabOrigin = tabBox.localToGlobal(.zero);
     final left = tabOrigin.dx - stackOrigin.dx;
     final width = tabBox.size.width;
 
@@ -139,7 +129,7 @@ class _AppTabsState<T> extends State<AppTabs<T>> {
     if (renderObject == null) return;
 
     scrollable.position.ensureVisible(
-      duration: animate ? _animationDuration : Duration.zero,
+      duration: animate ? _animationDuration : .zero,
       curve: Curves.easeInOut,
       alignment: 0.5,
       renderObject,
@@ -159,10 +149,10 @@ class _AppTabsState<T> extends State<AppTabs<T>> {
     final radius = theme.radius;
 
     return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+      scrollDirection: .horizontal,
       padding: widget.scrollPadding,
       controller: _scrollController,
-      clipBehavior: Clip.none,
+      clipBehavior: .none,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: .circular(radius.btn + 15),
@@ -237,22 +227,14 @@ class _AppTabsState<T> extends State<AppTabs<T>> {
   }
 }
 
-class _TabButton extends StatelessWidget {
-  const _TabButton({
-    required this.contentPadding,
-    required this.isSelected,
-    required this.variant,
-    required this.title,
-    this.onTap,
-    super.key,
-  });
-
-  final EdgeInsets? contentPadding;
-  final AppTextVariant variant;
-  final VoidCallback? onTap;
-  final bool isSelected;
-  final String title;
-
+class const _TabButton({
+  required final EdgeInsets? contentPadding,
+  required final bool isSelected,
+  required final AppTextVariant variant,
+  required final String title,
+  final VoidCallback? onTap,
+  super.key,
+}) extends StatelessWidget {
   bool get _disabled => onTap == null;
 
   @override
@@ -280,24 +262,15 @@ class _TabButton extends StatelessWidget {
   }
 }
 
-class AppTabTiles<T> extends StatelessWidget {
-  const AppTabTiles({
-    required this.onChange,
-    required this.labels,
-    required this.label,
-    this.contentPadding,
-    this.titleFor,
-    this.iconFor,
-    super.key,
-  });
-
-  final IconData Function(T value)? iconFor;
-  final String Function(T value)? titleFor;
-  final void Function(T label) onChange;
-  final EdgeInsets? contentPadding;
-  final List<T> labels;
-  final T label;
-
+class const AppTabTiles<T>({
+  required final void Function(T label) onChange,
+  required final List<T> labels,
+  required final T label,
+  final EdgeInsets? contentPadding,
+  final String Function(T value)? titleFor,
+  final IconData Function(T value)? iconFor,
+  super.key,
+}) extends StatelessWidget {
   String _titleFor(T value) {
     if (titleFor != null) return titleFor!(value);
     if (value is Enum) return value.name;
@@ -335,25 +308,15 @@ class AppTabTiles<T> extends StatelessWidget {
   }
 }
 
-class _TabTileButton extends StatelessWidget {
-  const _TabTileButton({
-    required this.contentPadding,
-    required this.isSelected,
-    required this.colors,
-    required this.radius,
-    required this.onTap,
-    required this.title,
-    this.icon,
-  });
-
-  final EdgeInsets? contentPadding;
-  final ThemePalette colors;
-  final VoidCallback onTap;
-  final bool isSelected;
-  final IconData? icon;
-  final double radius;
-  final String title;
-
+class const _TabTileButton({
+  required final EdgeInsets? contentPadding,
+  required final bool isSelected,
+  required final ThemePalette colors,
+  required final double radius,
+  required final VoidCallback onTap,
+  required final String title,
+  final IconData? icon,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = colors.accent;

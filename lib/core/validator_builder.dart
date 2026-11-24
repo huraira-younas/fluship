@@ -29,10 +29,8 @@ bool _isPlausibleWebHost(String host) {
   return tld.length >= 2 && _hostTldChars.hasMatch(tld);
 }
 
-class ValidatorBuilder {
+class ValidatorBuilder._() {
   final List<ValidatorFunction> _validators = [];
-
-  ValidatorBuilder._();
 
   static ValidatorBuilder chain() => ValidatorBuilder._();
 

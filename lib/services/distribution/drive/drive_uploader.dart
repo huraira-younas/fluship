@@ -21,12 +21,12 @@ abstract interface class DriveUploader {
   });
 }
 
-class GoogleDriveUploader implements DriveUploader {
-  const GoogleDriveUploader({DriveAuthClientFactory? authFactory})
-    : _authFactory = authFactory ?? const GoogleDriveTokenAuthClientFactory();
-
+class const GoogleDriveUploader({DriveAuthClientFactory? authFactory})
+    implements DriveUploader {
   static const _folderMime = 'application/vnd.google-apps.folder';
-  final DriveAuthClientFactory _authFactory;
+
+  final DriveAuthClientFactory _authFactory =
+      authFactory ?? const GoogleDriveTokenAuthClientFactory();
 
   @override
   Future<DriveUploadOutcome> upload({

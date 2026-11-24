@@ -3,15 +3,10 @@ import 'package:fluship/features/pipeline/contracts/pipeline_console_port.dart';
 import 'contracts/distribution_logger.dart';
 import 'models/distribution_result.dart';
 
-class PipelineDistributionLogger implements DistributionLogger {
-  const PipelineDistributionLogger({
-    required this._consolePort,
-    required this._sessionId,
-  });
-
-  final PipelineConsolePort _consolePort;
-  final String _sessionId;
-
+class const PipelineDistributionLogger({
+  required final PipelineConsolePort _consolePort,
+  required final String _sessionId,
+}) implements DistributionLogger {
   @override
   Future<void> logLine(DistributionResult result) {
     return _consolePort.logLine(

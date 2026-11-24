@@ -10,9 +10,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../widgets/field_button.dart';
 
-class IosCredentials extends StatelessWidget {
-  const IosCredentials({super.key});
-
+class const IosCredentials({super.key}) extends StatelessWidget {
   void _updateIos(IosConfig config) {
     final bloc = getIt<ConfigBloc>();
     final distribution = bloc.state.distribution;

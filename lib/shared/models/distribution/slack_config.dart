@@ -1,11 +1,7 @@
 part of 'distribution_config.dart';
 
-class SlackConfig extends Equatable {
-  final String? webhookUrl;
-  final bool enabled;
-
-  const SlackConfig({this.enabled = false, this.webhookUrl});
-
+class const SlackConfig({final bool enabled = false, final String? webhookUrl})
+    extends Equatable {
   bool get canSend => hasCreds(webhookUrl);
 
   SlackConfig copyWith({String? webhookUrl, bool? enabled}) => SlackConfig(
@@ -13,7 +9,7 @@ class SlackConfig extends Equatable {
     enabled: enabled ?? this.enabled,
   );
 
-  factory SlackConfig.fromJson(Map<String, dynamic>? json) {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const SlackConfig();
 
     final data = json.at<SlackConfig>();

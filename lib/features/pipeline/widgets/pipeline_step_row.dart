@@ -8,23 +8,16 @@ import '../models/pipeline_step_view.dart';
 import 'pipeline_status_style.dart';
 import 'pipeline_elapsed.dart';
 
-class PipelineStepRow extends StatelessWidget {
-  const PipelineStepRow({
-    required this.isActive,
-    required this.index,
-    required this.step,
-    this.onRemove,
-    super.key,
-  });
+class const PipelineStepRow({
+  required final bool isActive,
+  required final int index,
+  required final PipelineStepView step,
 
   /// Set only while the pipeline is running and this step has not started, so
   /// upcoming steps can be dropped from the run in progress.
-  final VoidCallback? onRemove;
-
-  final PipelineStepView step;
-  final bool isActive;
-  final int index;
-
+  final VoidCallback? onRemove,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ft = context.flushipTheme;
@@ -148,12 +141,10 @@ class PipelineStepRow extends StatelessWidget {
   }
 }
 
-class _StepIndexBadge extends StatelessWidget {
-  const _StepIndexBadge({required this.color, required this.index});
-
-  final Color color;
-  final int index;
-
+class const _StepIndexBadge({
+  required final Color color,
+  required final int index,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(

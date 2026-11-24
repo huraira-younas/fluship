@@ -1,43 +1,26 @@
 import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
 import 'package:equatable/equatable.dart';
 
-class PipelineRunSnapshot extends Equatable {
-  const PipelineRunSnapshot({
-    this.collectedArtifacts = const [],
-    required this.totalElapsed,
-    this.links = const {},
-    required this.artifactsDir,
-    required this.buildNumber,
-    required this.logFilePath,
-    required this.finishedAt,
-    required this.platforms,
-    required this.runStatus,
-    required this.startedAt,
-    required this.appName,
-    required this.version,
-    required this.steps,
-  });
-
+class const PipelineRunSnapshot({
   /// Artifacts collected by this run only. Distribution uses these instead of
   /// listing [artifactsDir], which also holds output from earlier runs of the
   /// same version and build number.
-  final List<String> collectedArtifacts;
+  final List<String> collectedArtifacts = const [],
+  required final Duration totalElapsed,
 
   /// Download links published earlier in this run, by label.
-  final Map<String, String> links;
-
-  final List<PipelineStepView> steps;
-  final PipelineRunStatus runStatus;
-  final Duration totalElapsed;
-  final String artifactsDir;
-  final DateTime finishedAt;
-  final DateTime startedAt;
-  final String buildNumber;
-  final String logFilePath;
-  final String platforms;
-  final String appName;
-  final String version;
-
+  final Map<String, String> links = const {},
+  required final String artifactsDir,
+  required final String buildNumber,
+  required final String logFilePath,
+  required final DateTime finishedAt,
+  required final String platforms,
+  required final PipelineRunStatus runStatus,
+  required final DateTime startedAt,
+  required final String appName,
+  required final String version,
+  required final List<PipelineStepView> steps,
+}) extends Equatable {
   bool get success => runStatus == .completed;
 
   List<String> artifactsWithExtension(String extension) => [

@@ -18,19 +18,12 @@ enum AppOrientationLock {
   };
 }
 
-class ResponsiveInfo extends Equatable {
-  const ResponsiveInfo({
-    required this.orientation,
-    required this.breakpoint,
-    required this.height,
-    required this.width,
-  });
-
-  final AppBreakpoint breakpoint;
-  final Orientation orientation;
-  final double height;
-  final double width;
-
+class const ResponsiveInfo({
+  required final Orientation orientation,
+  required final AppBreakpoint breakpoint,
+  required final double height,
+  required final double width,
+}) extends Equatable {
   bool get isTabletOrMobile => isMobile || isTablet;
   bool get isMobile => breakpoint == .compact;
   bool get isTablet => breakpoint == .medium;
@@ -51,10 +44,7 @@ class ResponsiveInfo extends Equatable {
     return setOrientationLock(.all);
   }
 
-  factory ResponsiveInfo.fromContext(
-    BuildContext context, {
-    BreakpointConfig? config,
-  }) {
+  factory fromContext(BuildContext context, {BreakpointConfig? config}) {
     final breakpointConfig = config ?? const BreakpointConfig.material3();
     final mediaQuery = MediaQuery.sizeOf(context);
 

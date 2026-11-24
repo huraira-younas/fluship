@@ -6,9 +6,7 @@ import 'package:material_ui/material_ui.dart';
 enum AppTextFieldVariant { floatingLabel, label, custom }
 
 @immutable
-class _AppTextFieldDecoration {
-  const _AppTextFieldDecoration._();
-
+class const _AppTextFieldDecoration._() {
   static TextStyle textStyle(ThemePalette colors) =>
       TextStyle(fontWeight: .w400, color: colors.text, fontSize: 14);
 
@@ -33,7 +31,7 @@ class _AppTextFieldDecoration {
         return TextStyle(
           color: focused ? colors.accent : colors.section,
           backgroundColor: theme.codeBg,
-          fontWeight: FontWeight.w500,
+          fontWeight: .w500,
           fontSize: 15,
         );
       }),
@@ -41,7 +39,7 @@ class _AppTextFieldDecoration {
         final focused = states.contains(WidgetState.focused);
         return TextStyle(
           color: focused ? colors.accent : colors.muted,
-          fontWeight: FontWeight.w400,
+          fontWeight: .w400,
           fontSize: 14,
         );
       }),
@@ -74,7 +72,7 @@ class _AppTextFieldDecoration {
 }
 
 class AppTextField extends StatelessWidget {
-  const AppTextField.floatingLabel({
+  const new floatingLabel({
     this.obscureText = false,
     this.autofocus = false,
     this.autovalidateMode,
@@ -101,7 +99,7 @@ class AppTextField extends StatelessWidget {
          'Use either controller or initialValue, not both.',
        );
 
-  const AppTextField.label({
+  const new label({
     this.obscureText = false,
     this.autofocus = false,
     this.readOnly = false,
@@ -128,7 +126,7 @@ class AppTextField extends StatelessWidget {
          'Use either controller or initialValue, not both.',
        );
 
-  const AppTextField.custom({
+  const new custom({
     required this.decoration,
     this.obscureText = false,
     this.autofocus = false,
@@ -258,17 +256,11 @@ class AppTextField extends StatelessWidget {
   }
 }
 
-class _SyncedTextFormField extends StatefulWidget {
-  const _SyncedTextFormField({
-    required this.decoration,
-    required this.field,
-    required this.style,
-  });
-
-  final InputDecoration decoration;
-  final AppTextField field;
-  final TextStyle style;
-
+class const _SyncedTextFormField({
+  required final InputDecoration decoration,
+  required final AppTextField field,
+  required final TextStyle style,
+}) extends StatefulWidget {
   @override
   State<_SyncedTextFormField> createState() => _SyncedTextFormFieldState();
 }

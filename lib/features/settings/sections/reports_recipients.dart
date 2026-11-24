@@ -9,9 +9,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../widgets/distribution_recipients_panel.dart';
 
-class ReportsRecipients extends StatelessWidget {
-  const ReportsRecipients({super.key});
-
+class const ReportsRecipients({super.key}) extends StatelessWidget {
   static ReportRecipientConfig _report(ReportRecipientConfig? config) =>
       config ?? const ReportRecipientConfig();
 

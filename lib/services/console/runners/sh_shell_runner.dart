@@ -3,9 +3,9 @@ import '../contracts/shell_output_parser.dart';
 
 import 'base_shell_runner.dart';
 
-final class ShShellRunner extends BaseShellRunner {
-  ShShellRunner({IShellOutputParser? parser, super.treeKiller})
-    : super(parser: parser ?? MarkerShellOutputParser());
+final class ShShellRunner({IShellOutputParser? parser, super.treeKiller})
+    extends BaseShellRunner {
+  this : super(parser: parser ?? MarkerShellOutputParser());
 
   @override
   String get executable => 'sh';

@@ -6,9 +6,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../bloc/console_bloc.dart';
 
-class ConsoleToolbar extends StatelessWidget {
-  const ConsoleToolbar({super.key});
-
+class const ConsoleToolbar({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocSelector<ConsoleBloc, ConsoleState, String?>(

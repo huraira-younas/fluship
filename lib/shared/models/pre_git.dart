@@ -2,18 +2,13 @@ import 'package:fluship/core/json_parser/exports.dart';
 
 import 'base_config.dart';
 
-final class PreGitModel extends GitBaseConfig {
-  const PreGitModel({
-    this.preCommit = false,
-    this.prePull = false,
-    super.enabled = true,
-    super.commitMessage,
-    super.targetBranch,
-  });
-
-  final bool preCommit;
-  final bool prePull;
-
+final class const PreGitModel({
+  final bool preCommit = false,
+  final bool prePull = false,
+  super.enabled = true,
+  super.commitMessage,
+  super.targetBranch,
+}) extends GitBaseConfig {
   @override
   PreGitModel copyWith({
     String? commitMessage,
@@ -29,7 +24,7 @@ final class PreGitModel extends GitBaseConfig {
     enabled: enabled ?? this.enabled,
   );
 
-  factory PreGitModel.fromJson(Map<String, dynamic>? json) {
+  factory fromJson(Map<String, dynamic>? json) {
     if (json == null) return const PreGitModel();
 
     final data = json.at<PreGitModel>();

@@ -4,9 +4,7 @@ import 'package:toastification/toastification.dart';
 import 'package:fluship/core/navigator.dart';
 import 'package:material_ui/material_ui.dart';
 
-abstract final class AppToast {
-  AppToast._();
-
+abstract final class AppToast._() {
   static void info(
     String message, {
     String? title,
@@ -81,7 +79,7 @@ abstract final class AppToast {
         ),
       ],
       borderSide: BorderSide(color: colors?.cardBorder ?? Colors.white24),
-      borderRadius: BorderRadius.circular(theme?.radius.card ?? 12),
+      borderRadius: .circular(theme?.radius.card ?? 12),
       style: ToastificationStyle.minimal,
       autoCloseDuration: autoCloseDuration,
       backgroundColor: colors?.cardBg,
@@ -100,10 +98,10 @@ abstract final class AppToast {
   static Color? _accentColor(ToastificationType type, ThemePalette? colors) {
     if (colors == null) return null;
 
-    if (type == ToastificationType.success) return colors.success;
-    if (type == ToastificationType.warning) return colors.warn;
-    if (type == ToastificationType.error) return colors.danger;
-    if (type == ToastificationType.info) return colors.accent;
+    if (type == .success) return colors.success;
+    if (type == .warning) return colors.warn;
+    if (type == .error) return colors.danger;
+    if (type == .info) return colors.accent;
 
     return null;
   }

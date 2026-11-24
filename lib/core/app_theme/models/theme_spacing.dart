@@ -1,12 +1,10 @@
 part of 'theme.dart';
 
-class ThemeSpacing extends Equatable {
-  const ThemeSpacing({this.md = 15, this.lg = 20, this.sm = 8});
-
-  final double sm;
-  final double md;
-  final double lg;
-
+class const ThemeSpacing({
+  final double md = 15,
+  final double lg = 20,
+  final double sm = 8,
+}) extends Equatable {
   @override
   List<Object?> get props => [sm, md, lg];
 }

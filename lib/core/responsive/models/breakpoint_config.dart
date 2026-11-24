@@ -1,19 +1,12 @@
 import 'package:equatable/equatable.dart';
 
-class BreakpointConfig extends Equatable {
-  const BreakpointConfig({
-    this.expandedMax = 1199,
-    this.compactMax = 599,
-    this.mediumMax = 839,
-    this.largeMax = 1599,
-  });
-
-  final double expandedMax;
-  final double compactMax;
-  final double mediumMax;
-  final double largeMax;
-
-  const factory BreakpointConfig.material3() = BreakpointConfig;
+class const BreakpointConfig({
+  final double expandedMax = 1199,
+  final double compactMax = 599,
+  final double mediumMax = 839,
+  final double largeMax = 1599,
+}) extends Equatable {
+  const factory material3() = BreakpointConfig;
 
   @override
   List<Object?> get props => [compactMax, mediumMax, expandedMax, largeMax];

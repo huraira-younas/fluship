@@ -6,12 +6,10 @@ import 'package:path/path.dart' as p;
 
 import 'whatsapp_client.dart';
 
-class WhatsAppAgentClient implements WhatsAppClient {
-  const WhatsAppAgentClient({
-    this.retryDelay = const Duration(seconds: 5),
-    this._httpClient,
-  });
-
+class const WhatsAppAgentClient({
+  final Duration retryDelay = const Duration(seconds: 5),
+  final http.Client? _httpClient,
+}) implements WhatsAppClient {
   static const baseUrl = 'https://api.whatsapp.com/agent/v1';
 
   /// A slow send must not be mistaken for a failed one, because retrying a
@@ -19,9 +17,6 @@ class WhatsAppAgentClient implements WhatsAppClient {
   static const _sendTimeout = Duration(seconds: 90);
   static const _uploadTimeout = Duration(minutes: 3);
   static const _maxUpdatePages = 5;
-
-  final http.Client? _httpClient;
-  final Duration retryDelay;
 
   @override
   Future<void> sendText({
@@ -211,7 +206,7 @@ class WhatsAppAgentClient implements WhatsAppClient {
 
       final error = errorFromResponse(status, response.body);
       if (attempt == 0 && error.isRetryable) {
-        await Future<void>.delayed(retryDelay);
+        await Future.pause(retryDelay);
         continue;
       }
       throw error;

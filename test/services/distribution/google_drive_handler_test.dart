@@ -1,4 +1,3 @@
-import 'package:fluship/features/pipeline/models/pipeline_step_view.dart';
 import 'package:fluship/services/distribution/distribution.dart';
 import 'package:fluship/shared/models/distribution/distribution_config.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,16 +41,13 @@ class FakeEmailClient implements EmailClient {
   }
 }
 
-class FakeDriveUploader implements DriveUploader {
-  FakeDriveUploader({
-    this.outcome = const DriveUploadOutcome(
-      fileNames: ['Demo-v1.0.0+42.apk'],
-      link: 'https://drive.google.com/drive/folders/abc',
-      label: 'Demo',
-    ),
-  });
-
-  final DriveUploadOutcome outcome;
+class FakeDriveUploader({
+  final DriveUploadOutcome outcome = const DriveUploadOutcome(
+    fileNames: ['Demo-v1.0.0+42.apk'],
+    link: 'https://drive.google.com/drive/folders/abc',
+    label: 'Demo',
+  ),
+}) implements DriveUploader {
   List<String>? lastFiles;
   Object? throwError;
   var uploadCalls = 0;
@@ -82,8 +78,8 @@ PipelineRunSnapshot _snapshot({
   return PipelineRunSnapshot(
     collectedArtifacts: collected,
     steps: const [],
-    runStatus: PipelineRunStatus.completed,
-    totalElapsed: Duration.zero,
+    runStatus: .completed,
+    totalElapsed: .zero,
     finishedAt: DateTime(2026, 6, 21, 14, 30),
     startedAt: DateTime(2026, 6, 21, 14, 29),
     logFilePath: '',
