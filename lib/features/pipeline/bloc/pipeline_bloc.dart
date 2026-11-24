@@ -517,6 +517,10 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
 
     _cancelRequested = true;
 
+    // An upload or email step cannot be interrupted, so the run only ends
+    // once it returns. Say so instead of looking stuck.
+    emit(state.copyWith(summaryMessage: 'Cancelling…'));
+
     final sessionId = _sessionId;
     if (sessionId == null) return;
 

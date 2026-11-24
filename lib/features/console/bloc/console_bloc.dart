@@ -180,6 +180,13 @@ class ConsoleBloc extends BaseBloc<ConsoleEvent, ConsoleState> {
         } catch (_) {}
       }
 
+      // Every run gets its own shell, so nothing an earlier run queued or
+      // left running can carry over into this one.
+      try {
+        await _pool.dispose(id);
+      } catch (_) {}
+      await _pool.create(sessionId: id, projectRoot: event.projectRoot);
+
       _updateSession(
         emit: emit,
         sessionId: id,

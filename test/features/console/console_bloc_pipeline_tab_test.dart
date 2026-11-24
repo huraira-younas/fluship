@@ -210,6 +210,31 @@ void main() {
       },
     );
 
+    test('a second pipeline run replaces the shell of the first', () async {
+      await dispatch<String>(
+        bloc,
+        const CreatePipelineSession(projectRoot: '/project'),
+      );
+
+      expect(pool.disposed, isEmpty);
+
+      await dispatch<String>(
+        bloc,
+        const CreatePipelineSession(projectRoot: '/other'),
+      );
+
+      expect(pool.disposed, [pipelineConsoleSessionId]);
+      expect(pool.created, [
+        pipelineConsoleSessionId,
+        pipelineConsoleSessionId,
+      ]);
+
+      final session = bloc.state.sessionById(pipelineConsoleSessionId)!;
+      expect(session.workingDirectory, '/other');
+      expect(session.isRunning, isFalse);
+      expect(session.lines, isEmpty);
+    });
+
     test('CloseSession ignores pipeline session id', () async {
       bloc.add(const SyncProjectRoot(path: '/project'));
       await pumpBloc();

@@ -3,6 +3,7 @@ import 'dart:io' show Directory, Process;
 import 'dart:convert' show utf8;
 
 import '../exceptions/console_shell_exceptions.dart';
+import '../../process/process_tree_killer.dart';
 import '../contracts/shell_output_parser.dart';
 import '../shell_environment_resolver.dart';
 import '../models/shell_parse_result.dart';
@@ -12,9 +13,12 @@ import '../contracts/shell_runner.dart';
 abstract base class BaseShellRunner implements IShellRunner {
   BaseShellRunner({
     ShellEnvironmentResolver? envResolver,
+    ProcessTreeKiller? treeKiller,
     required this._parser,
-  }) : _envResolver = envResolver ?? const ShellEnvironmentResolver();
+  }) : _envResolver = envResolver ?? const ShellEnvironmentResolver(),
+       _treeKiller = treeKiller ?? const ProcessTreeKiller();
   final ShellEnvironmentResolver _envResolver;
+  final ProcessTreeKiller _treeKiller;
   final IShellOutputParser _parser;
 
   Completer<ShellRunResult>? _runCompleter;
@@ -29,6 +33,8 @@ abstract base class BaseShellRunner implements IShellRunner {
   var _cancelled = false;
   var _disposed = false;
   var _running = false;
+
+  String? _workingDirectory;
   String? _lastCwd;
 
   @override
@@ -52,6 +58,7 @@ abstract base class BaseShellRunner implements IShellRunner {
     if (!directory.existsSync()) {
       throw StateError('Working directory does not exist: $workingDirectory');
     }
+    _workingDirectory = workingDirectory;
 
     final environment = await _envResolver.resolve(
       workingDirectory: workingDirectory,
@@ -105,10 +112,17 @@ abstract base class BaseShellRunner implements IShellRunner {
     required void Function(String chunk) onStderr,
   }) async {
     if (_disposed) throw const ShellDisposedException();
-    final process = _process;
-
-    if (process == null) throw const ShellDisposedException();
     if (_running) throw const ShellBusyException();
+
+    // A cancel ends the shell, so the next command gets a new one.
+    if (_process == null) {
+      final directory = _restartDirectory;
+      if (directory == null) throw const ShellDisposedException();
+      await start(workingDirectory: directory);
+    }
+
+    final process = _process;
+    if (process == null) throw const ShellDisposedException();
 
     _runCompleter = Completer<ShellRunResult>();
     _onCwdChanged = onCwdChanged;
@@ -171,22 +185,51 @@ abstract base class BaseShellRunner implements IShellRunner {
     _runCompleter!.complete(result);
   }
 
+  /// Ends the running command by ending the shell and everything it started.
+  ///
+  /// The shell reads from a pipe, so a Ctrl-C byte is only more input and the
+  /// command would keep running. Left alive, that command would also hold up,
+  /// and report its result to, whatever is run next.
   @override
   Future<void> cancel() async {
     if (!_running) return;
     _parser.markCancelled();
     _cancelled = true;
 
-    try {
-      _process?.stdin.writeln('\x03');
-      await _process?.stdin.flush();
-    } catch (_) {
-      await _killProcess();
-    }
+    await _stopShell();
 
     _completeRun(
       ShellRunResult(exitCode: -1, wasCancelled: true, cwd: _lastCwd),
     );
+  }
+
+  String? get _restartDirectory {
+    final last = _lastCwd;
+    if (last != null && last.isNotEmpty && Directory(last).existsSync()) {
+      return last;
+    }
+    return _workingDirectory;
+  }
+
+  Future<void> _stopShell() async {
+    final process = _process;
+    if (process == null) return;
+    _process = null;
+
+    await _stdoutSub?.cancel();
+    await _stderrSub?.cancel();
+    _stdoutSub = null;
+    _stderrSub = null;
+
+    try {
+      await _treeKiller.killTree(process.pid);
+    } catch (_) {}
+
+    try {
+      await process.exitCode.timeout(const Duration(seconds: 3));
+    } catch (_) {
+      process.kill(.sigkill);
+    }
   }
 
   @override
@@ -194,6 +237,7 @@ abstract base class BaseShellRunner implements IShellRunner {
     if (_disposed) return;
     _disposed = true;
     if (_running) {
+      await _stopShell();
       _completeRun(
         ShellRunResult(exitCode: -1, wasCancelled: true, cwd: _lastCwd),
       );

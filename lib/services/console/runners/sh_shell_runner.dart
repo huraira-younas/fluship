@@ -4,7 +4,7 @@ import '../contracts/shell_output_parser.dart';
 import 'base_shell_runner.dart';
 
 final class ShShellRunner extends BaseShellRunner {
-  ShShellRunner({IShellOutputParser? parser})
+  ShShellRunner({IShellOutputParser? parser, super.treeKiller})
     : super(parser: parser ?? MarkerShellOutputParser());
 
   @override

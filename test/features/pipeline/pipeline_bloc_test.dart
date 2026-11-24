@@ -518,6 +518,51 @@ void main() {
       expect(console.disposeCalls, 1);
     });
 
+    test('a run after cancel starts again from the first step', () async {
+      final config = FakePipelineConfigSource(_configWithSteps());
+      final console = FakePipelineConsolePort(delayStep: true);
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+        executor: const _StubPipelineExecutor(),
+      );
+
+      final summaries = <String>[];
+      final sub = bloc.stream.listen((s) => summaries.add(s.summaryMessage));
+
+      bloc.add(const RunPipeline());
+      await _pumpBloc(bloc);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      bloc.add(const CancelPipeline());
+      await _runToCompletion(bloc);
+
+      expect(bloc.state.runStatus, PipelineRunStatus.cancelled);
+      expect(summaries, contains('Cancelling…'));
+
+      final firstRunCommands = List<String>.of(console.commands);
+      final stepCount = bloc.state.steps.length;
+      final shellStepCount = stepCount - 1; // the collect step is internal
+      expect(firstRunCommands.length, lessThan(shellStepCount));
+
+      bloc.add(const RunPipeline());
+      await _runToCompletion(bloc);
+
+      final secondRunCommands = console.commands.sublist(
+        firstRunCommands.length,
+      );
+
+      expect(console.createCalls, 2);
+      expect(bloc.state.runStatus, PipelineRunStatus.completed);
+      expect(bloc.state.steps, hasLength(stepCount));
+      expect(bloc.state.steps.every((s) => s.status == .completed), isTrue);
+      expect(secondRunCommands, hasLength(shellStepCount));
+      expect(secondRunCommands.first, firstRunCommands.first);
+
+      await sub.cancel();
+      await bloc.close();
+    });
+
     test('dismiss resets panel to idle', () async {
       final config = FakePipelineConfigSource(
         ConfigState.empty().copyWith(
