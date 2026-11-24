@@ -33,5 +33,12 @@ class ConfigPipelineResolver {
       handlers: handlers,
       state,
     ),
+    // Last, so the summary carries every other step's outcome and the links
+    // the uploads published.
+    ...resolveWhatsApp(
+      contextProvider: reportContextProvider,
+      handlers: handlers,
+      state,
+    ),
   ];
 }

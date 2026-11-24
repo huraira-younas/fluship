@@ -5,6 +5,7 @@ class PipelineRunSnapshot extends Equatable {
   const PipelineRunSnapshot({
     this.collectedArtifacts = const [],
     required this.totalElapsed,
+    this.links = const {},
     required this.artifactsDir,
     required this.buildNumber,
     required this.logFilePath,
@@ -21,6 +22,9 @@ class PipelineRunSnapshot extends Equatable {
   /// listing [artifactsDir], which also holds output from earlier runs of the
   /// same version and build number.
   final List<String> collectedArtifacts;
+
+  /// Download links published earlier in this run, by label.
+  final Map<String, String> links;
 
   final List<PipelineStepView> steps;
   final PipelineRunStatus runStatus;
@@ -58,5 +62,6 @@ class PipelineRunSnapshot extends Equatable {
     appName,
     version,
     steps,
+    links,
   ];
 }

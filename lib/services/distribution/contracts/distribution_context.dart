@@ -11,15 +11,21 @@ class DistributionContext {
     required this.emailTheme,
     required this.snapshot,
     this.onUploadProgress,
+    this.onLinkPublished,
     required this.config,
     required this.logger,
   });
 
   final void Function(PipelineUploadProgress progress)? onUploadProgress;
+  final void Function(String label, String url)? onLinkPublished;
   final DistributionConfigModel config;
   final PipelineRunSnapshot snapshot;
   final ReportHtmlTheme emailTheme;
   final DistributionLogger logger;
+
+  /// Records a download link for steps that run later in the same pipeline.
+  void publishLink(String label, String url) =>
+      onLinkPublished?.call(label, url);
 
   void notifyUploadProgress({
     required UploadChannel channel,

@@ -2,3 +2,4 @@ export 'report_email_handler.dart';
 export 'google_drive_handler.dart';
 export 'play_store_handler.dart';
 export 'app_store_handler.dart';
+export 'whatsapp_handler.dart';

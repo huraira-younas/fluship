@@ -48,6 +48,12 @@ const _sections = <_ProfileSection>[
     label: 'Slack',
   ),
   _ProfileSection(
+    icon: Icons.forum_outlined,
+    child: WhatsAppAgent(),
+    group: 'Delivery',
+    label: 'WhatsApp',
+  ),
+  _ProfileSection(
     icon: Icons.mail_outline,
     child: ReportsRecipients(),
     group: 'Delivery',

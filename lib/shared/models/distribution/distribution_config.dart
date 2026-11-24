@@ -8,6 +8,7 @@ part 'report_recipient_config.dart';
 part 'google_drive_config.dart';
 part 'google_play_config.dart';
 part 'distribution_email.dart';
+part 'whatsapp_config.dart';
 part 'slack_config.dart';
 part 'ios_config.dart';
 
@@ -15,6 +16,7 @@ final class DistributionConfigModel extends BaseConfig {
   const DistributionConfigModel({
     super.enabled = true,
     this.reportRecipient,
+    this.whatsappConfig,
     this.releaseNotes,
     this.driveConfig,
     this.slackConfig,
@@ -24,6 +26,7 @@ final class DistributionConfigModel extends BaseConfig {
 
   final ReportRecipientConfig? reportRecipient;
   final GooglePlayConsoleConfig? playstore;
+  final WhatsAppConfig? whatsappConfig;
   final GoogleDriveConfig? driveConfig;
   final SlackConfig? slackConfig;
   final String? releaseNotes;
@@ -31,6 +34,7 @@ final class DistributionConfigModel extends BaseConfig {
 
   bool get canSendBuildReport => reportRecipient?.canSend ?? false;
   bool get canSendToPlayStore => playstore?.canSend ?? false;
+  bool get canSendToWhatsApp => whatsappConfig?.canSend ?? false;
   bool get canSendToAppStore => appstore?.canSend ?? false;
   bool get canSendToSlack => slackConfig?.canSend ?? false;
   bool get canSendToDrive => driveConfig?.canSend ?? false;
@@ -49,6 +53,10 @@ final class DistributionConfigModel extends BaseConfig {
         ReportRecipientConfig.fromJson,
         'reportRecipient',
       ),
+      whatsappConfig: data.objectOrNull(
+        WhatsAppConfig.fromJson,
+        'whatsappConfig',
+      ),
       playstore: data.objectOrNull(
         GooglePlayConsoleConfig.fromJson,
         'playstore',
@@ -60,6 +68,7 @@ final class DistributionConfigModel extends BaseConfig {
   DistributionConfigModel copyWith({
     ReportRecipientConfig? reportRecipient,
     GooglePlayConsoleConfig? playstore,
+    WhatsAppConfig? whatsappConfig,
     GoogleDriveConfig? driveConfig,
     bool clearAppstore = false,
     SlackConfig? slackConfig,
@@ -69,6 +78,7 @@ final class DistributionConfigModel extends BaseConfig {
   }) => DistributionConfigModel(
     appstore: clearAppstore ? null : appstore ?? this.appstore,
     reportRecipient: reportRecipient ?? this.reportRecipient,
+    whatsappConfig: whatsappConfig ?? this.whatsappConfig,
     releaseNotes: releaseNotes ?? this.releaseNotes,
     driveConfig: driveConfig ?? this.driveConfig,
     slackConfig: slackConfig ?? this.slackConfig,
@@ -79,6 +89,7 @@ final class DistributionConfigModel extends BaseConfig {
   @override
   List<Object?> get props => [
     reportRecipient,
+    whatsappConfig,
     releaseNotes,
     driveConfig,
     slackConfig,
@@ -90,6 +101,7 @@ final class DistributionConfigModel extends BaseConfig {
   @override
   Map<String, dynamic> toJson() => {
     'reportRecipient': reportRecipient?.toJson(),
+    'whatsappConfig': whatsappConfig?.toJson(),
     'driveConfig': driveConfig?.toJson(),
     'slackConfig': slackConfig?.toJson(),
     'playstore': playstore?.toJson(),

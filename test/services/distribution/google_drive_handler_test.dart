@@ -99,6 +99,7 @@ DistributionContext _context({
   required PipelineRunSnapshot snapshot,
   DistributionConfigModel? config,
   void Function(PipelineUploadProgress progress)? onUploadProgress,
+  void Function(String label, String url)? onLinkPublished,
 }) {
   return DistributionContext(
     emailTheme: _testTheme,
@@ -121,6 +122,7 @@ DistributionContext _context({
         ),
     logger: FakeDistributionLogger(),
     onUploadProgress: onUploadProgress,
+    onLinkPublished: onLinkPublished,
   );
 }
 
@@ -244,6 +246,33 @@ void main() {
     expect(last?.channel, UploadChannel.drive);
     expect(last?.percent, 50);
     expect(last?.fileName, 'Demo.apk');
+  });
+
+  test('publishes the folder link for later steps', () async {
+    final links = <String, String>{};
+    await handler.run(
+      _context(
+        onLinkPublished: (label, url) => links[label] = url,
+        snapshot: withArtifacts(),
+      ),
+    );
+
+    expect(links, {
+      'Google Drive': 'https://drive.google.com/drive/folders/abc',
+    });
+  });
+
+  test('publishes no link when the upload fails', () async {
+    driveUploader.throwError = StateError('auth failed');
+    final links = <String, String>{};
+    await handler.run(
+      _context(
+        onLinkPublished: (label, url) => links[label] = url,
+        snapshot: withArtifacts(),
+      ),
+    );
+
+    expect(links, isEmpty);
   });
 
   test('uploads only when email is not configured', () async {

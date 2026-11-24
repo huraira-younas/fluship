@@ -3,6 +3,7 @@ export 'reports_recipients.dart';
 export 'ios_credentials.dart';
 export 'theme_selector.dart';
 export 'config_backup.dart';
+export 'whatsapp_agent.dart';
 export 'slack_webhook.dart';
 export 'project_paths.dart';
 export 'profile_card.dart';

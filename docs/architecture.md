@@ -81,5 +81,20 @@ Presets that are actually registered, each with a light and dark `AppTheme`:
 | App Store | `AppStoreHandler` | `ITmsTransporterUploader` |
 | Drive | `GoogleDriveHandler` | `GoogleDriveUploader` |
 | Report | `ReportEmailHandler` | `GmailSmtpClient` |
+| WhatsApp | `WhatsAppHandler` | `WhatsAppAgentClient` |
 
 These upload the target project's artifacts. They are not Fluship app targets.
+
+An upload step can call `DistributionContext.publishLink`. The link is kept in `PipelineRunArtifacts` and reaches later steps as `PipelineRunSnapshot.links`. Drive publishes its folder link this way, and the WhatsApp summary includes it.
+
+`WhatsAppAgentClient` talks to the WhatsApp Agent Platform (`https://api.whatsapp.com/agent/v1`). The platform limits what the handler can do:
+
+- An agent can only message the account that created it. There is no way to send to another phone number.
+- The recipient is an opaque `user:<id>`, read from a message that account sent to the agent (`GET /updates`). Settings stores it when the user presses Connect.
+- A file is capped at 16 MB and must be PDF, TXT, or an Office document. The handler sends the text summary and `logs.txt`. Build files are listed by name and reached through the published links.
+
+## Console shells
+
+`BaseShellRunner` keeps one long-lived shell per console session and feeds it commands on stdin. The shell reads from a pipe, so it cannot be interrupted with Ctrl-C. `cancel()` ends the shell and every process below it through `ProcessTreeKiller`, and the next command starts a new shell in the last working directory.
+
+`ConsoleBloc` disposes and recreates the pipeline shell at the start of every run. A run never inherits a shell, a working directory, or queued input from an earlier run.

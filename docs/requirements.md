@@ -23,6 +23,15 @@ Only the channels you enable need credentials.
 | App Store | App Store Connect API key |
 | Google Drive | OAuth client JSON |
 | Build report | Gmail app password and at least one recipient |
+| WhatsApp summary | WhatsApp agent API key, connected once from Settings |
+
+The WhatsApp summary uses the WhatsApp Agent Platform, which has fixed limits:
+
+- It reaches only the WhatsApp account that created the agent. It cannot send to another number.
+- It sends the text summary and the log file. Build files are not attached, because a file is capped at 16 MB.
+- WhatsApp offers agents in a limited set of countries, and chats with an agent are not end-to-end encrypted.
+
+Credentials, including the agent API key, are stored as plain JSON in the profile and are included in Settings backups.
 
 ## UI
 

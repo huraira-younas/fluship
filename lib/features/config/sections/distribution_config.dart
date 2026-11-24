@@ -25,6 +25,8 @@ class DistributionConfig extends StatelessWidget {
       'No OAuth JSON found. Please configure Google Drive in the Settings tab.';
   static const _buildReportCredError =
       'Configure Gmail and report recipient in Settings.';
+  static const _whatsappCredError =
+      'Add your agent API key and press Connect in the Settings tab.';
   static const _slackCredError =
       'No webhook URL found. Please configure Slack in the Settings tab.';
   static const _appStoreCredError =
@@ -45,14 +47,16 @@ class DistributionConfig extends StatelessWidget {
       builder: (context, dist) {
         final report = dist.reportRecipient ?? const ReportRecipientConfig();
         final playstore = dist.playstore ?? const GooglePlayConsoleConfig();
+        final whatsapp = dist.whatsappConfig ?? const WhatsAppConfig();
         final drive = dist.driveConfig ?? const GoogleDriveConfig();
         final slack = dist.slackConfig ?? const SlackConfig();
         final ios = dist.appstore ?? const IosConfig();
 
         final canBuildReport = dist.canSendBuildReport;
         final canAppStore = dist.canSendToAppStore;
-        final canSlack = dist.canSendToSlack;
+        final canWhatsApp = dist.canSendToWhatsApp;
         final canPlay = dist.canSendToPlayStore;
+        final canSlack = dist.canSendToSlack;
         final canDrive = dist.canSendToDrive;
         final sectionEnabled = dist.enabled;
 
@@ -168,6 +172,18 @@ class DistributionConfig extends StatelessWidget {
               onChange: (value) => _updateDistribution(
                 dist.copyWith(
                   reportRecipient: report.copyWith(buildReport: value),
+                ),
+                bloc,
+              ),
+            ),
+            SwitchLabel(
+              label: 'WhatsApp Summary → your agent chat',
+              error: canWhatsApp ? null : _whatsappCredError,
+              disabled: !sectionEnabled || !canWhatsApp,
+              value: canWhatsApp && whatsapp.enabled,
+              onChange: (value) => _updateDistribution(
+                dist.copyWith(
+                  whatsappConfig: whatsapp.copyWith(enabled: value),
                 ),
                 bloc,
               ),

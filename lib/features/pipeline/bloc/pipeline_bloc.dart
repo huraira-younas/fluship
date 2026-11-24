@@ -116,12 +116,14 @@ class PipelineBloc extends BaseBloc<PipelineEvent, PipelineState> {
       final contextFinishedAt = DateTime.now();
       return DistributionContext(
         onUploadProgress: (progress) => _applyUploadProgress(emit, progress),
-        emailTheme: emailTheme,
+        onLinkPublished: artifacts.addLink,
         config: configState.distribution,
+        emailTheme: emailTheme,
         snapshot: PipelineRunSnapshot(
           platforms: DistributionPlatforms.fromArtifacts(artifacts.paths),
           totalElapsed: contextFinishedAt.difference(startedAt),
           collectedArtifacts: List<String>.of(artifacts.paths),
+          links: Map<String, String>.of(artifacts.links),
           steps: List<PipelineStepView>.of(_stepViews),
           finishedAt: contextFinishedAt,
           artifactsDir: artifactsDir,

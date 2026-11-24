@@ -4,6 +4,7 @@ import 'play_store/play_store_uploader.dart';
 import 'app_store/app_store_uploader.dart';
 import 'drive/drive_auth_browser.dart';
 import 'drive/drive_uploader.dart';
+import 'whatsapp/whatsapp_agent_client.dart';
 import 'handlers/exports.dart';
 import 'email/exports.dart';
 
@@ -31,6 +32,7 @@ class DistributionModule {
         htmlBuilder: htmlBuilder,
         emailClient: emailClient,
       ),
+      .whatsapp: const WhatsAppHandler(client: WhatsAppAgentClient()),
     };
   }
 }

@@ -20,6 +20,11 @@ enum DistributionStepKind {
     'Email the build report to configured recipients',
     'Send Build Report',
     .report,
+  ),
+  whatsapp(
+    'Send the build summary and log to WhatsApp',
+    'Send to WhatsApp',
+    .whatsapp,
   );
 
   const DistributionStepKind(this.description, this.command, this.id);
@@ -28,12 +33,19 @@ enum DistributionStepKind {
   final String description;
   final String command;
 
+  /// Notifications go out even when the run aborted, so a failed build is
+  /// still reported.
+  bool get alwaysRun => switch (this) {
+    .report || .whatsapp => true,
+    .playStore || .appStore || .drive => false,
+  };
+
   /// Steps that must have produced an artifact for this upload to make sense.
   /// The report has no edge because it has to go out even for a failed run.
   Set<PipelineStepId> get dependsOn => switch (this) {
     .playStore => const {.collectAab},
     .appStore => const {.collectIpa},
     .drive => const {.collectApk},
-    .report => const {},
+    .report || .whatsapp => const {},
   };
 }

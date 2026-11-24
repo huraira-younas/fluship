@@ -6,6 +6,7 @@ export 'models/exports.dart';
 export 'email/exports.dart';
 export 'utils/exports.dart';
 export 'drive/exports.dart';
+export 'whatsapp/exports.dart';
 export 'slack/exports.dart';
 
 export 'upload/pipeline_upload_progress.dart';

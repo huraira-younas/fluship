@@ -1,4 +1,4 @@
-import 'dart:collection' show UnmodifiableListView;
+import 'dart:collection' show UnmodifiableListView, UnmodifiableMapView;
 
 /// Artifacts produced by the current run only.
 ///
@@ -19,4 +19,17 @@ class PipelineRunArtifacts {
   bool get isEmpty => _paths.isEmpty;
 
   void addAll(Iterable<String> collected) => _paths.addAll(collected);
+
+  final _links = <String, String>{};
+
+  /// Where this run's output can be downloaded, by label. An upload step
+  /// records its link here so a later step can pass it on.
+  late final UnmodifiableMapView<String, String> links = UnmodifiableMapView(
+    _links,
+  );
+
+  void addLink(String label, String url) {
+    if (label.trim().isEmpty || url.trim().isEmpty) return;
+    _links[label.trim()] = url.trim();
+  }
 }

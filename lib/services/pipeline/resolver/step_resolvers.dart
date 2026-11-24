@@ -221,7 +221,7 @@ CommandStep _distributionStep(
   final handler = handlers[kind]!;
   return CommandStep(
     description: kind.description,
-    alwaysRun: kind == .report,
+    alwaysRun: kind.alwaysRun,
     dependsOn: kind.dependsOn,
     command: kind.command,
     name: kind.command,
@@ -275,6 +275,28 @@ List<CommandStep> resolveReport(
   if (!_distributionFlag(dist.reportRecipient?.buildReport)) return const [];
 
   const kind = DistributionStepKind.report;
+  if (!handlers.containsKey(kind)) return const [];
+
+  return [
+    _distributionStep(
+      contextProvider: contextProvider,
+      handlers: handlers,
+      kind,
+    ),
+  ];
+}
+
+List<CommandStep> resolveWhatsApp(
+  ConfigState state, {
+  required Map<DistributionStepKind, DistributionHandler> handlers,
+  required Future<DistributionContext> Function() contextProvider,
+}) {
+  final dist = state.distribution;
+  if (!dist.enabled) return const [];
+  if (!dist.canSendToWhatsApp) return const [];
+  if (!_distributionFlag(dist.whatsappConfig?.enabled)) return const [];
+
+  const kind = DistributionStepKind.whatsapp;
   if (!handlers.containsKey(kind)) return const [];
 
   return [

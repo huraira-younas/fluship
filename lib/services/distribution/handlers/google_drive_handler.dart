@@ -72,6 +72,8 @@ class GoogleDriveHandler implements DistributionHandler {
       return DistributionResult.failed('Google Drive upload failed: $error');
     }
 
+    context.publishLink(name, upload.link);
+
     final emailResult = await _sendDriveLinkEmail(
       context: context,
       upload: upload,

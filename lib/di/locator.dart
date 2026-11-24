@@ -21,6 +21,7 @@ final getIt = GetIt.instance;
 
 class AppLocator {
   static void initialize() {
+    getIt.registerSingleton(const WhatsAppAgentClient());
     getIt.registerSingleton(const FilePickerService());
     getIt.registerSingleton(ProjectProfilesStore());
     getIt.registerSingleton(

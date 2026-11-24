@@ -228,6 +228,130 @@ void main() {
       expect(names.last, 'Send Build Report');
     });
 
+    test('places the WhatsApp step last and always runs it', () {
+      final state = _state(
+        postBuild: const PostBuildConfigModel(openOutputs: true),
+        distribution: const DistributionConfigModel(
+          whatsappConfig: WhatsAppConfig(
+            recipientId: 'user:1',
+            apiKey: 'key',
+            enabled: true,
+          ),
+          reportRecipient: ReportRecipientConfig(
+            reportRecipient: 'dev@example.com',
+            gmailAddress: 'sender@gmail.com',
+            buildReport: true,
+            appPassword: 'secret',
+          ),
+        ),
+      );
+
+      final steps = ConfigPipelineResolver.resolve(
+        state,
+        handlers: {
+          DistributionStepKind.whatsapp: const _FakeDistributionHandler(
+            DistributionStepKind.whatsapp,
+          ),
+          DistributionStepKind.report: const _FakeDistributionHandler(
+            DistributionStepKind.report,
+          ),
+        },
+        contextProvider: () => throw UnimplementedError(),
+        reportContextProvider: () => throw UnimplementedError(),
+        artifacts: _artifacts(),
+      );
+
+      final names = steps.map((step) => step.name).toList();
+      expect(names.sublist(names.length - 2), [
+        'Send Build Report',
+        'Send to WhatsApp',
+      ]);
+
+      final whatsapp = steps.last;
+      expect(whatsapp.id, PipelineStepId.whatsapp);
+      expect(whatsapp.isInternal, isTrue);
+      expect(whatsapp.alwaysRun, isTrue);
+      expect(whatsapp.dependsOn, isEmpty);
+    });
+
+    test('reads the final run state for the WhatsApp step', () async {
+      var reportContexts = 0;
+      var uploadContexts = 0;
+
+      final steps = ConfigPipelineResolver.resolve(
+        _state(
+          distribution: const DistributionConfigModel(
+            whatsappConfig: WhatsAppConfig(
+              recipientId: 'user:1',
+              apiKey: 'key',
+              enabled: true,
+            ),
+          ),
+        ),
+        handlers: {
+          DistributionStepKind.whatsapp: const _FakeDistributionHandler(
+            DistributionStepKind.whatsapp,
+          ),
+        },
+        contextProvider: () {
+          uploadContexts++;
+          throw UnimplementedError();
+        },
+        reportContextProvider: () {
+          reportContexts++;
+          throw UnimplementedError();
+        },
+        artifacts: _artifacts(),
+      );
+
+      await expectLater(steps.single.onExecute!(), throwsUnimplementedError);
+      expect(reportContexts, 1);
+      expect(uploadContexts, 0);
+    });
+
+    test('leaves the WhatsApp step out until it can send', () {
+      List<String> namesFor(WhatsAppConfig whatsapp, {bool enabled = true}) {
+        return ConfigPipelineResolver.resolve(
+          _state(
+            distribution: DistributionConfigModel(
+              whatsappConfig: whatsapp,
+              enabled: enabled,
+            ),
+          ),
+          handlers: {
+            DistributionStepKind.whatsapp: const _FakeDistributionHandler(
+              DistributionStepKind.whatsapp,
+            ),
+          },
+          contextProvider: () => throw UnimplementedError(),
+          reportContextProvider: () => throw UnimplementedError(),
+          artifacts: _artifacts(),
+        ).map((step) => step.name).toList();
+      }
+
+      const ready = WhatsAppConfig(
+        recipientId: 'user:1',
+        apiKey: 'key',
+        enabled: true,
+      );
+
+      expect(namesFor(ready), ['Send to WhatsApp']);
+      expect(namesFor(ready, enabled: false), isEmpty);
+      expect(namesFor(ready.copyWith(enabled: false)), isEmpty);
+      expect(namesFor(ready.copyWith(clearRecipient: true)), isEmpty);
+      expect(namesFor(ready.copyWith(clearApiKey: true)), isEmpty);
+    });
+
+    test('only notifications run after an aborted build', () {
+      expect(
+        {
+          for (final kind in DistributionStepKind.values)
+            if (kind.alwaysRun) kind,
+        },
+        {DistributionStepKind.report, DistributionStepKind.whatsapp},
+      );
+    });
+
     test('skips distribution steps when no handlers match', () {
       final state = _state(
         distribution: const DistributionConfigModel(

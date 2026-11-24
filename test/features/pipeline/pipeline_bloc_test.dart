@@ -386,6 +386,97 @@ void main() {
       await bloc.close();
     });
 
+    test('still sends to WhatsApp after an aborting failure', () async {
+      final config = FakePipelineConfigSource(
+        _configWithReport().copyWith(
+          distribution: _configWithReport().distribution.copyWith(
+            whatsappConfig: const WhatsAppConfig(
+              recipientId: 'user:1',
+              apiKey: 'key',
+              enabled: true,
+            ),
+          ),
+        ),
+      );
+      final console = FakePipelineConsolePort(failCommand: 'flutter clean');
+      final whatsapp = _RecordingDistributionHandler();
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: console,
+        distributions: {
+          DistributionStepKind.report: const _FakeDistributionHandler(),
+          DistributionStepKind.whatsapp: whatsapp,
+        },
+      );
+
+      bloc.add(const RunPipeline());
+      await _runToCompletion(bloc);
+
+      expect(_statusByName(bloc), {
+        'Clean': PipelineStepStatus.failed,
+        'Build App Bundle': PipelineStepStatus.skipped,
+        'Collect App Bundle': PipelineStepStatus.skipped,
+        'Send Build Report': PipelineStepStatus.completed,
+        'Send to WhatsApp': PipelineStepStatus.completed,
+      });
+
+      // It runs last, so it sees how every other step ended.
+      final seen = {
+        for (final step in whatsapp.snapshot!.steps) step.name: step.status,
+      };
+      expect(seen['Clean'], PipelineStepStatus.failed);
+      expect(seen['Send Build Report'], PipelineStepStatus.completed);
+      expect(whatsapp.snapshot!.runStatus, PipelineRunStatus.failed);
+
+      await bloc.close();
+    });
+
+    test('hands a link an upload published to the WhatsApp step', () async {
+      final config = FakePipelineConfigSource(
+        ConfigState.empty().copyWith(
+          appInfo: const AppInfoModel(
+            flushipWorkspacePath: '/fluship',
+            flutterProjectPath: '/project',
+          ),
+          distribution: const DistributionConfigModel(
+            enabled: true,
+            playstore: GooglePlayConsoleConfig(
+              saJsonPath: '/secrets/play.json',
+              distribution: .internal,
+              packageName: 'com.demo',
+            ),
+            whatsappConfig: WhatsAppConfig(
+              recipientId: 'user:1',
+              apiKey: 'key',
+              enabled: true,
+            ),
+          ),
+        ),
+      );
+      final whatsapp = _RecordingDistributionHandler();
+      final bloc = PipelineBloc(
+        FakePipelineLogWriter(),
+        configSource: config,
+        consolePort: FakePipelineConsolePort(),
+        distributions: {
+          DistributionStepKind.playStore: const _LinkDistributionHandler(),
+          DistributionStepKind.whatsapp: whatsapp,
+        },
+      );
+
+      bloc.add(const RunPipeline());
+      await _runToCompletion(bloc);
+
+      expect(bloc.state.steps.map((s) => s.name), [
+        'Upload to Play Store',
+        'Send to WhatsApp',
+      ]);
+      expect(whatsapp.snapshot!.links, {'Store': 'https://example.com/build'});
+
+      await bloc.close();
+    });
+
     test('removing a pending step also drops what depends on it', () async {
       final config = FakePipelineConfigSource(_configWithBothAndroidBuilds());
       final console = FakePipelineConsolePort(delayStep: true);
@@ -728,6 +819,32 @@ class _StubPipelineExecutor extends PipelineExecutor {
   @override
   Future<PipelineStepResult> executeInternal(CommandStep step) async {
     return const PipelineStepResult(success: true);
+  }
+}
+
+class _RecordingDistributionHandler implements DistributionHandler {
+  PipelineRunSnapshot? snapshot;
+
+  @override
+  String get name => 'Recording';
+
+  @override
+  Future<DistributionResult> run(DistributionContext context) async {
+    snapshot = context.snapshot;
+    return DistributionResult.success('ok');
+  }
+}
+
+class _LinkDistributionHandler implements DistributionHandler {
+  const _LinkDistributionHandler();
+
+  @override
+  String get name => 'Link';
+
+  @override
+  Future<DistributionResult> run(DistributionContext context) async {
+    context.publishLink('Store', 'https://example.com/build');
+    return DistributionResult.success('ok');
   }
 }
 

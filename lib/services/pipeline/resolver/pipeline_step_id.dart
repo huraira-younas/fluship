@@ -26,6 +26,7 @@ enum PipelineStepId {
   distAppStore,
   distDrive,
   distPlay,
+  whatsapp,
   report,
 
   openOutputs,
