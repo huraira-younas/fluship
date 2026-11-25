@@ -11,9 +11,10 @@ class const GmailSmtpClient() implements EmailClient {
   Future<void> send(EmailMessage message) async {
     final server = gmail(message.sender, message.password);
     final mail = mailer.Message()
-      ..from = mailer.Address(message.sender)
+      ..from = mailer.Address(message.sender, message.senderName)
       ..recipients.addAll(message.recipients)
       ..subject = message.subject
+      ..text = message.text
       ..html = message.html;
 
     final attachmentPath = message.attachmentPath;

@@ -166,7 +166,12 @@ void main() {
     expect(emailClient.sendCalls, 1);
     expect(emailClient.lastMessage?.recipients, ['dev@example.com']);
     expect(emailClient.lastMessage?.attachmentPath, logFile.path);
-    expect(emailClient.lastMessage?.subject, contains('Build Report'));
+    final message = emailClient.lastMessage!;
+    expect(message.subject, endsWith('build report: succeeded'));
+    expect(message.subject, matches(RegExp(r'^[A-Za-z0-9]')));
+    expect(message.text, contains('- Build APK: passed'));
+    expect(message.text, isNot(contains('<')));
+    expect(message.senderName, 'Fluship');
   });
 
   test('returns failed when email client throws', () async {

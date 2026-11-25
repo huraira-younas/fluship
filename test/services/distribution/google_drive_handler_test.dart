@@ -301,7 +301,11 @@ void main() {
     expect(driveUploader.uploadCalls, 1);
     expect(emailClient.sendCalls, 1);
     expect(emailClient.lastMessage?.recipients, ['tester@example.com']);
-    expect(emailClient.lastMessage?.subject, contains('Download Link'));
+    final message = emailClient.lastMessage!;
+    expect(message.subject, endsWith('build uploaded to Google Drive'));
+    expect(message.subject, matches(RegExp(r'^[A-Za-z0-9]')));
+    expect(message.text, contains('- Demo-v1.0.0+42.apk'));
+    expect(message.text, contains('Open in Google Drive: '));
     expect(logger.lines, contains('Google Drive: uploading Demo.apk\n'));
   });
 

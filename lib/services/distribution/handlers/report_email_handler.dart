@@ -47,21 +47,35 @@ class const ReportEmailHandler({
     }
 
     final snapshot = context.snapshot;
+    final totalElapsed = PipelineUtils.formatPipelineDuration(
+      snapshot.totalElapsed,
+    );
+    final steps = _htmlBuilder.stepsFromPipelineViews(snapshot.steps);
     final html = _htmlBuilder.build(
-      totalElapsed: PipelineUtils.formatPipelineDuration(snapshot.totalElapsed),
-      steps: _htmlBuilder.stepsFromPipelineViews(snapshot.steps),
       buildNumber: snapshot.buildNumber,
       platforms: snapshot.platforms,
       success: snapshot.success,
       theme: context.emailTheme,
       appName: snapshot.appName,
       version: snapshot.version,
+      totalElapsed: totalElapsed,
+      steps: steps,
+    );
+    final text = _htmlBuilder.buildText(
+      buildNumber: snapshot.buildNumber,
+      platforms: snapshot.platforms,
+      success: snapshot.success,
+      appName: snapshot.appName,
+      version: snapshot.version,
+      totalElapsed: totalElapsed,
+      steps: steps,
     );
 
-    final statusEmoji = snapshot.success ? '✓' : '✗';
+    // Plain words only: a leading symbol in the subject reads as spam.
+    final outcome = snapshot.success ? 'succeeded' : 'failed';
     final subject =
-        '$statusEmoji ${snapshot.appName} '
-        'v${snapshot.version}+${snapshot.buildNumber} — Build Report';
+        '${snapshot.appName} v${snapshot.version}+${snapshot.buildNumber} '
+        'build report: $outcome';
 
     try {
       await _emailClient.send(
@@ -72,6 +86,7 @@ class const ReportEmailHandler({
           sender: gmailUser,
           subject: subject,
           html: html,
+          text: text,
         ),
       );
 

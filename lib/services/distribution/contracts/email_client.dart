@@ -1,10 +1,12 @@
 class const EmailMessage({
   required final List<String> recipients,
-  required final String subject,
-  required final String html,
-  required final String sender,
+  final String senderName = 'Fluship',
   required final String password,
+  required final String subject,
   final String? attachmentPath,
+  required final String sender,
+  required final String text,
+  required final String html,
 });
 
 abstract interface class EmailClient {

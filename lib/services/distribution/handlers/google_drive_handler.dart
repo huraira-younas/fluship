@@ -113,12 +113,20 @@ class const GoogleDriveHandler({
       link: upload.link,
       label: label,
     );
+    final text = htmlBuilder.buildDriveLinkText(
+      buildNumber: snapshot.buildNumber,
+      fileNames: upload.fileNames,
+      version: snapshot.version,
+      link: upload.link,
+      label: label,
+    );
 
     final versionTag =
         snapshot.version.isNotEmpty && snapshot.buildNumber.isNotEmpty
         ? ' v${snapshot.version}+${snapshot.buildNumber}'
         : '';
-    final subject = '📦 $label Build Ready$versionTag - Download Link';
+    // Plain words only: an emoji plus "Download Link" reads as phishing.
+    final subject = '$label$versionTag build uploaded to Google Drive';
 
     try {
       await emailClient.send(
@@ -128,6 +136,7 @@ class const GoogleDriveHandler({
           sender: gmailUser,
           subject: subject,
           html: html,
+          text: text,
         ),
       );
 
